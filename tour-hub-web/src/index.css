@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: #111827;
+  background: #f7f8fa;
+  -webkit-font-smoothing: antialiased;
+}
+
+.slide-enter {
+  animation: slide-in 0.4s ease-out forwards;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.aspect-presentation {
+  aspect-ratio: 16 / 9;
+}
+
+.amap-stage {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
+.amap-stage .amap-logo,
+.amap-stage .amap-copyright {
+  opacity: 0.55 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-enter {
+    animation: none !important;
+  }
+}

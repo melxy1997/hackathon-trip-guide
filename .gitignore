@@ -1,0 +1,41 @@
+# 依赖与构建
+node_modules/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+
+# 环境变量与密钥
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# 日志与缓存
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.cache/
+.vite/
+
+# 编辑器与系统
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# 测试与覆盖率
+coverage/
+playwright-report/
+test-results/
+.playwright-mcp/
+
+# 临时文件
+*.tmp
+*.temp
+.temp/
+.tmp/
