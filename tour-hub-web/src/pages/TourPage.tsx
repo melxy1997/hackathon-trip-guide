@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -19,23 +19,14 @@ import { getCachedRoute, hydrateRouteCache, ingestRoutes, setCachedRoute, type L
 import { loadPublishedAttraction } from '../lib/catalog'
 import { resolveMediaUrl, type PublishedAttraction, type PublishedSpot } from '../lib/tourPackage'
 
+import { requestModel } from '../lib/modelApi'
+
 type TourNode = PublishedSpot
 
 const TRIGGER_METERS = 38
 const SPEECH_TRAIL_MS = 200
 /** 景点加载前的占位；真实起点以发布包 start 为准 */
 const PLACEHOLDER_POS: LngLat = { lng: 0, lat: 0 }
-
-function buildSystemPrompt(name: string) {
-  return `你是${name}的AI导游。只能回答与该景点历史、建筑、文化相关的问题。回答要简洁、口语化，控制在150字以内。如果问题无关，请礼貌拒绝。`
-}
-
-const MOCK_ANSWERS: Record<string, string> = {
-  豫园: '豫园始建于明代嘉靖、万历年间，是上海著名的江南古典园林，至今已有四百余年历史。',
-  门票: '豫园需购票入园，可在官方渠道或现场购买，建议提前查询当日开放时间。',
-  建筑: '豫园以亭台楼阁、假山池沼见长，玉玲珑、大假山、九曲桥都是标志性景观。',
-  历史: '豫园原为四川布政使潘允端为父亲安度晚年所建，后历经战火与修复，成为上海城市名片。',
-}
 
 function findChineseVoice(voices: SpeechSynthesisVoice[]) {
   return (
@@ -493,40 +484,12 @@ export function TourPage() {
     if (!question.trim()) return
     setAsking(true)
     setAnswer('')
-    const baseUrl = import.meta.env.VITE_DEEPSEEK_BASE_URL
-    const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY
-    const model = import.meta.env.VITE_DEEPSEEK_MODEL || 'deepseek-v4.1-flash'
-
     try {
-      if (!baseUrl || !apiKey) throw new Error('missing env')
-      const res = await fetch(`${baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: buildSystemPrompt(attraction?.name || '景点') },
-            { role: 'user', content: question.trim() },
-          ],
-          stream: false,
-          max_tokens: 512,
-        }),
-      })
-      if (!res.ok) throw new Error(`status ${res.status}`)
-      const data = await res.json()
-      const text = data.choices?.[0]?.message?.content?.trim()
-      setAnswer(text || 'AI 没有返回内容')
+      const result = await requestModel<{ answer: string }>('/api/scene/ask', { attractionId: id, spotId: activeNode?.id, question: question.trim() })
+      setAnswer(result.answer)
     } catch {
-      const q = question.trim()
-      const hit = Object.keys(MOCK_ANSWERS).find((k) => q.includes(k))
-      setAnswer(
-        hit
-          ? MOCK_ANSWERS[hit]
-          : `当前未接入 API，我先用本地知识回答：${attraction?.name || '这里'}值得慢慢逛。`,
-      )
+      const local = activeNode?.slides[slideIndex]?.narration || attraction?.description
+      setAnswer(`在线问答暂不可用。以下是已发布讲解摘录，未针对问题生成回答：${local || '请查看景区官方资料。'}`)
     } finally {
       setAsking(false)
     }

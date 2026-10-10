@@ -25,4 +25,12 @@ export interface DraftAttraction {
   createdAt: number
   updatedAt: number
   experience?: ExperienceDefinitionV1
+  storyReview?: {
+    status: 'pending' | 'approved'
+    generatedBy: 'template' | 'online' | 'manual'
+    sourceAttractionId?: string
+    requestId?: string
+    diagnostics?: string[]
+    reviewedAt?: number
+  }
 }

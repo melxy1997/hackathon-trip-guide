@@ -1,5 +1,6 @@
-﻿import type { DraftAttraction, Spot } from '../types/attraction'
+import type { DraftAttraction, Spot } from '../types/attraction'
 import type { LngLat } from './tourPackage'
+import { requestModel } from './modelApi'
 
 const OFFSETS: LngLat[] = [
   { lng: -0.00035, lat: 0.00012 },
@@ -67,15 +68,6 @@ function mockSpots(attraction: GenerateDraftInput): Spot[] {
   })
 }
 
-function extractJson(text: string): unknown {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i)
-  const raw = (fenced?.[1] || text).trim()
-  const start = raw.indexOf('{')
-  const end = raw.lastIndexOf('}')
-  if (start < 0 || end <= start) throw new Error('AI 未返回 JSON')
-  return JSON.parse(raw.slice(start, end + 1))
-}
-
 function toSpots(attraction: GenerateDraftInput, drafts: AiSpotDraft[]): Spot[] {
   const center = attraction.start
   return drafts.slice(0, 8).map((d, i) => {
@@ -112,76 +104,12 @@ function toSpots(attraction: GenerateDraftInput, drafts: AiSpotDraft[]): Spot[] 
   })
 }
 
-/** 调用 DeepSeek；把高德地点上下文一并输入。失败回落 mock */
-export async function generateDraftSpots(attraction: GenerateDraftInput): Promise<Spot[]> {
-  const baseUrl = import.meta.env.VITE_DEEPSEEK_BASE_URL
-  const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY
-  const model = import.meta.env.VITE_DEEPSEEK_MODEL || 'deepseek-chat'
-
-  if (!baseUrl || !apiKey) {
-    return mockSpots(attraction)
-  }
-
-  const system = `你是文旅导览内容策划。根据景点信息与高德地图检索到的真实地点，生成 4～6 个导览节点。
-优先选用高德返回的真实地点名称与游览顺序；可补充必要过渡点，但不要编造不存在的建筑。
-只输出一个 JSON 对象，不要其它说明。格式：
-{
-  "spots": [
-    {
-      "name": "节点中文名（尽量与高德地点名一致）",
-      "poetic": "简短诗意副标题",
-      "searchHint": "用于高德地图检索的关键词，含城市与景点名，如：上海 豫园 三穗堂",
-      "slides": [
-        {
-          "title": "讲解标题",
-          "bullets": ["要点1", "要点2", "要点3"],
-          "narration": "约80～150字口语讲解稿，可融入地点类型/地址信息"
-        }
-      ]
-    }
-  ]
-}`
-
-  const user = `景点名称：${attraction.name}
-城市/区域：${attraction.city || '（未知）'}
-简介：${attraction.description || '（无）'}
-
-【高德地图地点信息】
-${attraction.amapContext || '（暂无，请按常识规划合理游览顺序）'}
-
-请基于以上高德地点生成实地可走的导览节点；searchHint 要便于再次地图定位。`
-
+/** Private model calls go through the server. Offline placeholders remain explicit. */
+export async function generateDraftSpots(attraction: GenerateDraftInput): Promise<{ spots: Spot[]; mode: 'online' | 'template' }> {
   try {
-    const res = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: user },
-        ],
-        stream: false,
-        temperature: 0.7,
-        max_tokens: 2048,
-      }),
-    })
-    if (!res.ok) throw new Error(`AI HTTP ${res.status}`)
-    const data = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>
-    }
-    const content = data.choices?.[0]?.message?.content?.trim()
-    if (!content) throw new Error('AI 无内容')
-    const parsed = extractJson(content) as { spots?: AiSpotDraft[] }
-    if (!Array.isArray(parsed.spots) || parsed.spots.length === 0) {
-      throw new Error('AI JSON 无 spots')
-    }
-    return toSpots(attraction, parsed.spots)
-  } catch (e) {
-    console.warn('[aiDraft] fallback mock', e)
-    return mockSpots(attraction)
+    const result = await requestModel<{ spots: AiSpotDraft[] }>('/api/draft/spots', attraction)
+    return { spots: toSpots(attraction, result.spots), mode: 'online' }
+  } catch {
+    return { spots: mockSpots(attraction), mode: 'template' }
   }
 }

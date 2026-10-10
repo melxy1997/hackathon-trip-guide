@@ -123,10 +123,18 @@ export function createDraft(input: {
   return item
 }
 
+function contentChanged(before: DraftAttraction, after: DraftAttraction): boolean {
+  const content = (d: DraftAttraction) => [d.name, d.description, d.start, d.zoom, d.spots, d.coverImage, d.experience]
+  return JSON.stringify(content(before)) !== JSON.stringify(content(after))
+}
+
 export function saveDraft(next: DraftAttraction): DraftAttraction {
   const list = listLocalDrafts()
   const idx = list.findIndex((a) => a.id === next.id)
   const saved = { ...next, updatedAt: Date.now() }
+  if (idx >= 0 && list[idx].storyReview && contentChanged(list[idx], saved)) {
+    saved.storyReview = { ...list[idx].storyReview, status: 'pending', reviewedAt: undefined }
+  }
   if (idx >= 0) list[idx] = saved
   else list.unshift(saved)
   writeAll(list)
@@ -289,6 +297,7 @@ export async function publishDraft(
 } | null> {
   const item = getDraft(id)
   if (!item || item.spots.length === 0) return null
+  if (item.storyReview && item.storyReview.status !== 'approved') throw new Error('候选故事尚未人工审核。请在故事编排中检查史实、来源和素材授权后确认审核。')
   const draft = saveDraft({
     ...item,
     status: 'draft',
@@ -296,6 +305,7 @@ export async function publishDraft(
     zoom: typeof opts?.zoom === 'number' && opts.zoom > 0 ? opts.zoom : item.zoom || DEFAULT_MAP_ZOOM,
     coverImage: item.coverImage || item.spots[0].image,
   })
+  if (draft.storyReview && draft.storyReview.status !== 'approved') throw new Error('发布参数改变了已审核内容，请重新审核。')
   const pkg = await toPublishedPackage(draft)
 
   try {

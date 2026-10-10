@@ -1,5 +1,5 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowDown,
   ArrowLeft,
@@ -33,6 +33,7 @@ function readImageFile(file: File): Promise<string> {
 
 export function PublishEditorPage() {
   const { id = '' } = useParams()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const [draft, setDraft] = useState<DraftAttraction | null>(null)
   const [stage, setStage] = useState<EditorStage>(1)
@@ -57,12 +58,12 @@ export function PublishEditorPage() {
       setDraft(item)
       setSelectedId(item.spots[0]?.id ?? null)
       setMapCenter(item.start)
-      setStage(item.spots.length > 0 || item.status === 'published' ? 2 : 1)
+      setStage(searchParams.get('tab') === 'story' && item.experience ? 'story' : item.spots.length > 0 || item.status === 'published' ? 2 : 1)
     })()
     return () => {
       cancelled = true
     }
-  }, [id, navigate])
+  }, [id, navigate, searchParams])
 
   const selected = useMemo(
     () => draft?.spots.find((s) => s.id === selectedId) || null,
@@ -204,7 +205,8 @@ export function PublishEditorPage() {
       }
 
       setToast('AI 正在结合高德地点生成导览内容…')
-      const spots = await generateDraftSpots(working)
+      const generated = await generateDraftSpots(working)
+      const { spots } = generated
       working = persist({
         ...working,
         spots,
@@ -227,7 +229,9 @@ export function PublishEditorPage() {
         mapApiRef.current?.setZoom(located.zoom)
       }, 200)
       setToast(
-        located.locatedCount > 0
+        generated.mode === 'template'
+          ? `本地占位模板生成 ${saved.spots.length} 站（未调用模型）；名称、坐标与讲解需人工核验`
+          : located.locatedCount > 0
           ? `已生成 ${saved.spots.length} 站，并定位 ${located.locatedCount} 个节点；可改文案、传图、拖标记`
           : `已生成 ${saved.spots.length} 站；坐标需在地图上拖动校准`,
       )
@@ -498,7 +502,7 @@ export function PublishEditorPage() {
             </div>
           </div>
         </div>
-      ) : stage === 'story' && draft.experience ? <StoryEditor draft={{ ...draft, experience: draft.experience }} onChange={experience => updateDraft({ experience })} /> : (
+      ) : stage === 'story' && draft.experience ? <StoryEditor draft={{ ...draft, experience: draft.experience }} onChange={experience => updateDraft({ experience })} onReview={storyReview => updateDraft({ storyReview })} /> : (
         <div className="flex-1 min-h-0 flex">
           <aside className="w-[min(100%,380px)] shrink-0 border-r border-black/5 bg-white flex flex-col min-h-0">
             <div className="p-4 space-y-3 border-b border-black/5 shrink-0">

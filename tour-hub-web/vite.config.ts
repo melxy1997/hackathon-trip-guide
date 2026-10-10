@@ -5,5 +5,6 @@ import { exportToDisplayPlugin } from './vite-plugin-export-to-display.ts'
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), exportToDisplayPlugin()],
-  server: { port: 5173 },
+  server: { port: 5173, proxy: { '/api': 'http://127.0.0.1:8787' } },
+  preview: { proxy: { '/api': 'http://127.0.0.1:8787' } },
 })

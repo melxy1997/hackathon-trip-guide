@@ -5,6 +5,7 @@ import { loadCatalog } from '../lib/catalog'
 import { createDraft, deleteDraft, listLocalDrafts } from '../lib/draftStore'
 import type { CatalogItem } from '../lib/tourPackage'
 import type { DraftAttraction } from '../types/attraction'
+import { BuilderPanel } from '../experience/components/BuilderPanel'
 
 type ListRow = {
   id: string
@@ -54,12 +55,14 @@ function mergeRows(catalog: CatalogItem[], drafts: DraftAttraction[]): ListRow[]
 export function PublishListPage() {
   const navigate = useNavigate()
   const [rows, setRows] = useState<ListRow[]>([])
+  const [catalog, setCatalog] = useState<CatalogItem[]>([])
   const [error, setError] = useState('')
   const [tick, setTick] = useState(0)
 
   const reload = useCallback(() => {
     loadCatalog()
       .then((catalog) => {
+        setCatalog(catalog)
         setRows(mergeRows(catalog, listLocalDrafts()))
         setError('')
       })
@@ -108,6 +111,7 @@ export function PublishListPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-5 sm:px-8 py-6 sm:py-8 space-y-6">
+        <BuilderPanel catalog={catalog} />
         {error && rows.length === 0 ? (
           <div className="rounded-2xl border border-red-100 bg-white px-6 py-8 text-sm text-red-600">{error}</div>
         ) : null}

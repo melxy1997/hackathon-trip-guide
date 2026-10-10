@@ -63,7 +63,7 @@ export function ExperiencePlayer({ pkg, preview, director }: { pkg: PublishedAtt
         {narration.message && <p role="status" className="tw-notice">{narration.message}</p>}
         {resumed && <p className="tw-notice">已恢复本机保存的故事进度；声音需再次点按开启。</p>}
         <details className="tw-route" open><summary>故事路线 <span>模拟地点</span></summary><ol>{pkg.spots.map((s, i) => <li key={s.id} className={spot?.id === s.id ? 'tw-route-active' : ''}><b>{String(i + 1).padStart(2, '0')}</b><div><p>{s.name}</p><small>{state.visitedSpotIds.includes(s.id) ? '已走进故事' : spot?.id === s.id ? '下一站' : '等待探索'}</small></div></li>)}</ol><p className="tw-fineprint">静态站点指引无需地图 Key；路线未经现场核验。<Link to={`/tour/${pkg.id}`}>打开原版地图导览</Link></p></details>
-        <details className="tw-sources"><summary>关于家书与资料来源</summary><p>家书不存在于史料中，是连接园林与情感的文学创作。地点和照片沿用豫园原型素材，授权与史实仍需发布前审核。</p>{definition.sources.map(s => <a key={s.id} href={s.url} target="_blank" rel="noreferrer">{s.title} ↗</a>)}</details>
+        <details className="tw-sources"><summary>关于故事与资料来源</summary><p>标记为文学创作的人物、情节与自由联想不代表史实。地点和照片沿用所选景点的资料包，授权与史实须由发布者审核。</p>{definition.sources.length ? definition.sources.map(s => <a key={s.id} href={s.url} target="_blank" rel="noreferrer">{s.title} ↗</a>) : <p>此故事未关联史实来源，旁白应作为文学创作阅读。</p>}</details>
         {diagnostics.length > 0 && <p role="alert" className="tw-notice">{diagnostics.join('；')}</p>}
       </aside>
     </main>}
