@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "id": "yuyuan-timewalker",
+  "name": "豫园｜时空漫游者",
+  "description": "一封虚构家书引导的沉浸式园林故事体验。历史背景有真实来源，人物对白与家书均为艺术演绎。",
+  "start": { "lng": 121.49185, "lat": 31.22732 },
+  "zoom": 17.5,
+  "coverImage": "/spots/san-sui-tang.jpg",
+  "publishedAt": 1791600000000,
+  "spots": [
+    { "id": "san-sui-tang", "name": "三穗堂", "poetic": "入园 · 故事启封", "lng": 121.49185, "lat": 31.22732, "triggerRadiusMeters": 38, "image": "/spots/san-sui-tang.jpg", "imageCredit": "沿用原仓库素材，正式发布须核对 ATTRIBUTION.md", "slides": [{ "title": "家书初现", "bullets": ["从今日园林进入历史叙事", "家书及角色对白为文学创作"], "narration": "欢迎来到豫园。让我们以一封虚构的家书为线索，重新感受这座园林。" }] },
+    { "id": "da-jia-shan", "name": "大假山", "poetic": "一园山水", "lng": 121.49205, "lat": 31.22755, "triggerRadiusMeters": 38, "image": "/spots/da-jia-shan.jpg", "imageCredit": "沿用原仓库素材，正式发布须核对 ATTRIBUTION.md", "slides": [{ "title": "山水有意", "bullets": ["观察假山", "选择你喜欢的解读角度"], "narration": "园林造景里，一座假山也可能承载人们对自然的想象。" }] },
+    { "id": "yu-ling-long", "name": "玉玲珑", "poetic": "石中见景", "lng": 121.49252, "lat": 31.22708, "triggerRadiusMeters": 38, "image": "/spots/yu-ling-long.jpg", "imageCredit": "沿用原仓库素材，正式发布须核对 ATTRIBUTION.md", "slides": [{ "title": "玉玲珑", "bullets": ["观察石头的孔洞与轮廓"], "narration": "先仔细看看眼前这块石头的轮廓。" }] },
+    { "id": "dian-chun-tang", "name": "点春堂", "poetic": "一园一念", "lng": 121.49238, "lat": 31.22768, "triggerRadiusMeters": 38, "image": "/spots/dian-chun-tang.jpg", "imageCredit": "沿用原仓库素材，正式发布须核对 ATTRIBUTION.md", "slides": [{ "title": "回望园林", "bullets": ["回顾一路的发现"], "narration": "你今天在这里发现的，已成为属于自己的故事。" }] }
+  ],
+  "experience": {
+    "schemaVersion": 1,
+    "id": "yuyuan-letter-demo",
+    "title": "一封穿越四百年的家书",
+    "premise": "以豫园营建背景为史实基础，以一封不存在于史料中的虚构家书构成故事线索。",
+    "estimatedMinutes": 5,
+    "initialSceneId": "prologue",
+    "initialVariables": { "aestheticLens": "unset", "observedJade": false },
+    "sources": [
+      { "id": "yuyuan-official", "title": "豫园官网·古园春秋", "url": "https://www.yugarden.com.cn/page/articleView/history-scenery.html", "authority": "official" },
+      { "id": "shanghai-gov", "title": "上海市政府·上海豫园", "url": "https://www.shanghai.gov.cn/citywalk/20260625/3a8ac74e088f4d468d9c3434b0b43d94.html", "authority": "official" }
+    ],
+    "scenes": [
+      {
+        "id": "prologue", "spotId": "san-sui-tang", "title": "序幕：纸上春秋", "mode": "cinematic",
+        "blocks": [
+          { "id": "opening-image", "type": "image", "assetRef": "/spots/san-sui-tang.jpg" },
+          { "id": "opening-voice", "type": "narration", "text": "如果眼前的亭台会说话，它们想留给后来的人怎样一句话？今天，我们沿着一封虚构家书走进豫园。它是故事的线索，而不是一件真实出土的文物。", "fictional": true, "sourceIds": ["yuyuan-official"] }
+        ],
+        "transitions": [{ "to": "rockery" }]
+      },
+      {
+        "id": "rockery", "spotId": "da-jia-shan", "title": "第二幕：山水有意", "mode": "cinematic",
+        "blocks": [
+          { "id": "rockery-image", "type": "image", "assetRef": "/spots/da-jia-shan.jpg" },
+          { "id": "rockery-voice", "type": "narration", "text": "在大假山前停一停。园林不仅是建筑的集合，也有对山水与自然的想象。如果只选一个方向理解它，你会更在意天然野趣，还是人的精巧营造？", "fictional": true, "sourceIds": ["shanghai-gov"] }
+        ],
+        "interaction": {
+          "id": "aesthetic-choice", "type": "single_choice",
+          "options": [
+            { "id": "nature", "label": "山林野趣：我想看天然之美", "actions": [{ "type": "setVar", "key": "aestheticLens", "value": "nature" }, { "type": "goTo", "sceneId": "jade-nature" }] },
+            { "id": "craft", "label": "匠心造景：我想看人工之巧", "actions": [{ "type": "setVar", "key": "aestheticLens", "value": "craft" }, { "type": "goTo", "sceneId": "jade-craft" }] }
+          ]
+        }
+      },
+      {
+        "id": "jade-nature", "spotId": "yu-ling-long", "title": "第三幕：石中自然", "mode": "observation",
+        "blocks": [
+          { "id": "jade-image-n", "type": "image", "assetRef": "/spots/yu-ling-long.jpg" },
+          { "id": "jade-voice-n", "type": "narration", "text": "你刚才选择了山林野趣。请看玉玲珑的轮廓、孔洞与光影：对于赏石的人来说，自然生成的变化本身就可以成为观赏对象。", "fictional": false, "sourceIds": ["shanghai-gov", "yuyuan-official"] }
+        ],
+        "interaction": { "id": "jade-observation-n", "type": "photo_or_tap", "fallback": "manual_confirm", "actionsOnComplete": [{ "type": "setVar", "key": "observedJade", "value": true }, { "type": "revealMemory", "memoryId": "jade-observed" }, { "type": "goTo", "sceneId": "epilogue" }] }
+      },
+      {
+        "id": "jade-craft", "spotId": "yu-ling-long", "title": "第三幕：石与匠心", "mode": "observation",
+        "blocks": [
+          { "id": "jade-image-c", "type": "image", "assetRef": "/spots/yu-ling-long.jpg" },
+          { "id": "jade-voice-c", "type": "narration", "text": "你刚才选择了匠心造景。请想象造园者如何选择一块独特的石头，又怎样安排它与周围的亭台、道路和视线；我们不只是欣赏一块石头，也在理解园林的构图。", "fictional": true, "sourceIds": ["yuyuan-official"] }
+        ],
+        "interaction": { "id": "jade-observation-c", "type": "photo_or_tap", "fallback": "manual_confirm", "actionsOnComplete": [{ "type": "setVar", "key": "observedJade", "value": true }, { "type": "revealMemory", "memoryId": "jade-observed" }, { "type": "goTo", "sceneId": "epilogue" }] }
+      },
+      {
+        "id": "epilogue", "spotId": "dian-chun-tang", "title": "终幕：一园一念", "mode": "ending",
+        "blocks": [
+          { "id": "ending-image", "type": "image", "assetRef": "/spots/dian-chun-tang.jpg" },
+          { "id": "ending-voice", "type": "narration", "text": "一封虚构的家书，让我们换一种方式理解一座真实的园林。你记住的也许不是所有年代，而是刚刚亲眼看见的山石、庭院，以及心中那份想与重要的人分享的风景。", "fictional": true, "sourceIds": ["yuyuan-official"] }
+        ]
+      }
+    ]
+  }
+}
