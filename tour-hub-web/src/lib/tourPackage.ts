@@ -3,6 +3,8 @@
  * 外部 AI 生产内容请遵循项目 Skill：`.cursor/skills/trip-guide-content/SKILL.md`
  */
 
+import { assertExperience, type ExperienceDefinitionV1 } from '../experience/experienceSchema.ts'
+
 export const PACKAGE_SCHEMA_VERSION = 1 as const
 
 export interface LngLat {
@@ -40,6 +42,7 @@ export interface PublishedAttraction {
   publishedAt: number
   assets?: Record<string, string>
   routes?: Record<string, LngLat[]>
+  experience?: ExperienceDefinitionV1
 }
 
 export interface CatalogItem {
@@ -48,6 +51,7 @@ export interface CatalogItem {
   description: string
   coverImage: string
   publishedAt: number
+  experience?: Pick<ExperienceDefinitionV1, 'title' | 'estimatedMinutes'>
 }
 
 export interface AttractionCatalog {
@@ -74,6 +78,7 @@ export function toCatalogItem(pkg: PublishedAttraction): CatalogItem {
     description: pkg.description,
     coverImage: resolveMediaUrl(pkg, pkg.coverImage),
     publishedAt: pkg.publishedAt,
+    ...(pkg.experience ? { experience: { title: pkg.experience.title, estimatedMinutes: pkg.experience.estimatedMinutes } } : {}),
   }
 }
 
@@ -93,6 +98,9 @@ export function assertPublishedAttraction(raw: unknown): PublishedAttraction {
     if (!spot?.image) throw new Error(`节点 ${spot?.id || '?'} 缺少 image`)
   }
   if (!p.coverImage) throw new Error('发布包缺少 coverImage')
+  if (p.experience !== undefined) {
+    assertExperience(p.experience, { spotIds: p.spots.map(s => s.id), assets: p.assets })
+  }
   return p as PublishedAttraction
 }
 

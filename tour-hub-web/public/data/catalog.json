@@ -3,6 +3,17 @@
   "updatedAt": 1790755495576,
   "items": [
     {
+      "id": "yuyuan-timewalker",
+      "name": "豫园｜时空漫游者",
+      "description": "一封虚构家书引导的沉浸式园林故事体验。历史背景有真实来源，人物对白与家书均为艺术演绎。",
+      "coverImage": "/spots/san-sui-tang.jpg",
+      "publishedAt": 1791600000000,
+      "experience": {
+        "title": "一封穿越四百年的家书",
+        "estimatedMinutes": 5
+      }
+    },
+    {
       "id": "yuyuan",
       "name": "豫园",
       "description": "上海著名江南古典园林，明代潘允端为父颐养所建，园中亭台假山、玉玲珑与九曲桥闻名。",

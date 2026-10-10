@@ -1,5 +1,7 @@
 # 程导览 · trip-guide
 
+首轮「时空漫游者」已接入：从首页开启《一封穿越四百年的家书》，选择自然/匠心视角、人工确认观察并生成旅行手账。故事使用模拟地点事件，无需地图或模型凭据；家书与独白是文学创作。详见 [首轮实现与验收](docs/timewalker_hackathon/docs/04-首轮实现与验收.md) 和 [开发任务](docs/timewalker_hackathon/docs/03-开发任务拆解.md)。
+
 景点实地导览：前台高德地图漫游 + 发布后台（定范围 → AI 结合高德地点生成内容 → 发布）。
 
 ![首页](docs/screenshots/home.png)
@@ -31,7 +33,10 @@ npm run dev
 
 - `/` 前台  
 - `/tour/:id` 导览  
+- `/experience/yuyuan-timewalker` 沉浸故事；加 `?director=1` 启用演示控制台
 - `/publish` 发布后台  
+
+在 `tour-hub-web` 使用 Node.js 24，可运行 `npm test`、`npm run build`、`npm run lint`。已有故事包可在编辑器的「故事编排」中修改旁白并预览；发布仍为开发服务器本地写文件，正式上线服务与模型私钥整改尚未完成。
 
 ## 环境变量
 

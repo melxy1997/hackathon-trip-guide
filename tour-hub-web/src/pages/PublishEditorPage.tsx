@@ -18,8 +18,9 @@ import { locateAttractionOnMap, resolveAttractionScope } from '../lib/amapLocate
 import { newSpotAt, publishDraft, saveDraft, ensureEditableDraft } from '../lib/draftStore'
 import type { DraftAttraction, Spot } from '../types/attraction'
 import type { LngLat } from '../lib/tourPackage'
+import { StoryEditor } from '../experience/components/StoryEditor'
 
-type EditorStage = 1 | 2
+type EditorStage = 1 | 2 | 'story'
 
 function readImageFile(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -154,7 +155,7 @@ export function PublishEditorPage() {
       return
     }
     // 尚未检索范围时自动检索一次
-    if (!draft.amapContext?.trim()) {
+    if (!draft.amapContext?.trim() && draft.spots.length === 0) {
       const saved = await onResolveScope()
       if (!saved) return
     }
@@ -366,6 +367,7 @@ export function PublishEditorPage() {
           >
             2. 地点与内容
           </button>
+          {draft.experience && <button type="button" onClick={() => setStage('story')} className={`px-3 py-1.5 text-sm rounded-md ${stage === 'story' ? 'bg-white shadow-sm' : 'text-[#6b7280]'}`}>3. 故事编排</button>}
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -420,6 +422,8 @@ export function PublishEditorPage() {
           )}
         </div>
       </header>
+
+      {draft.experience && <div className="md:hidden border-b border-black/5 bg-white px-4 py-2"><button type="button" onClick={() => setStage(stage === 'story' ? 2 : 'story')} className="text-sm text-[#3b82f6]">{stage === 'story' ? '地点与内容' : '故事编排'}</button></div>}
 
       {stage === 1 ? (
         <div className="flex-1 min-h-0 overflow-y-auto">
@@ -494,7 +498,7 @@ export function PublishEditorPage() {
             </div>
           </div>
         </div>
-      ) : (
+      ) : stage === 'story' && draft.experience ? <StoryEditor draft={{ ...draft, experience: draft.experience }} onChange={experience => updateDraft({ experience })} /> : (
         <div className="flex-1 min-h-0 flex">
           <aside className="w-[min(100%,380px)] shrink-0 border-r border-black/5 bg-white flex flex-col min-h-0">
             <div className="p-4 space-y-3 border-b border-black/5 shrink-0">

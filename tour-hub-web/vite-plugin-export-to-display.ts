@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import type { Plugin, Connect } from 'vite'
+import { assertPublishedAttraction } from './src/lib/tourPackage.ts'
 
 const DATA_DIR = './public/data'
 
@@ -31,6 +32,7 @@ type Catalog = {
     description: string
     coverImage: string
     publishedAt: number
+    experience?: { title: string; estimatedMinutes: number }
   }>
 }
 
@@ -42,6 +44,7 @@ type PublishedPkg = {
   coverImage: string
   publishedAt: number
   assets?: Record<string, string>
+  experience?: { title: string; estimatedMinutes: number }
   [key: string]: unknown
 }
 
@@ -60,6 +63,7 @@ function mergeCatalog(existing: Catalog | null, pkg: PublishedPkg): Catalog {
     description: pkg.description,
     coverImage: resolveCover(pkg),
     publishedAt: pkg.publishedAt,
+    ...(pkg.experience ? { experience: { title: pkg.experience.title, estimatedMinutes: pkg.experience.estimatedMinutes } } : {}),
   }
   const prev = Array.isArray(existing?.items) ? existing!.items : []
   return {
@@ -105,6 +109,12 @@ export function exportToDisplayPlugin(): Plugin {
             res.end(JSON.stringify({ ok: false, error: '缺少 package.id' }))
             return
           }
+          if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(pkg.id)) {
+            res.statusCode = 400
+            res.end(JSON.stringify({ ok: false, error: '发布 ID 无效' }))
+            return
+          }
+          assertPublishedAttraction(pkg)
 
           fs.mkdirSync(path.join(absoluteDataDir, 'attractions'), { recursive: true })
           writeJson(path.join(absoluteDataDir, 'attractions', `${pkg.id}.json`), pkg)

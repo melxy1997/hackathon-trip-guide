@@ -15,13 +15,14 @@ export function HomePage() {
   }, [])
 
   const featured = list[0] || null
+  const stories = list.filter(item => item.experience)
 
   return (
     <div className="min-h-screen bg-[#f7f8fa] text-[#111827]">
       <header className="sticky top-0 z-20 flex items-center justify-between gap-4 px-5 sm:px-8 h-14 bg-white/90 backdrop-blur border-b border-black/5">
         <div className="min-w-0">
-          <h1 className="text-[15px] font-medium truncate">程导览</h1>
-          <p className="text-xs text-[#9ca3af]">选择景点开始导览</p>
+          <h1 className="text-[15px] font-medium truncate">时空漫游者</h1>
+          <p className="text-xs text-[#9ca3af]">让世界成为你的故事</p>
         </div>
         <Link
           to="/publish"
@@ -40,6 +41,19 @@ export function HomePage() {
           </div>
         ) : (
           <>
+            {stories.map(item => (
+              <Link key={item.id} to={`/experience/${item.id}`} className="relative block overflow-hidden rounded-2xl bg-[#17251d] text-[#f5ecd9] p-7 sm:p-10 min-h-[300px]">
+                <img src={item.coverImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#102119] via-[#102119]/80 to-transparent" />
+                <div className="relative max-w-xl">
+                  <p className="text-xs text-[#dcc497] tracking-widest mb-5">TIMEWALKER · 沉浸故事</p>
+                  <h2 className="text-3xl sm:text-4xl font-serif leading-relaxed mb-3">{item.experience?.title}</h2>
+                  <p className="text-sm text-[#e2dac9] leading-relaxed">一园山水，一封虚构家书。选择你的视角，走进属于自己的豫园故事。</p>
+                  <p className="mt-4 text-xs text-[#c5b897]">{item.experience?.estimatedMinutes} 分钟 · 分支探索 · 模拟游览</p>
+                  <span className="mt-6 inline-flex items-center gap-3 bg-[#dcc497] text-[#15251c] px-5 py-3 rounded-lg text-sm">开启时空漫游 <ArrowRight size={16} /></span>
+                </div>
+              </Link>
+            ))}
             {featured && (
               <Link
                 to={`/tour/${featured.id}`}

@@ -1,13 +1,15 @@
 ﻿import {
   CONTRACT_SCHEMA_VERSION,
+  assertPublishedAttraction,
   resolveMediaUrl,
   toCatalogItem,
   type AttractionCatalog,
   type LngLat,
   type PublishedAttraction,
-} from './tourPackage'
-import { exportPackageViaServer } from './exportTarget'
-import { loadPublishedAttraction } from './catalog'
+} from './tourPackage.ts'
+import { exportPackageViaServer } from './exportTarget.ts'
+import { loadPublishedAttraction } from './catalog.ts'
+import { assertExperience } from '../experience/experienceSchema.ts'
 import type { DraftAttraction, Spot } from '../types/attraction'
 
 const STORAGE_KEY = 'trip-guide:drafts:v1'
@@ -62,6 +64,10 @@ export function getDraft(id: string): DraftAttraction | null {
 
 export function publishedToDraft(pkg: PublishedAttraction): DraftAttraction {
   const now = Date.now()
+  const experience = pkg.experience ? structuredClone(pkg.experience) : undefined
+  experience?.scenes.forEach(s => s.blocks.forEach(b => {
+    if (b.assetRef) b.assetRef = resolveMediaUrl(pkg, b.assetRef)
+  }))
   return {
     id: pkg.id,
     name: pkg.name,
@@ -76,6 +82,7 @@ export function publishedToDraft(pkg: PublishedAttraction): DraftAttraction {
     coverImage: resolveMediaUrl(pkg, pkg.coverImage),
     createdAt: pkg.publishedAt || now,
     updatedAt: now,
+    ...(experience ? { experience } : {}),
   }
 }
 
@@ -229,9 +236,10 @@ export async function toPublishedPackage(
 ): Promise<PublishedAttraction> {
   const first = draft.spots[0]
   if (!first) throw new Error('没有节点，无法发布')
+  if (draft.experience) assertExperience(draft.experience, { spotIds: draft.spots.map(s => s.id) })
   const media = await materializeMedia(draft)
   const spots = media.spots.map(({ searchHint: _hint, ...rest }) => rest)
-  return {
+  const pkg: PublishedAttraction = {
     schemaVersion: CONTRACT_SCHEMA_VERSION,
     id: draft.id,
     name: draft.name,
@@ -243,7 +251,9 @@ export async function toPublishedPackage(
     publishedAt: Date.now(),
     assets: media.assets,
     ...(routes && Object.keys(routes).length > 0 ? { routes } : {}),
+    ...(draft.experience ? { experience: structuredClone(draft.experience) } : {}),
   }
+  return assertPublishedAttraction(pkg)
 }
 
 export function buildCatalog(packages: PublishedAttraction[]): AttractionCatalog {
@@ -281,7 +291,7 @@ export async function publishDraft(
   if (!item || item.spots.length === 0) return null
   const draft = saveDraft({
     ...item,
-    status: 'published',
+    status: 'draft',
     start: opts?.start || item.start,
     zoom: typeof opts?.zoom === 'number' && opts.zoom > 0 ? opts.zoom : item.zoom || DEFAULT_MAP_ZOOM,
     coverImage: item.coverImage || item.spots[0].image,
@@ -290,8 +300,9 @@ export async function publishDraft(
 
   try {
     const written = await exportPackageViaServer(pkg)
+    const published = saveDraft({ ...draft, status: 'published' })
     return {
-      draft,
+      draft: published,
       pkg,
       mode: 'config',
       targetLabel: `${written.absolutePath}\\${written.attractionPath}`,

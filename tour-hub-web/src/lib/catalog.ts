@@ -4,7 +4,7 @@
   type AttractionCatalog,
   type CatalogItem,
   type PublishedAttraction,
-} from './tourPackage'
+} from './tourPackage.ts'
 
 const CATALOG_URL = '/data/catalog.json'
 

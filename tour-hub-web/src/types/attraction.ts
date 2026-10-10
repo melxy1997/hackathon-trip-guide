@@ -1,5 +1,7 @@
 ﻿import type { LngLat, PublishedSpot, Slide } from '../lib/tourPackage'
 
+import type { ExperienceDefinitionV1 } from '../experience/experienceSchema'
+
 export type { LngLat, Slide }
 export type Spot = PublishedSpot & {
   /** AI 给出的地图检索词；仅发布端草稿使用，导出契约前可忽略 */
@@ -22,4 +24,5 @@ export interface DraftAttraction {
   coverImage: string
   createdAt: number
   updatedAt: number
+  experience?: ExperienceDefinitionV1
 }

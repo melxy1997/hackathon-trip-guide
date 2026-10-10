@@ -1,0 +1,60 @@
+{
+  "experienceId": "yuyuan-letter-demo",
+  "status": "prototype-assets-awaiting-license-review",
+  "notes": [
+    "复用仓库素材，无新增历史影像或在线生成素材。",
+    "原 ATTRIBUTION.md 只有 Wikimedia Commons 分类说明，尚无原作者、原图 URL 和准确许可；不视为完成素材授权。",
+    "场景图片不是经核验的历史画面；家书与人物台词为文学创作。"
+  ],
+  "assets": [
+    {
+      "path": "/spots/san-sui-tang.jpg",
+      "type": "image/jpeg",
+      "bytes": 361630,
+      "source": "Wikimedia Commons（仓库原 ATTRIBUTION.md）",
+      "sourceUrl": null,
+      "license": null,
+      "reviewStatus": "pending",
+      "sceneIds": [
+        "prologue"
+      ]
+    },
+    {
+      "path": "/spots/da-jia-shan.jpg",
+      "type": "image/jpeg",
+      "bytes": 544788,
+      "source": "Wikimedia Commons（仓库原 ATTRIBUTION.md）",
+      "sourceUrl": null,
+      "license": null,
+      "reviewStatus": "pending",
+      "sceneIds": [
+        "rockery"
+      ]
+    },
+    {
+      "path": "/spots/yu-ling-long.jpg",
+      "type": "image/jpeg",
+      "bytes": 558444,
+      "source": "Wikimedia Commons（仓库原 ATTRIBUTION.md）",
+      "sourceUrl": null,
+      "license": null,
+      "reviewStatus": "pending",
+      "sceneIds": [
+        "jade-nature",
+        "jade-craft"
+      ]
+    },
+    {
+      "path": "/spots/dian-chun-tang.jpg",
+      "type": "image/jpeg",
+      "bytes": 262084,
+      "source": "Wikimedia Commons（仓库原 ATTRIBUTION.md）",
+      "sourceUrl": null,
+      "license": null,
+      "reviewStatus": "pending",
+      "sceneIds": [
+        "epilogue"
+      ]
+    }
+  ]
+}
