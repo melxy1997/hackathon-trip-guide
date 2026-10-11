@@ -12,6 +12,7 @@
     "test": "node --test src/experience/__tests__/*.test.ts server/__tests__/*.test.ts",
     "test:smoke": "node scripts/smoke-experience.mjs",
     "test:builder": "node scripts/smoke-builder.mjs",
+    "test:playability": "node scripts/smoke-playability.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

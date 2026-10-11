@@ -43,8 +43,8 @@
         "interaction": {
           "id": "aesthetic-choice", "type": "single_choice",
           "options": [
-            { "id": "nature", "label": "山林野趣：我想看天然之美", "actions": [{ "type": "setVar", "key": "aestheticLens", "value": "nature" }, { "type": "goTo", "sceneId": "jade-nature" }] },
-            { "id": "craft", "label": "匠心造景：我想看人工之巧", "actions": [{ "type": "setVar", "key": "aestheticLens", "value": "craft" }, { "type": "goTo", "sceneId": "jade-craft" }] }
+            { "id": "nature", "label": "山林野趣：我想看天然之美", "description": "沿着自然的目光，寻找玉玲珑的轮廓、孔洞与光影。", "actions": [{ "type": "setVar", "key": "aestheticLens", "value": "nature" }, { "type": "goTo", "sceneId": "jade-nature" }] },
+            { "id": "craft", "label": "匠心造景：我想看人工之巧", "description": "换成造园者的目光，想象石头与空间怎样构成一幅画。", "actions": [{ "type": "setVar", "key": "aestheticLens", "value": "craft" }, { "type": "goTo", "sceneId": "jade-craft" }] }
           ]
         }
       },

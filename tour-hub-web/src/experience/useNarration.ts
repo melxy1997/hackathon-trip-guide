@@ -46,5 +46,5 @@ export function useNarration(block: StoryBlock | undefined, sceneId: string, tok
       synth?.cancel()
     }
   }, [block, sceneId, token, enabled, replay, send, resolveAsset])
-  return { enabled, toggle: () => setEnabled(v => !v), replay: () => { setStatus({ token: '', message: '' }); setReplay(v => v + 1); setEnabled(true) }, message: status.token === token ? status.message : '' }
+  return { enabled, toggle: () => setEnabled(v => !v), replay: () => { setStatus({ token: '', message: '' }); setReplay(v => v + 1) }, message: status.token === token ? status.message : '' }
 }

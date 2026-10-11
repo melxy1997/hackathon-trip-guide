@@ -58,8 +58,8 @@ export function buildTemplate(pkg: PublishedAttraction, raw: BuilderInput, reque
       { id: 'choice', title: '选择你的目光', spotId: second.id, mode: 'walk', blocks: blocks('choice', second.image,
         `走到${second.name}，纸笺给出两个邀请：去寻找自然留下的形状，或留意人们创造的细节。没有标准答案，你的选择将改变下一幕的讲述。`),
         interaction: { id: 'choose-lens', type: 'single_choice', options: [
-          { id: 'nature', label: '寻找自然的形状', actions: [{ type: 'setVar', key: 'lens', value: 'nature' }, { type: 'goTo', sceneId: 'nature' }] },
-          { id: 'craft', label: '留意创造的细节', actions: [{ type: 'setVar', key: 'lens', value: 'craft' }, { type: 'goTo', sceneId: 'craft' }] },
+          { id: 'nature', label: '寻找自然的形状', description: '下一幕把目光交给轮廓与自然的联想。', actions: [{ type: 'setVar', key: 'lens', value: 'nature' }, { type: 'goTo', sceneId: 'nature' }] },
+          { id: 'craft', label: '留意创造的细节', description: '下一幕从一个细节，展开属于你的想象。', actions: [{ type: 'setVar', key: 'lens', value: 'craft' }, { type: 'goTo', sceneId: 'craft' }] },
         ] } },
       observe('nature', '自然的一页', `在${third.name}，请寻找眼前一个让你想到自然的形状。${audience}这是自由联想，不是对景物成因的判断。观察后点击确认，把这一刻留在手札里。`),
       observe('craft', '创造的一页', `在${third.name}，请留意一个你喜欢的细节。想象它会怎样出现在「${input.theme}」的故事中。${audience}这段想象不代表该景物的真实建造史。观察后点击确认。`),

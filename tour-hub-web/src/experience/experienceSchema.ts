@@ -14,7 +14,7 @@ export type StoryBlock = {
   sourceIds?: string[]
 }
 export type Interaction =
-  | { id: string; type: 'single_choice'; options: Array<{ id: string; label: string; actions: Action[] }> }
+  | { id: string; type: 'single_choice'; options: Array<{ id: string; label: string; description?: string; actions: Action[] }> }
   | { id: string; type: 'photo_or_tap'; fallback: 'manual_confirm'; actionsOnComplete: Action[] }
 export interface Scene {
   id: string
@@ -150,6 +150,7 @@ export function assertExperience(raw: unknown, context: ExperienceContext): Expe
             if (!identifier(o.id) || optionIds.has(o.id)) fail(where, '选项 ID 无效或重复')
             else optionIds.add(o.id)
             if (!text(o.label)) fail(where, '选项缺少标题')
+            if (o.description !== undefined && (!text(o.description) || o.description.length > 240)) fail(where, '选项说明需为 1–240 字文本')
             checkActions(o.actions, `${where}/option:${o.id}`)
           }
         } else if (it.type === 'photo_or_tap') {

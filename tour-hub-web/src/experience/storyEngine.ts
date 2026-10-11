@@ -1,5 +1,5 @@
 import type { Action, Condition, ExperienceDefinitionV1, Scene, StoryValue } from './experienceSchema.ts'
-import type { ExperienceEvent } from './events.ts'
+import { isDiscovery, type Discovery, type ExperienceEvent } from './events.ts'
 
 export type StoryPhase = 'idle' | 'awaitingLocation' | 'playing' | 'awaitingInteraction' | 'completed' | 'error'
 export interface ExperienceState {
@@ -13,7 +13,7 @@ export interface ExperienceState {
   completedBlockIds: string[]
   memoryIds: string[]
   choices: Array<{ interactionId: string; optionId: string; label: string }>
-  observations: Array<{ interactionId: string; method: 'manual' }>
+  observations: Array<{ interactionId: string; method: 'manual'; discovery?: Discovery }>
   playbackToken: string | null
   lastEventSeq: number
   directorUsed: boolean
@@ -130,8 +130,10 @@ export function transition(pkg: ExperienceDefinitionV1, state: ExperienceState, 
     case 'OBSERVATION_CONFIRMED': {
       const it = scene?.interaction
       if (state.phase !== 'awaitingInteraction' || it?.type !== 'photo_or_tap' || it.id !== event.interactionId) return ignored()
+      if (event.discovery !== undefined && !isDiscovery(event.discovery)) return ignored('观察记录无效，请重新选择照片细节。')
       next.completedInteractionIds = add(state.completedInteractionIds, it.id)
-      next.observations = [...state.observations, { interactionId: it.id, method: event.method }]
+      const discovery = event.discovery ? { ...(event.discovery.x !== undefined ? { x: event.discovery.x, y: event.discovery.y } : {}), category: event.discovery.category, ...(event.discovery.note?.trim() ? { note: event.discovery.note.trim() } : {}) } : undefined
+      next.observations = [...state.observations, { interactionId: it.id, method: event.method, ...(discovery ? { discovery } : {}) }]
       return apply(it.actionsOnComplete)
     }
   }
