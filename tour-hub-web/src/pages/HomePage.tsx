@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import type { CatalogItem } from '../lib/tourPackage'
 import { loadCatalog } from '../lib/catalog'
+import { OfflineDemoPanel } from '../offline/OfflineDemoPanel'
 
 export function HomePage() {
   const [list, setList] = useState<CatalogItem[]>([])
@@ -54,6 +55,7 @@ export function HomePage() {
                 </div>
               </Link>
             ))}
+            {stories.some(item => item.id === 'yuyuan-timewalker') && <OfflineDemoPanel />}
             {featured && (
               <Link
                 to={`/tour/${featured.id}`}

@@ -11,6 +11,7 @@ import { EndingJournal } from './EndingJournal'
 import { DirectorConsole } from './DirectorConsole'
 import { ObservationCard } from './ObservationCard'
 import { discoveryLabels, journeyProgress } from '../journey'
+import { OfflineDemoPanel } from '../../offline/OfflineDemoPanel'
 import '../experience.css'
 
 export function ExperiencePlayer({ pkg, preview, director }: { pkg: PublishedAttraction & { experience: ExperienceDefinitionV1 }; preview: boolean; director: boolean }) {
@@ -87,6 +88,7 @@ export function ExperiencePlayer({ pkg, preview, director }: { pkg: PublishedAtt
         </div>
       </section>
       <aside className="tw-sidebar">
+        {!preview && pkg.id === 'yuyuan-timewalker' && <OfflineDemoPanel />}
         {narration.message && <p role="status" className="tw-notice">{narration.message}</p>}
         {resumed && <p className="tw-notice">已恢复本机保存的故事进度；声音需再次点按开启。</p>}
         <details className="tw-route" open><summary>故事路线 <span>模拟地点</span></summary><ol>{pkg.spots.filter(s => progress.spotIds.includes(s.id)).map((s, i) => <li key={s.id} className={spot?.id === s.id ? 'tw-route-active' : ''}><b>{String(i + 1).padStart(2, '0')}</b><div><p>{s.name}</p><small>{state.visitedSpotIds.includes(s.id) ? '已走进故事' : spot?.id === s.id ? '下一站' : '等待探索'}</small></div></li>)}</ol><p className="tw-fineprint">静态站点指引无需地图 Key；路线未经现场核验。<Link to={`/tour/${pkg.id}`}>打开原版地图导览</Link></p></details>

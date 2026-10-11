@@ -13,6 +13,7 @@
     "test:smoke": "node scripts/smoke-experience.mjs",
     "test:builder": "node scripts/smoke-builder.mjs",
     "test:playability": "node scripts/smoke-playability.mjs",
+    "test:offline": "node scripts/smoke-offline.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
