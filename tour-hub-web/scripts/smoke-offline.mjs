@@ -56,8 +56,9 @@ async function play(branch, note, round) {
   await page.getByLabel('这一刻让我想到…', { exact: false }).fill(note)
   await page.getByRole('button', { name: '我已观察，收下这份发现', exact: true }).click()
   await page.reload()
-  await panel.getByText('浏览器报告已断网', { exact: false }).waitFor()
   await ready()
+  const connectionLabel = await page.evaluate(() => navigator.onLine ? '浏览器报告网络可用' : '浏览器报告已断网')
+  await panel.getByText(connectionLabel, { exact: false }).waitFor()
   await page.getByRole('button', { name: '模拟到达点春堂', exact: true }).click()
   await page.getByRole('button', { name: '读完家书，收下手账', exact: true }).click()
   await page.getByRole('heading', { name: branch === 'nature' ? '山林寻趣者' : '匠心寻迹者', exact: true }).waitFor()
@@ -146,6 +147,7 @@ try {
   })
   await context.setOffline(false)
   originDown = false
+  await page.reload()
   await panel.getByText('尚未准备', { exact: true }).waitFor()
   await panel.getByRole('button', { name: '清除离线素材', exact: true }).click()
   await panel.getByText('离线素材已清除', { exact: false }).waitFor()
