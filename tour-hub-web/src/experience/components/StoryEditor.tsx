@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { assertExperience, type ExperienceDefinitionV1, type Scene, type Action } from '../experienceSchema'
 import { validationSuggestion } from '../builder'
 import { approveStoryDraft } from '../builderDraft'
+import { addStoryScene, connectStoryRoute, deleteStoryScene, duplicateStoryScene } from '../storyGraph'
+import { StoryGraph } from './StoryGraph'
 import type { DraftAttraction } from '../../types/attraction'
 
 export function StoryEditor({ draft, onChange, onReview }: {
@@ -12,9 +14,22 @@ export function StoryEditor({ draft, onChange, onReview }: {
 }) {
   const [selectedId, setSelectedId] = useState(draft.experience.initialSceneId)
   const [reviewChecked, setReviewChecked] = useState(false)
+  const [graphMessage, setGraphMessage] = useState('')
   const definition = draft.experience
   const scene = definition.scenes.find(s => s.id === selectedId) ?? definition.scenes[0]
   const change = (next: ExperienceDefinitionV1) => { setReviewChecked(false); onChange(next) }
+  const graphAction = (action: () => { definition: ExperienceDefinitionV1; sceneId: string } | ExperienceDefinitionV1, success: string) => {
+    try {
+      const result = action()
+      const next = 'definition' in result ? result.definition : result
+      const nextId = 'sceneId' in result ? result.sceneId : selectedId
+      change(next)
+      setSelectedId(nextId)
+      setGraphMessage(success)
+    } catch (error) {
+      setGraphMessage(error instanceof Error ? error.message : '图编辑失败')
+    }
+  }
   const updateScene = (patch: Partial<Scene>) => change({ ...definition, scenes: definition.scenes.map(s => s.id === scene.id ? { ...s, ...patch } : s) })
   let validation = '结构与分支校验通过；史实和素材授权仍须人工审核。'
   let valid = true
@@ -29,6 +44,11 @@ export function StoryEditor({ draft, onChange, onReview }: {
     <div className="max-w-5xl mx-auto">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6"><div><h2 className="text-xl font-medium">故事编排</h2><p className="text-sm text-gray-500 mt-2">修改保存到本机草稿，预览复用正式播放器；候选稿须审核后发布。</p></div><Link to={`/experience/${draft.id}?preview=1&director=1`} className="rounded-lg border border-black/10 bg-white px-4 py-2 text-sm">预览草稿故事</Link></div>
       <div className={`rounded-xl p-4 text-sm whitespace-pre-wrap mb-5 ${valid ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`} role="status">{validation}{!valid && <p className="mt-3 font-medium">修复建议：{validationSuggestion(validation)}</p>}</div>
+      <section className="rounded-xl border border-black/10 bg-white p-4 mb-5 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-medium">章节关系图</h3><p className="mt-1 text-xs text-gray-500">点击节点编辑；从右侧出口拖到目标章节可改跳转。手机上也可继续使用下方选择框。</p></div><div className="flex flex-wrap gap-2"><button type="button" className="rounded-lg border border-black/10 px-3 py-2 text-xs" onClick={() => graphAction(() => addStoryScene(definition), '已新增章节，请完善内容和连接。')}>新增章节</button><button type="button" className="rounded-lg border border-black/10 px-3 py-2 text-xs" onClick={() => graphAction(() => duplicateStoryScene(definition, scene.id), '已复制当前章节。')}>复制章节</button><button type="button" className="rounded-lg border border-red-200 px-3 py-2 text-xs text-red-700" onClick={() => graphAction(() => deleteStoryScene(definition, scene.id), '已删除当前章节。')}>删除章节</button></div></div>
+        {graphMessage && <p className="text-xs text-amber-800" role="status">{graphMessage}</p>}
+        <StoryGraph definition={definition} selectedId={scene.id} onSelect={id => { setSelectedId(id); setGraphMessage('') }} onConnect={(source, handle, target) => graphAction(() => connectStoryRoute(definition, source, handle, target), `已将 ${source} 的出口连接到 ${target}。`)} />
+      </section>
       <section className="bg-white rounded-xl border border-black/10 p-5 mb-5 space-y-4">
         <div className="grid sm:grid-cols-[1fr_160px] gap-4"><label className="text-sm">故事标题<input className={field} value={definition.title} onChange={e => change({ ...definition, title: e.target.value })} /></label><label className="text-sm">目标时长（分钟）<input type="number" min={1} max={240} className={field} value={definition.estimatedMinutes} onChange={e => change({ ...definition, estimatedMinutes: Number(e.target.value) })} /></label></div>
         <label className="block text-sm">故事梗概<textarea className={field} rows={2} value={definition.premise} onChange={e => change({ ...definition, premise: e.target.value })} /></label>

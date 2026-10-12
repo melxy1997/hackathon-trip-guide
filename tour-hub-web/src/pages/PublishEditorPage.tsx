@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowDown,
@@ -18,7 +18,8 @@ import { locateAttractionOnMap, resolveAttractionScope } from '../lib/amapLocate
 import { newSpotAt, publishDraft, saveDraft, ensureEditableDraft } from '../lib/draftStore'
 import type { DraftAttraction, Spot } from '../types/attraction'
 import type { LngLat } from '../lib/tourPackage'
-import { StoryEditor } from '../experience/components/StoryEditor'
+
+const StoryEditor = lazy(() => import('../experience/components/StoryEditor').then(module => ({ default: module.StoryEditor })))
 
 type EditorStage = 1 | 2 | 'story'
 
@@ -503,7 +504,7 @@ export function PublishEditorPage() {
             </div>
           </div>
         </div>
-      ) : stage === 'story' && draft.experience ? <StoryEditor draft={{ ...draft, experience: draft.experience }} onChange={experience => updateDraft({ experience })} onReview={storyReview => updateDraft({ storyReview })} /> : (
+      ) : stage === 'story' && draft.experience ? <Suspense fallback={<div className="flex-1 p-8 text-sm text-gray-500">正在打开故事编排器…</div>}><StoryEditor draft={{ ...draft, experience: draft.experience }} onChange={experience => updateDraft({ experience })} onReview={storyReview => updateDraft({ storyReview })} /></Suspense> : (
         <div className="flex-1 min-h-0 flex">
           <aside className="w-[min(100%,380px)] shrink-0 border-r border-black/5 bg-white flex flex-col min-h-0">
             <div className="p-4 space-y-3 border-b border-black/5 shrink-0">
