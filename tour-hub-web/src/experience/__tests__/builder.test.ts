@@ -14,6 +14,10 @@ test('template uses known POIs and media; both branches reach ending through the
   const result = buildTemplate(pkg, brief, 'template-1')
   assertBuilderCandidate(result.experience, pkg)
   assert.equal(result.mode, 'template'); assert.equal(result.reviewRequired, true)
+  const observations = result.experience.scenes.map(s => s.interaction).filter(i => i?.type === 'photo_or_tap')
+  assert.equal(observations.length, 2)
+  assert.notEqual(observations[0]?.prompt, observations[1]?.prompt)
+  assert.ok(observations.every(i => i?.type === 'photo_or_tap' && i.prompt && i.hints?.length))
   assert.ok(result.experience.scenes.every(s => s.blocks.filter(b => b.text).every(b => b.fictional)))
   for (const branch of ['nature', 'craft']) {
     const exp = result.experience

@@ -40,6 +40,28 @@ for (const [label, corrupt, expected] of corruptions) test(`reject ${label} with
   corrupt(definition)
   assert.throws(() => assertExperience(definition, { spotIds: pkg.spots.map(s => s.id) }), expected)
 })
+test('observation prompts are optional, bounded and validated through the shared contract', () => {
+  const { pkg, definition } = fixture()
+  const interaction = definition.scenes[2].interaction
+  assert.equal(interaction?.type, 'photo_or_tap')
+  if (interaction?.type !== 'photo_or_tap') return
+  assertExperience(definition, { spotIds: pkg.spots.map(s => s.id) })
+  interaction.prompt = '找一处让你想到山林的轮廓。'
+  interaction.hints = ['看看孔洞的边缘。', '留意光线穿过石头的位置。', '也可以只写下自己的联想。']
+  assertExperience(definition, { spotIds: pkg.spots.map(s => s.id) })
+  for (const [patch, expected] of [
+    [{ prompt: ' ' }, /主提示需为 1–240 字文本/],
+    [{ prompt: '提'.repeat(241) }, /主提示需为 1–240 字文本/],
+    [{ hints: '不是数组' }, /轻提示须为最多 3 条文本/],
+    [{ hints: ['一', '二', '三', '四'] }, /轻提示须为最多 3 条文本/],
+    [{ hints: [' '] }, /每条轻提示需为 1–80 字文本/],
+    [{ hints: ['提'.repeat(81)] }, /每条轻提示需为 1–80 字文本/],
+  ] as const) {
+    const candidate = structuredClone(definition)
+    Object.assign(candidate.scenes[2].interaction!, patch)
+    assert.throws(() => assertExperience(candidate, { spotIds: pkg.spots.map(s => s.id) }), expected)
+  }
+})
 test('malformed nested structures produce validation errors, not crashes', () => {
   const { pkg, definition } = fixture()
   const raw = definition as unknown as Record<string, unknown>

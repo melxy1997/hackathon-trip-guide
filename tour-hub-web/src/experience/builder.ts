@@ -42,9 +42,9 @@ export function buildTemplate(pkg: PublishedAttraction, raw: BuilderInput, reque
     { id: `${id}-image`, type: 'image', assetRef: resolveMediaUrl(pkg, image) },
     { id: `${id}-voice`, type: 'narration', text, fictional: true },
   ]
-  const observe = (id: string, title: string, text: string): Scene => ({
+  const observe = (id: string, title: string, text: string, prompt: string, hints: string[]): Scene => ({
     id, title, spotId: third.id, mode: 'observation', blocks: blocks(id, third.image, text),
-    interaction: { id: `${id}-look`, type: 'photo_or_tap', fallback: 'manual_confirm', actionsOnComplete: [
+    interaction: { id: `${id}-look`, type: 'photo_or_tap', prompt, hints, fallback: 'manual_confirm', actionsOnComplete: [
       { type: 'setVar', key: 'observed', value: true }, { type: 'revealMemory', memoryId: 'first-discovery' }, { type: 'goTo', sceneId: 'ending' },
     ] },
   })
@@ -61,8 +61,10 @@ export function buildTemplate(pkg: PublishedAttraction, raw: BuilderInput, reque
           { id: 'nature', label: '寻找自然的形状', description: '下一幕把目光交给轮廓与自然的联想。', actions: [{ type: 'setVar', key: 'lens', value: 'nature' }, { type: 'goTo', sceneId: 'nature' }] },
           { id: 'craft', label: '留意创造的细节', description: '下一幕从一个细节，展开属于你的想象。', actions: [{ type: 'setVar', key: 'lens', value: 'craft' }, { type: 'goTo', sceneId: 'craft' }] },
         ] } },
-      observe('nature', '自然的一页', `在${third.name}，请寻找眼前一个让你想到自然的形状。${audience}这是自由联想，不是对景物成因的判断。观察后点击确认，把这一刻留在手札里。`),
-      observe('craft', '创造的一页', `在${third.name}，请留意一个你喜欢的细节。想象它会怎样出现在「${input.theme}」的故事中。${audience}这段想象不代表该景物的真实建造史。观察后点击确认。`),
+      observe('nature', '自然的一页', `在${third.name}，请寻找眼前一个让你想到自然的形状。${audience}这是自由联想，不是对景物成因的判断。观察后点击确认，把这一刻留在手札里。`,
+        '找一处让你想到自然的轮廓、光影或纹理。', ['先看整体轮廓，再靠近一个局部。', '它让你联想到山、水、云，还是别的自然形状？']),
+      observe('craft', '创造的一页', `在${third.name}，请留意一个你喜欢的细节。想象它会怎样出现在「${input.theme}」的故事中。${audience}这段想象不代表该景物的真实建造史。观察后点击确认。`,
+        '留意一处让你想知道“它是怎样被做出来的”细节。', ['看看边缘、孔洞或表面的变化。', '不必猜真实工艺，只写下你看到的细节或自由联想。']),
       { id: 'ending', title: '把故事带走', spotId: last.id, mode: 'ending', blocks: blocks('ending', last.image,
         `来到${last.name}，纸笺的最后一行由你填写。你选择的目光和亲自确认的观察，已经成为这趟旅程的手札。关于「${input.theme}」的故事暂时落幕，下一段记忆等待你继续书写。`) },
     ],

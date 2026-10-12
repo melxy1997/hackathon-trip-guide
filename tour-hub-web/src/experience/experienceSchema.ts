@@ -15,7 +15,7 @@ export type StoryBlock = {
 }
 export type Interaction =
   | { id: string; type: 'single_choice'; options: Array<{ id: string; label: string; description?: string; actions: Action[] }> }
-  | { id: string; type: 'photo_or_tap'; fallback: 'manual_confirm'; actionsOnComplete: Action[] }
+  | { id: string; type: 'photo_or_tap'; prompt?: string; hints?: string[]; fallback: 'manual_confirm'; actionsOnComplete: Action[] }
 export interface Scene {
   id: string
   spotId?: string
@@ -154,6 +154,11 @@ export function assertExperience(raw: unknown, context: ExperienceContext): Expe
             checkActions(o.actions, `${where}/option:${o.id}`)
           }
         } else if (it.type === 'photo_or_tap') {
+          if (it.prompt !== undefined && (!text(it.prompt) || it.prompt.length > 240)) fail(where, '观察主提示需为 1–240 字文本')
+          if (it.hints !== undefined) {
+            if (!Array.isArray(it.hints) || it.hints.length > 3) fail(where, '观察轻提示须为最多 3 条文本')
+            else if (it.hints.some(hint => !text(hint) || hint.length > 80)) fail(where, '每条轻提示需为 1–80 字文本')
+          }
           if (it.fallback !== 'manual_confirm') fail(where, '观察任务必须允许人工确认')
           checkActions(it.actionsOnComplete, `${where}/observation`)
         } else fail(where, `未知互动类型 ${it.type}`)
