@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { fixture } from './fixtures.ts'
-import { addStoryScene, connectStoryRoute, deleteStoryScene, duplicateStoryScene, storyDepths, storyRoutes } from '../storyGraph.ts'
+import { assertExperience } from '../experienceSchema.ts'
+import { addStoryChoiceOption, addStoryScene, connectStoryRoute, deleteStoryChoiceOption, deleteStoryScene, duplicateStoryScene, storyDepths, storyRoutes } from '../storyGraph.ts'
 
 const definition = () => structuredClone(fixture().definition)
 
@@ -64,6 +65,45 @@ test('connect handles ordinary and observation routes and rejects endings', () =
   if (interaction?.type !== 'photo_or_tap') assert.fail('expected observation')
   assert.equal(interaction.actionsOnComplete.find(action => action.type === 'goTo')?.sceneId, 'epilogue')
   assert.throws(() => connectStoryRoute(draft, 'epilogue', 'transition:0', 'prologue'), /终幕/)
+})
+
+test('choice options can be added and removed without inheriting side effects', () => {
+  const draft = definition()
+  const original = structuredClone(draft)
+  const added = addStoryChoiceOption(draft, 'rockery')
+  assert.deepEqual(draft, original)
+  const interaction = added.definition.scenes.find(scene => scene.id === 'rockery')?.interaction
+  if (interaction?.type !== 'single_choice') assert.fail('expected choice')
+  assert.equal(interaction.options.length, 3)
+  const option = interaction.options.find(item => item.id === added.optionId)!
+  assert.equal(option.label, '新的探索方向')
+  assert.deepEqual(option.actions, [{ type: 'goTo', sceneId: 'jade-nature' }])
+  assertExperience(added.definition, { spotIds: fixture().pkg.spots.map(spot => spot.id), assets: fixture().pkg.assets })
+  const removed = deleteStoryChoiceOption(added.definition, 'rockery', added.optionId)
+  const remaining = removed.scenes.find(scene => scene.id === 'rockery')?.interaction
+  if (remaining?.type !== 'single_choice') assert.fail('expected choice')
+  assert.equal(remaining.options.length, 2)
+  const originalInteraction = original.scenes.find(scene => scene.id === 'rockery')?.interaction
+  if (originalInteraction?.type !== 'single_choice') assert.fail('expected original choice')
+  assert.deepEqual(remaining.options, originalInteraction.options)
+})
+
+test('choice option ids are unique and schema bounds are enforced', () => {
+  let draft = definition()
+  const ids = new Set<string>()
+  while (true) {
+    const interaction = draft.scenes.find(scene => scene.id === 'rockery')?.interaction
+    if (interaction?.type !== 'single_choice') assert.fail('expected choice')
+    if (interaction.options.length === 10) break
+    const result = addStoryChoiceOption(draft, 'rockery')
+    ids.add(result.optionId)
+    draft = result.definition
+  }
+  assert.equal(ids.size, 8)
+  assert.throws(() => addStoryChoiceOption(draft, 'rockery'), /最多十个/)
+  let reduced = definition()
+  assert.throws(() => deleteStoryChoiceOption(reduced, 'rockery', 'nature'), /至少需要两个/)
+  assert.throws(() => addStoryChoiceOption(reduced, 'prologue'), /不是选择分支/)
 })
 
 test('delete protects initial and inbound-linked scenes but removes a safe scene', () => {

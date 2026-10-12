@@ -119,6 +119,35 @@ export function deleteStoryScene(definition: ExperienceDefinitionV1, sceneId: st
   return { ...definition, scenes: definition.scenes.filter(scene => scene.id !== sceneId) }
 }
 
+export function deleteStoryChoiceOption(definition: ExperienceDefinitionV1, sceneId: string, optionId: string): ExperienceDefinitionV1 {
+  const scene = definition.scenes.find(item => item.id === sceneId)
+  if (scene?.interaction?.type !== 'single_choice') throw new Error('当前章节不是选择分支。')
+  if (scene.interaction.options.length <= 2) throw new Error('选择分支至少需要两个选项。')
+  if (!scene.interaction.options.some(option => option.id === optionId)) throw new Error('找不到要删除的选项。')
+  const next: Scene = {
+    ...scene,
+    interaction: { ...scene.interaction, options: scene.interaction.options.filter(option => option.id !== optionId) },
+  }
+  return { ...definition, scenes: definition.scenes.map(item => item.id === sceneId ? next : item) }
+}
+
+export function addStoryChoiceOption(definition: ExperienceDefinitionV1, sceneId: string): { definition: ExperienceDefinitionV1; optionId: string } {
+  const scene = definition.scenes.find(item => item.id === sceneId)
+  if (scene?.interaction?.type !== 'single_choice') throw new Error('当前章节不是选择分支。')
+  if (scene.interaction.options.length >= 10) throw new Error('一个选择分支最多十个选项。')
+  const target = targetOf(scene.interaction.options[0]?.actions ?? [])
+  if (!target) throw new Error('请先为现有选项设置下一章。')
+  const optionId = nextId('new-option', new Set(scene.interaction.options.map(option => option.id)))
+  const next: Scene = {
+    ...scene,
+    interaction: {
+      ...scene.interaction,
+      options: [...scene.interaction.options, { id: optionId, label: '新的探索方向', actions: [{ type: 'goTo', sceneId: target }] }],
+    },
+  }
+  return { definition: { ...definition, scenes: definition.scenes.map(item => item.id === sceneId ? next : item) }, optionId }
+}
+
 export function connectStoryRoute(definition: ExperienceDefinitionV1, sourceId: string, handle: string, targetId: string): ExperienceDefinitionV1 {
   if (!definition.scenes.some(scene => scene.id === targetId)) throw new Error('连线目标章节不存在。')
   const source = definition.scenes.find(scene => scene.id === sourceId)
