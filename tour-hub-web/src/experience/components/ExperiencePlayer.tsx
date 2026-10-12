@@ -57,7 +57,7 @@ export function ExperiencePlayer({ pkg, preview, director }: { pkg: PublishedAtt
       <section className="tw-stage" aria-label="故事舞台">
         {imageError !== image && <img className="tw-backdrop" key={image} src={resolveAsset(image)} alt={spot?.name ?? pkg.name} onError={() => setImageError(image)} />}
         <div className="tw-stage-shade" />
-        <div className="tw-stage-content" key={`${token}:${state.phase === 'idle'}`}>
+        <div className="tw-stage-content" key={`${token}:${state.phase}`}>
           <p className="tw-eyebrow">{pkg.name.split('｜')[0]} · TIMEWALKER</p>
           {state.phase === 'idle' ? <>
             <p className="tw-volume">一场 {definition.estimatedMinutes} 分钟的故事</p>
@@ -77,7 +77,7 @@ export function ExperiencePlayer({ pkg, preview, director }: { pkg: PublishedAtt
             <p className="tw-volume">{spot?.name ?? '故事场景'} · {state.visitedSceneIds.length} 个章节</p>
             <h1 ref={headingRef} tabIndex={-1}>{scene?.title}</h1>
             {showChoice && <p className="tw-choice-echo">沿着你选择的「{recentChoice?.label}」继续探索</p>}
-            <div className="tw-narration" aria-live="polite">{textBlocks.map(b => <p key={b.id} className={b.id === narration.playingBlockId ? 'tw-speaking' : ''}>{b.text}</p>)}</div>
+            <div className="tw-narration" aria-live="polite">{textBlocks.map(b => <p key={b.id} className={b.id === narration.playingBlockId ? 'tw-speaking' : state.completedBlockIds.includes(b.id) ? 'tw-read' : b.id === block?.id ? 'tw-reading-current' : ''}>{b.text}</p>)}</div>
             <p className="tw-fineprint">{textBlocks.some(b => b.fictional) ? '本幕包含文学创作 · 家书与人物独白为艺术演绎' : '文化讲述 · 来源见下方资料说明'}</p>
             {state.phase === 'playing' && <button className="tw-button tw-primary" onClick={() => send({ type: 'SKIP_SCENE', ...sceneEvent })}>{scene?.mode === 'ending' ? '读完家书，收下手账' : interaction ? '读完了，继续探索' : '前往下一站'} <ArrowRight size={17} /></button>}
             {state.phase === 'awaitingInteraction' && interaction?.type === 'single_choice' && <div className="tw-choices" aria-label="选择探索方向" ref={interactionRef} tabIndex={-1}><p>你想带着哪一种目光继续？<small>没有标准答案，下一幕会因你的选择而不同。</small></p>{interaction.options.map(o => <button className="tw-choice" key={o.id} aria-label={o.label} aria-describedby={o.description ? `${scene?.id}-${o.id}-detail` : undefined} onClick={() => send({ type: 'CHOICE_SELECTED', interactionId: interaction.id, optionId: o.id, ...sceneEvent })}><span>{o.label}{o.description && <small id={`${scene?.id}-${o.id}-detail`}>{o.description}</small>}</span><ArrowRight size={16} /></button>)}</div>}

@@ -13,7 +13,6 @@ export function useNarration(block: StoryBlock | undefined, sceneId: string, tok
     let settled = false
     let audio: HTMLAudioElement | null = null
     const synth = window.speechSynthesis
-    setStatus({ token, blockId: block.id, state: 'playing', message: '' })
     const finish = () => {
       if (cancelled || settled) return
       settled = true
@@ -28,6 +27,9 @@ export function useNarration(block: StoryBlock | undefined, sceneId: string, tok
       setStatus({ token, blockId: block.id, state: 'failed', message: '旁白暂不可用，阅读后仍可继续故事。' })
     }
     const timer = window.setTimeout(fail, Math.min(180000, Math.max(20000, (block.text?.length ?? 100) * 500 + 10000)))
+    queueMicrotask(() => {
+      if (!cancelled && !settled) setStatus({ token, blockId: block.id, state: 'playing', message: '' })
+    })
     if (block.type === 'audio' && block.assetRef) {
       audio = new Audio(resolveAsset(block.assetRef))
       audio.onended = finish
