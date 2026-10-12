@@ -8,9 +8,9 @@ type StoryNodeData = { title: string; id: string; mode: string; initial: boolean
 type StoryNode = Node<StoryNodeData, 'story'>
 
 function StoryNodeCard({ data, selected }: NodeProps<StoryNode>) {
-  return <div className={`min-w-48 rounded-xl border-2 bg-white px-4 py-3 shadow-sm ${selected ? 'border-amber-600' : data.mode === 'ending' ? 'border-emerald-600' : 'border-slate-300'}`}>
+  return <div className={`min-w-48 rounded-xl border-2 px-4 py-3 shadow-sm transition-colors ${selected ? 'border-amber-600 bg-amber-50 ring-2 ring-amber-200 ring-offset-2' : data.mode === 'ending' ? 'border-emerald-600 bg-white' : 'border-slate-300 bg-white'}`} aria-current={selected ? 'true' : undefined}>
     <Handle type="target" position={Position.Top} className="!h-3 !w-3 !bg-slate-500" />
-    <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-gray-500"><span>{data.mode === 'ending' ? '终幕' : data.mode}</span>{data.initial && <b className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">起点</b>}</div>
+    <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-gray-500"><span>{data.mode === 'ending' ? '终幕' : data.mode}</span>{data.initial && <b className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">起点</b>}{selected && <b className="rounded bg-amber-700 px-1.5 py-0.5 text-white">✓ 编辑中</b>}</div>
     <p className="mt-1 max-w-44 truncate text-sm font-medium" title={data.title}>{data.title}</p>
     <p className="mt-1 max-w-44 truncate font-mono text-[10px] text-gray-400">{data.id}</p>
     {data.handles.map((handle, index) => <div key={handle.id} className="relative mt-2 border-t border-dashed border-gray-200 pt-1 pr-3 text-[10px] text-gray-500">
@@ -46,6 +46,7 @@ export function StoryGraph({ definition, selectedId, onSelect, onConnect }: {
         position: { x: column * 260, y: depth * 210 },
         selected: scene.id === selectedId,
         draggable: false,
+        ariaLabel: `章节：${scene.title}${scene.id === selectedId ? '，编辑中' : ''}`,
         data: {
           title: scene.title,
           id: scene.id,
