@@ -99,6 +99,11 @@
 .tw-observation-heading h2 { font-size: 16px; font-weight: 500; margin: 0; }
 .tw-observation-heading > span { font-size: 10px; color: #7d755e; }
 .tw-observation-help { font-size: 13px; line-height: 1.8; color: #686957; margin: 12px 0 18px; }
+.tw-observation-hints { margin: -6px 0 18px; border: 1px solid #82755235; border-radius: 5px; background: #fff9e855; }
+.tw-observation-hints summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; padding: 9px 12px; color: #5f644f; font-size: 12px; }
+.tw-observation-hints summary::marker { color: #746b51; }
+.tw-observation-hints ul { margin: 0; padding: 0 16px 14px 32px; color: #686957; font-size: 12px; line-height: 1.8; }
+.tw-observation-hints li + li { margin-top: 6px; }
 .tw-photo-target { display: block; position: relative; padding: 0; width: 100%; min-height: 120px; border: 0; border-radius: 5px; background: #324737; overflow: hidden; cursor: crosshair; touch-action: manipulation; }
 .tw-photo-target:disabled { cursor: default; }
 .tw-photo-target img, .tw-discovery-photo img { width: 100%; height: auto; display: block; }

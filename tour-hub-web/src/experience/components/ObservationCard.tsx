@@ -3,7 +3,7 @@ import { ArrowRight, Scan, X } from 'lucide-react'
 import type { Discovery } from '../events'
 import { discoveryLabels } from '../journey'
 
-export function ObservationCard({ image, place, onConfirm }: { image: string; place: string; onConfirm: (discovery?: Discovery) => void }) {
+export function ObservationCard({ image, place, prompt, hints = [], onConfirm }: { image: string; place: string; prompt?: string; hints?: string[]; onConfirm: (discovery?: Discovery) => void }) {
   const [point, setPoint] = useState<{ x: number; y: number } | null>(null)
   const [category, setCategory] = useState<Discovery['category']>('detail')
   const [note, setNote] = useState('')
@@ -27,7 +27,8 @@ export function ObservationCard({ image, place, onConfirm }: { image: string; pl
   const confirm = () => onConfirm(point || note.trim() ? { ...(point ?? {}), category, ...(note.trim() ? { note: note.trim() } : {}) } : undefined)
   return <section className="tw-observation-card" aria-labelledby={`${helpId}-title`}>
     <div className="tw-observation-heading"><Scan size={18} /><h2 id={`${helpId}-title`}>留住你发现的一处细节</h2><span>没有标准答案</span></div>
-    <p id={helpId} className="tw-observation-help">点选照片中的轮廓、光影或一个喜欢的细节。也可以直接写一句话，或完成观察后继续。</p>
+    <p id={helpId} className="tw-observation-help">{prompt ?? '点选照片中的轮廓、光影或一个喜欢的细节。也可以直接写一句话，或完成观察后继续。'}</p>
+    {hints.length > 0 && <details className="tw-observation-hints"><summary>需要一点观察提示？</summary><ul>{hints.map((hint, index) => <li key={`${index}-${hint}`}>{hint}</li>)}</ul></details>}
     {failed ? <p className="tw-notice" role="status">照片暂不可用，仍可以写下观察或直接确认。</p> : <button type="button" className="tw-photo-target" disabled={!ready} onClick={pick} onKeyDown={move} aria-label="点选照片中的细节" aria-describedby={helpId}>
       <img src={image} alt={`${place}的样例照片，可在照片上标记自己的发现`} onLoad={() => setReady(true)} onError={() => { setFailed(true); setPoint(null) }} />
       {point ? <span className="tw-photo-pin" style={{ left: `${point.x * 100}%`, top: `${point.y * 100}%` }} aria-hidden="true"><span>✦</span></span> : <span className="tw-photo-prompt" aria-hidden="true"><Scan size={17} />点一下，留下你的发现</span>}
