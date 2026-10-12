@@ -90,14 +90,16 @@ export function AmapLiveMap({
   const zoomRef = useRef(zoom)
   const activeRef = useRef(activeSpotId)
 
-  onMapClickRef.current = onMapClick
-  onSpotClickRef.current = onSpotClick
-  onReadyRef.current = onReady
-  onErrorRef.current = onError
-  spotsRef.current = spots
-  startRef.current = start
-  zoomRef.current = zoom
-  activeRef.current = activeSpotId
+  useEffect(() => {
+    onMapClickRef.current = onMapClick
+    onSpotClickRef.current = onSpotClick
+    onReadyRef.current = onReady
+    onErrorRef.current = onError
+    spotsRef.current = spots
+    startRef.current = start
+    zoomRef.current = zoom
+    activeRef.current = activeSpotId
+  }, [activeSpotId, onError, onMapClick, onReady, onSpotClick, spots, start, zoom])
 
   useEffect(() => {
     const key = import.meta.env.VITE_AMAP_KEY

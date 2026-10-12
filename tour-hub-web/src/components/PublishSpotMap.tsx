@@ -269,7 +269,7 @@ export function PublishSpotMap({
   useEffect(() => {
     startRef.current = start
     syncStartMarker()
-  }, [start.lng, start.lat])
+  }, [start])
 
   useEffect(() => {
     mapRef.current?.setCenter([center.lng, center.lat])
