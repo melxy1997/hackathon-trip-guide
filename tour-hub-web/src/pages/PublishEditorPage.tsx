@@ -170,9 +170,10 @@ export function PublishEditorPage() {
     }, 200)
   }
 
-  // 闭包里读最新 draft 较麻烦，用 state 的函数式不够；用 ref 更稳
   const draftRef = useRef(draft)
-  draftRef.current = draft
+  useEffect(() => {
+    draftRef.current = draft
+  }, [draft])
   const getDraftSnapshot = () => draftRef.current
 
   /** 阶段二：高德地点 + AI 内容一次完成，再回写地图坐标 */
