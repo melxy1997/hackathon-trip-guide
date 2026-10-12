@@ -77,10 +77,10 @@ try {
 
   const editor = await pageFor()
   await editor.goto(`${base}/publish/yuyuan-timewalker`)
-  await editor.getByRole('button', { name: '3. 故事编排', exact: true }).click()
-  await editor.getByRole('button', { name: '2. 地点与内容', exact: true }).click()
+  await editor.getByRole('button', { name: '3.故事编排', exact: true }).click()
+  await editor.getByRole('button', { name: '2.地点与内容', exact: true }).click()
   await editor.getByText('节点内容', { exact: true }).waitFor()
-  await editor.getByRole('button', { name: '3. 故事编排', exact: true }).click()
+  await editor.getByRole('button', { name: '3.故事编排', exact: true }).click()
   const updated = '测试草稿：一封虚构家书，把山水留给后来走进园林的你。'
   await editor.getByRole('textbox', { name: /章节旁白/ }).fill(updated)
   await editor.getByRole('link', { name: '预览草稿故事', exact: true }).click()

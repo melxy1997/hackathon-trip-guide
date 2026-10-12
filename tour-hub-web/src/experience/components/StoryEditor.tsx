@@ -6,6 +6,7 @@ import { approveStoryDraft } from '../builderDraft'
 import { addStoryChoiceOption, addStoryScene, connectStoryRoute, deleteStoryChoiceOption, deleteStoryScene, duplicateStoryScene } from '../storyGraph'
 import { StoryGraph } from './StoryGraph'
 import { ConfirmDialog } from './ConfirmDialog'
+import { shouldShowStoryEditorOnboarding, writeStoryEditorOnboarding } from '../storyEditorOnboarding'
 import type { DraftAttraction } from '../../types/attraction'
 
 export function StoryEditor({ draft, onChange, onReview }: {
@@ -18,6 +19,7 @@ export function StoryEditor({ draft, onChange, onReview }: {
   const [graphMessage, setGraphMessage] = useState('')
   const [pendingDelete, setPendingDelete] = useState<{ kind: 'scene' | 'option'; id: string; label: string } | null>(null)
   const [undo, setUndo] = useState<{ definition: ExperienceDefinitionV1; selectedId: string; message: string } | null>(null)
+  const [onboardingStep, setOnboardingStep] = useState(() => shouldShowStoryEditorOnboarding(typeof window === 'undefined' ? null : window.localStorage) ? 0 : -1)
   const inspectorRef = useRef<HTMLElement>(null)
   const definition = draft.experience
   const scene = definition.scenes.find(s => s.id === selectedId) ?? definition.scenes[0]
@@ -76,10 +78,21 @@ export function StoryEditor({ draft, onChange, onReview }: {
   const field = 'mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm'
   const targetOptions = <>{definition.scenes.map(s => <option key={s.id} value={s.id}>{s.title} · {s.id}</option>)}</>
   const goto = (actions: Action[], target: string): Action[] => [...actions.filter(a => a.type !== 'goTo'), { type: 'goTo', sceneId: target }]
+  const dismissOnboarding = (completed: boolean) => {
+    writeStoryEditorOnboarding(typeof window === 'undefined' ? null : window.localStorage, { dismissed: !completed, completed })
+    setOnboardingStep(-1)
+  }
+  const onboarding = [
+    ['从关系图选章节', '点击章节节点即可切换当前编辑对象；红色标记会提示需要修复的结构问题。'],
+    ['在编辑区改内容和出口', '修改旁白、地点和分支出口会实时保存到本机草稿。'],
+    ['预览、审核与发布', '先预览两条分支并核验素材，再确认人工审核并发布体验。'],
+  ] as const
   const targets = (s: Scene): string[] => s.interaction?.type === 'single_choice' ? s.interaction.options.flatMap(o => o.actions.flatMap(a => a.type === 'goTo' ? [a.sceneId] : []))
     : s.interaction?.type === 'photo_or_tap' ? s.interaction.actionsOnComplete.flatMap(a => a.type === 'goTo' ? [a.sceneId] : []) : s.transitions?.map(t => t.to) ?? []
   return <div className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-8 bg-[#f7f8fa]">
     <div className="max-w-5xl mx-auto">
+      {onboardingStep >= 0 && <section className="mb-5 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950" aria-label="故事编排快速引导"><p className="text-xs font-medium text-blue-700">快速引导 · 第 {onboardingStep + 1} 步，共 3 步</p><h3 className="mt-1 font-medium">{onboarding[onboardingStep][0]}</h3><p className="mt-1 text-blue-900">{onboarding[onboardingStep][1]}</p><div className="mt-3 flex flex-wrap gap-2"><button type="button" className="min-h-11 rounded-lg border border-blue-200 bg-white px-3 text-xs" onClick={() => dismissOnboarding(false)}>跳过引导</button>{onboardingStep > 0 && <button type="button" className="min-h-11 rounded-lg border border-blue-200 bg-white px-3 text-xs" onClick={() => setOnboardingStep(onboardingStep - 1)}>上一步</button>}<button type="button" className="min-h-11 rounded-lg bg-blue-700 px-3 text-xs font-medium text-white" onClick={() => onboardingStep === onboarding.length - 1 ? dismissOnboarding(true) : setOnboardingStep(onboardingStep + 1)}>{onboardingStep === onboarding.length - 1 ? '完成引导，不再显示' : '下一步'}</button></div></section>}
+
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6"><div><h2 className="text-xl font-medium">故事编排</h2><p className="text-sm text-gray-500 mt-2">修改保存到本机草稿，预览复用正式播放器；候选稿须审核后发布。</p></div><Link to={`/experience/${draft.id}?preview=1&director=1`} className="rounded-lg border border-black/10 bg-white px-4 py-2 text-sm">预览草稿故事</Link></div>
       <div className={`rounded-xl p-4 text-sm whitespace-pre-wrap mb-5 ${valid ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`} role="status">{validation}{!valid && <><p className="mt-3 font-medium">修复建议：{validationSuggestion(validation)}</p>{diagnostics.some(diagnostic => diagnostic.sceneId) && <div className="mt-3 flex flex-wrap gap-2" aria-label="定位故事结构问题">{diagnostics.filter(diagnostic => diagnostic.sceneId).map((diagnostic, index) => <button key={`${diagnostic.sceneId}-${diagnostic.route?.handle ?? index}`} type="button" className="min-h-11 rounded-lg border border-red-300 bg-white px-3 py-2 text-left text-xs font-medium text-red-800" onClick={() => locateDiagnostic(diagnostic)}>定位：{definition.scenes.find(scene => scene.id === diagnostic.sceneId)?.title ?? diagnostic.sceneId} · {diagnostic.message}</button>)}</div>}</>}</div>
       <section className="rounded-xl border border-black/10 bg-white p-4 mb-5 space-y-3">

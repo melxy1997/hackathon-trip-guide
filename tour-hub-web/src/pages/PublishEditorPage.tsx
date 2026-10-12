@@ -330,10 +330,13 @@ export function PublishEditorPage() {
   }
 
   const busy = resolving || generating
+  const stageNumber = stage === 'story' ? 3 : stage
+  const canPublish = Boolean(draft.experience && draft.storyReview?.status === 'approved')
+  const readiness = !draft.spots.length ? '还需：生成至少一个地点' : !draft.experience ? '还需：生成故事内容' : !canPublish ? '还需：确认人工审核' : '已可发布'
 
   return (
     <div className="h-screen flex flex-col bg-[#f7f8fa] text-[#111827]">
-      <header className="shrink-0 flex items-center justify-between gap-3 px-4 sm:px-5 h-14 bg-white border-b border-black/5">
+      <header className="shrink-0 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-5 py-2 bg-white border-b border-black/5">
         <div className="flex items-center gap-3 min-w-0">
           <Link to="/publish" className="inline-flex items-center gap-1 text-sm text-[#6b7280] hover:text-[#111827]">
             <ArrowLeft size={16} />
@@ -354,82 +357,17 @@ export function PublishEditorPage() {
           </span>
         </div>
 
-        <div className="hidden md:flex items-center gap-1 rounded-lg bg-[#f3f4f6] p-0.5">
-          <button
-            type="button"
-            onClick={() => setStage(1)}
-            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-              stage === 1 ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6b7280] hover:text-[#111827]'
-            }`}
-          >
-            1. 确定范围
-          </button>
-          <button
-            type="button"
-            onClick={() => void goStage2()}
-            className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-              stage === 2 ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6b7280] hover:text-[#111827]'
-            }`}
-          >
-            2. 地点与内容
-          </button>
-          {draft.experience && <button type="button" onClick={() => setStage('story')} className={`px-3 py-1.5 text-sm rounded-md ${stage === 'story' ? 'bg-white shadow-sm' : 'text-[#6b7280]'}`}>3. 故事编排</button>}
-        </div>
+        <nav className="order-3 w-full overflow-x-auto border-t border-black/5 px-4 py-2 md:order-none md:w-auto md:border-0 md:px-0" aria-label="发布工作流"><ol className="flex min-w-max items-center gap-1 rounded-lg bg-[#f3f4f6] p-0.5">{([{ id: 1 as const, label: '确定范围', action: () => setStage(1) }, { id: 2 as const, label: '地点与内容', action: () => void goStage2() }, { id: 'story' as const, label: '故事编排', action: () => draft.experience && setStage('story') }]).map(item => <li key={String(item.id)}><button type="button" onClick={item.action} disabled={item.id === 'story' && !draft.experience} aria-current={stage === item.id ? 'step' : undefined} className={`min-h-11 rounded-md px-3 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${stage === item.id ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6b7280] hover:text-[#111827]'}`}><span className="mr-1 text-xs font-medium">{item.id === 'story' ? 3 : item.id}.</span>{item.label}</button></li>)}</ol></nav>
 
         <div className="flex items-center gap-2 shrink-0">
-          {stage === 1 ? (
-            <>
-              <button
-                type="button"
-                onClick={() => void onResolveScope()}
-                disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm hover:bg-[#f3f4f6] disabled:opacity-50"
-              >
-                <MapPin size={14} />
-                {resolving ? '检索中…' : '检索范围'}
-              </button>
-              <button
-                type="button"
-                onClick={() => void goStage2()}
-                disabled={busy}
-                className="inline-flex items-center gap-1 rounded-lg bg-[#3b82f6] text-white px-3.5 py-1.5 text-sm hover:bg-[#2563eb] disabled:opacity-50"
-              >
-                下一步
-                <ArrowRight size={14} />
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={() => setStage(1)}
-                className="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm hover:bg-[#f3f4f6]"
-              >
-                上一步
-              </button>
-              <button
-                type="button"
-                onClick={() => void onGenerateAndLocate()}
-                disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm hover:bg-[#f3f4f6] disabled:opacity-50"
-              >
-                <Sparkles size={14} />
-                {generating ? '生成中…' : 'AI 生成并定位'}
-              </button>
-              <button
-                type="button"
-                onClick={onPublish}
-                disabled={busy}
-                className="rounded-lg bg-[#3b82f6] text-white px-3.5 py-1.5 text-sm hover:bg-[#2563eb] disabled:opacity-50"
-              >
-                发布
-              </button>
-            </>
-          )}
+          {stage !== 1 && <button type="button" onClick={() => setStage(stage === 'story' ? 2 : 1)} className="min-h-11 rounded-lg border border-black/10 bg-white px-3 text-sm hover:bg-[#f3f4f6]">上一步</button>}
+          {stage === 1 && <button type="button" onClick={() => void goStage2()} disabled={busy} className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">继续：地点与内容<ArrowRight size={14} /></button>}
+          {stage === 2 && <button type="button" onClick={() => draft.experience ? setStage('story') : void onGenerateAndLocate()} disabled={busy} className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">{draft.experience ? '继续：故事编排' : generating ? '生成中…' : '生成地点与内容'}<ArrowRight size={14} /></button>}
+          {stage === 'story' && <button type="button" onClick={onPublish} disabled={busy || !canPublish} aria-describedby="publish-readiness" className="min-h-11 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">发布体验</button>}
         </div>
       </header>
 
-      {draft.experience && <div className="md:hidden border-b border-black/5 bg-white px-4 py-2"><button type="button" onClick={() => setStage(stage === 'story' ? 2 : 'story')} className="text-sm text-[#3b82f6]">{stage === 'story' ? '地点与内容' : '故事编排'}</button></div>}
+      <div id="publish-readiness" className="shrink-0 border-b border-black/5 bg-white px-4 py-2 text-xs text-[#4b5563]" role="status"><span className="font-medium">第 {stageNumber} 步</span> · {readiness}</div>
 
       {stage === 1 ? (
         <div className="flex-1 min-h-0 overflow-y-auto">
