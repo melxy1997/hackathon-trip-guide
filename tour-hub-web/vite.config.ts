@@ -6,6 +6,6 @@ import { offlineDemoPlugin } from './vite-plugin-offline-demo.ts'
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), exportToDisplayPlugin(), offlineDemoPlugin()],
-  server: { port: 5173, proxy: { '/api': 'http://127.0.0.1:8787' } },
+  server: { port: 5174, proxy: { '/api': 'http://127.0.0.1:8787' } },
   preview: { proxy: { '/api': 'http://127.0.0.1:8787' } },
 })

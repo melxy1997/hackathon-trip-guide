@@ -41,7 +41,7 @@ function parseModelJson(content: string): unknown {
 
 /** Loopback development gateway. No publish endpoint; no provider credentials in replies. */
 export function createGateway(config: GatewayConfig) {
-  const origins = new Set(config.allowedOrigins ?? ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:4173', 'http://127.0.0.1:4173'])
+  const origins = new Set(config.allowedOrigins ?? ['http://localhost:5174', 'http://127.0.0.1:5174', 'http://localhost:4173', 'http://127.0.0.1:4173'])
   const rates = new Map<string, { count: number; expires: number }>()
   let activeModels = 0
   async function loadPackage(id: unknown): Promise<PublishedAttraction> {

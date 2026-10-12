@@ -18,7 +18,7 @@ async function withGateway(config: Partial<GatewayConfig>, run: (base: string) =
   try { await run(`http://127.0.0.1:${address.port}`) }
   finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())) }
 }
-const post = (base: string, path: string, body: unknown, origin = 'http://localhost:5173') => fetch(`${base}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(body) })
+const post = (base: string, path: string, body: unknown, origin = 'http://localhost:5174') => fetch(`${base}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(body) })
 
 test('no credential needed for health/template; online fails explicitly; invalid package and brief return safe errors', async () => {
   await withGateway({}, async base => {

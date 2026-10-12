@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdir } from 'node:fs/promises'
 
 const { chromium } = await import(process.env.TIMEWALKER_PLAYWRIGHT_MODULE || 'playwright')
-const base = process.env.TIMEWALKER_BASE_URL || 'http://127.0.0.1:5173'
+const base = process.env.TIMEWALKER_BASE_URL || 'http://127.0.0.1:5174'
 const output = process.env.TIMEWALKER_TEST_OUTPUT || '/tmp/timewalker-builder-smoke'
 await mkdir(output, { recursive: true })
 const browser = await chromium.launch({ headless: true, executablePath: process.env.TIMEWALKER_CHROMIUM, args: ['--no-sandbox'] })

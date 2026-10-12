@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5173",
+    "dev": "vite --port 5174",
     "dev:api": "node --env-file-if-exists=.env.server.local server/index.ts",
     "dev:full": "node scripts/dev.mjs",
     "build": "tsc -b && vite build",
