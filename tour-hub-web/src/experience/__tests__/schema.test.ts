@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { assertPublishedAttraction } from '../../lib/tourPackage.ts'
-import { assertExperience, safeAssetUrl } from '../experienceSchema.ts'
+import { assertExperience, ExperienceValidationError, safeAssetUrl } from '../experienceSchema.ts'
 import { fixture } from './fixtures.ts'
 
 test('legacy attraction and new embedded experience are independently loadable', () => {
@@ -40,6 +40,23 @@ for (const [label, corrupt, expected] of corruptions) test(`reject ${label} with
   corrupt(definition)
   assert.throws(() => assertExperience(definition, { spotIds: pkg.spots.map(s => s.id) }), expected)
 })
+test('graph validation exposes structured scene and route diagnostics', () => {
+  const { pkg, definition } = fixture()
+  const choiceScene = definition.scenes.find(scene => scene.interaction?.type === 'single_choice')!
+  const interaction = choiceScene.interaction
+  if (interaction?.type !== 'single_choice') throw new Error('fixture needs a choice scene')
+  const option = interaction.options[0]
+  const target = option.actions.find(action => action.type === 'goTo')
+  if (!target || target.type !== 'goTo') throw new Error('fixture needs a choice route')
+  target.sceneId = 'missing'
+  assert.throws(() => assertExperience(definition, { spotIds: pkg.spots.map(s => s.id) }), (error: unknown) => {
+    assert.ok(error instanceof ExperienceValidationError)
+    assert.match(error.message, new RegExp(`scene:${choiceScene.id}.*未知目标 missing`))
+    assert.deepEqual(error.diagnostics.find(diagnostic => diagnostic.message.includes('未知目标')), { message: '未知目标 missing', sceneId: choiceScene.id, route: { source: choiceScene.id, handle: `choice:${option.id}` } })
+    return true
+  })
+})
+
 test('observation prompts are optional, bounded and validated through the shared contract', () => {
   const { pkg, definition } = fixture()
   const interaction = definition.scenes[2].interaction

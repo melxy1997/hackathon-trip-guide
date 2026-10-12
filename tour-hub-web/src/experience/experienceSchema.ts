@@ -38,12 +38,16 @@ export interface ExperienceDefinitionV1 {
 }
 export interface ExperienceContext { spotIds: string[]; assets?: Record<string, string> }
 
+export type ExperienceDiagnostic = { message: string; sceneId?: string; route?: { source: string; handle: string } }
+
 export class ExperienceValidationError extends Error {
   readonly issues: string[]
-  constructor(issues: string[]) {
+  readonly diagnostics: ExperienceDiagnostic[]
+  constructor(issues: string[], diagnostics: ExperienceDiagnostic[] = []) {
     super(`体验包校验失败：\n${issues.join('\n')}`)
     this.name = 'ExperienceValidationError'
     this.issues = issues
+    this.diagnostics = diagnostics
   }
 }
 
@@ -66,8 +70,9 @@ export function safeAssetUrl(ref: unknown, kind: 'image' | 'audio'): ref is stri
 /** Shared by loading, editor and publishing; does not certify facts or licensing. */
 export function assertExperience(raw: unknown, context: ExperienceContext): ExperienceDefinitionV1 {
   const issues: string[] = []
-  const fail = (where: string, message: string) => issues.push(`${where}: ${message}`)
-  if (!object(raw)) throw new ExperienceValidationError(['experience: 必须是对象'])
+  const diagnostics: ExperienceDiagnostic[] = []
+  const fail = (where: string, message: string, location: Omit<ExperienceDiagnostic, 'message'> = {}) => { issues.push(`${where}: ${message}`); diagnostics.push({ message, ...location }) }
+  if (!object(raw)) throw new ExperienceValidationError(['experience: 必须是对象'], [{ message: '必须是对象' }])
   if (raw.schemaVersion !== 1) fail('experience', '只支持 schemaVersion=1')
   for (const key of ['id', 'initialSceneId']) if (!identifier(raw[key])) fail(`experience.${key}`, 'ID 无效')
   for (const key of ['title', 'premise']) if (!text(raw[key])) fail(`experience.${key}`, '文本不能为空或超过上限')
@@ -94,7 +99,7 @@ export function assertExperience(raw: unknown, context: ExperienceContext): Expe
     if (!identifier(s.id) || ids.has(s.id)) fail('scenes', '场景 ID 无效或重复')
     else ids.add(s.id)
   }
-  const graph = new Map<string, string[]>()
+  const graph = new Map<string, Array<{ target: string; handle: string }>>()
   const interactions = new Set<string>()
   for (const s of scenes) {
     if (!object(s)) continue
@@ -120,8 +125,8 @@ export function assertExperience(raw: unknown, context: ExperienceContext): Expe
         if (!safeAssetUrl(resolved, b.type)) fail(where, `${b.id} 媒体引用无法安全解析`)
       }
     }
-    const targets: string[] = []
-    const checkActions = (actions: unknown, path: string) => {
+    const targets: Array<{ target: string; handle: string }> = []
+    const checkActions = (actions: unknown, path: string, handle: string) => {
       if (!Array.isArray(actions)) { fail(path, 'actions 须为数组'); return }
       if (actions.filter(a => object(a) && a.type === 'goTo').length !== 1) fail(path, '必须恰有一个 goTo')
       for (const a of actions) {
@@ -129,7 +134,7 @@ export function assertExperience(raw: unknown, context: ExperienceContext): Expe
         const allowed: Record<string, string[]> = { setVar: ['type', 'key', 'value'], revealMemory: ['type', 'memoryId'], goTo: ['type', 'sceneId'] }
         if (!Object.hasOwn(allowed, String(a.type))) { fail(path, `未知动作 ${a.type}`); continue }
         if (Object.keys(a).some(k => !allowed[String(a.type)].includes(k))) fail(path, '动作包含非契约字段')
-        if (a.type === 'goTo') targets.push(String(a.sceneId))
+        if (a.type === 'goTo') targets.push({ target: String(a.sceneId), handle })
         if (a.type === 'revealMemory' && !identifier(a.memoryId)) fail(path, '回忆 ID 无效')
         if (a.type === 'setVar' && (!Object.hasOwn(variables, String(a.key)) || !value(a.value) || typeof variables[String(a.key)] !== typeof a.value)) fail(path, `setVar 的变量或值类型无效 ${a.key}`)
       }
@@ -151,7 +156,7 @@ export function assertExperience(raw: unknown, context: ExperienceContext): Expe
             else optionIds.add(o.id)
             if (!text(o.label)) fail(where, '选项缺少标题')
             if (o.description !== undefined && (!text(o.description) || o.description.length > 240)) fail(where, '选项说明需为 1–240 字文本')
-            checkActions(o.actions, `${where}/option:${o.id}`)
+            checkActions(o.actions, `${where}/option:${o.id}`, `choice:${o.id}`)
           }
         } else if (it.type === 'photo_or_tap') {
           if (it.prompt !== undefined && (!text(it.prompt) || it.prompt.length > 240)) fail(where, '观察主提示需为 1–240 字文本')
@@ -160,7 +165,7 @@ export function assertExperience(raw: unknown, context: ExperienceContext): Expe
             else if (it.hints.some(hint => !text(hint) || hint.length > 80)) fail(where, '每条轻提示需为 1–80 字文本')
           }
           if (it.fallback !== 'manual_confirm') fail(where, '观察任务必须允许人工确认')
-          checkActions(it.actionsOnComplete, `${where}/observation`)
+          checkActions(it.actionsOnComplete, `${where}/observation`, 'observation')
         } else fail(where, `未知互动类型 ${it.type}`)
       }
     } else {
@@ -170,7 +175,7 @@ export function assertExperience(raw: unknown, context: ExperienceContext): Expe
       if (ts.length && (object(ts.at(-1)) && ts.at(-1).when !== undefined)) fail(where, '最后一项转移必须是无条件兜底')
       for (const [i, t] of ts.entries()) {
         if (!object(t)) { fail(where, '转移须为对象'); continue }
-        targets.push(String(t.to))
+        targets.push({ target: String(t.to), handle: `transition:${i}` })
         if (t.when === undefined) {
           if (i !== ts.length - 1) fail(where, '无条件转移只能放在最后')
         } else if (!object(t.when) || !Object.hasOwn(variables, String(t.when.var)) || !['eq', 'neq', 'in'].includes(String(t.when.op))) fail(where, '转移条件无效')
@@ -185,19 +190,19 @@ export function assertExperience(raw: unknown, context: ExperienceContext): Expe
     graph.set(String(s.id), targets)
   }
   if (!ids.has(String(raw.initialSceneId))) fail('experience.initialSceneId', '首幕不存在')
-  for (const [id, targets] of graph) for (const target of targets) if (!ids.has(target)) fail(`scene:${id}`, `未知目标 ${target}`)
+  for (const [id, targets] of graph) for (const route of targets) if (!ids.has(route.target)) fail(`scene:${id}`, `未知目标 ${route.target}`, { sceneId: id, route: { source: id, handle: route.handle } })
   const visited = new Set<string>()
   const active = new Set<string>()
-  const walk = (id: string) => {
-    if (active.has(id)) { fail(`scene:${id}`, 'V1 不支持循环故事，请提供可终止分支'); return }
+  const walk = (id: string, enteredBy?: { source: string; handle: string }) => {
+    if (active.has(id)) { fail(`scene:${id}`, 'V1 不支持循环故事，请提供可终止分支', { sceneId: id, route: enteredBy }); return }
     if (visited.has(id) || !ids.has(id)) return
     visited.add(id); active.add(id)
-    for (const to of graph.get(id) ?? []) walk(to)
+    for (const route of graph.get(id) ?? []) walk(route.target, { source: id, handle: route.handle })
     active.delete(id)
   }
   walk(String(raw.initialSceneId))
-  for (const id of ids) if (!visited.has(id)) fail(`scene:${id}`, '场景从首幕不可达')
+  for (const id of ids) if (!visited.has(id)) fail(`scene:${id}`, '场景从首幕不可达', { sceneId: id })
   if (!scenes.some(s => object(s) && s.mode === 'ending' && visited.has(String(s.id)))) fail('experience', '缺少可达终幕')
-  if (issues.length) throw new ExperienceValidationError(issues)
+  if (issues.length) throw new ExperienceValidationError(issues, diagnostics)
   return raw as unknown as ExperienceDefinitionV1
 }

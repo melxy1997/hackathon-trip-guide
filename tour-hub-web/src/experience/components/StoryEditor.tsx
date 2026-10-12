@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { assertExperience, type ExperienceDefinitionV1, type Scene, type Action } from '../experienceSchema'
+import { assertExperience, ExperienceValidationError, type ExperienceDefinitionV1, type Scene, type Action, type ExperienceDiagnostic } from '../experienceSchema'
 import { validationSuggestion } from '../builder'
 import { approveStoryDraft } from '../builderDraft'
 import { addStoryChoiceOption, addStoryScene, connectStoryRoute, deleteStoryChoiceOption, deleteStoryScene, duplicateStoryScene } from '../storyGraph'
@@ -64,9 +64,15 @@ export function StoryEditor({ draft, onChange, onReview }: {
   }
   const updateScene = (patch: Partial<Scene>) => change({ ...definition, scenes: definition.scenes.map(s => s.id === scene.id ? { ...s, ...patch } : s) })
   let validation = '结构与分支校验通过；史实和素材授权仍须人工审核。'
+  let diagnostics: ExperienceDiagnostic[] = []
   let valid = true
   try { assertExperience(definition, { spotIds: draft.spots.map(s => s.id) }) }
-  catch (e) { valid = false; validation = e instanceof Error ? e.message : '故事结构无效' }
+  catch (error) { valid = false; validation = error instanceof Error ? error.message : '故事结构无效'; diagnostics = error instanceof ExperienceValidationError ? error.diagnostics : [] }
+  const locateDiagnostic = (diagnostic: ExperienceDiagnostic) => {
+    if (!diagnostic.sceneId) return
+    selectScene(diagnostic.sceneId, true)
+    setGraphMessage(`问题已定位到「${definition.scenes.find(item => item.id === diagnostic.sceneId)?.title ?? diagnostic.sceneId}」：${diagnostic.message}`)
+  }
   const field = 'mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm'
   const targetOptions = <>{definition.scenes.map(s => <option key={s.id} value={s.id}>{s.title} · {s.id}</option>)}</>
   const goto = (actions: Action[], target: string): Action[] => [...actions.filter(a => a.type !== 'goTo'), { type: 'goTo', sceneId: target }]
@@ -75,11 +81,11 @@ export function StoryEditor({ draft, onChange, onReview }: {
   return <div className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-8 bg-[#f7f8fa]">
     <div className="max-w-5xl mx-auto">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6"><div><h2 className="text-xl font-medium">故事编排</h2><p className="text-sm text-gray-500 mt-2">修改保存到本机草稿，预览复用正式播放器；候选稿须审核后发布。</p></div><Link to={`/experience/${draft.id}?preview=1&director=1`} className="rounded-lg border border-black/10 bg-white px-4 py-2 text-sm">预览草稿故事</Link></div>
-      <div className={`rounded-xl p-4 text-sm whitespace-pre-wrap mb-5 ${valid ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`} role="status">{validation}{!valid && <p className="mt-3 font-medium">修复建议：{validationSuggestion(validation)}</p>}</div>
+      <div className={`rounded-xl p-4 text-sm whitespace-pre-wrap mb-5 ${valid ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`} role="status">{validation}{!valid && <><p className="mt-3 font-medium">修复建议：{validationSuggestion(validation)}</p>{diagnostics.some(diagnostic => diagnostic.sceneId) && <div className="mt-3 flex flex-wrap gap-2" aria-label="定位故事结构问题">{diagnostics.filter(diagnostic => diagnostic.sceneId).map((diagnostic, index) => <button key={`${diagnostic.sceneId}-${diagnostic.route?.handle ?? index}`} type="button" className="min-h-11 rounded-lg border border-red-300 bg-white px-3 py-2 text-left text-xs font-medium text-red-800" onClick={() => locateDiagnostic(diagnostic)}>定位：{definition.scenes.find(scene => scene.id === diagnostic.sceneId)?.title ?? diagnostic.sceneId} · {diagnostic.message}</button>)}</div>}</>}</div>
       <section className="rounded-xl border border-black/10 bg-white p-4 mb-5 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-medium">章节关系图</h3><p className="mt-1 text-xs text-gray-500">点击节点编辑；从右侧出口拖到目标章节可改跳转。手机上也可继续使用下方选择框。</p></div><div className="flex flex-wrap gap-2"><button type="button" className="rounded-lg border border-black/10 px-3 py-2 text-xs" onClick={() => graphAction(() => addStoryScene(definition), '已新增章节，请完善内容和连接。')}>新增章节</button><button type="button" className="rounded-lg border border-black/10 px-3 py-2 text-xs" onClick={() => graphAction(() => duplicateStoryScene(definition, scene.id), '已复制当前章节。')}>复制章节</button><button type="button" className="min-h-11 rounded-lg border border-red-200 px-3 py-2 text-xs text-red-700" onClick={() => setPendingDelete({ kind: 'scene', id: scene.id, label: scene.title })}>删除章节</button></div></div>
         {graphMessage && <p className="text-xs text-amber-800" role="status">{graphMessage}</p>}
-        <StoryGraph definition={definition} selectedId={scene.id} onSelect={id => selectScene(id, true)} onConnect={(source, handle, target) => { const sourceScene = definition.scenes.find(item => item.id === source); const route = sourceScene?.interaction?.type === 'single_choice' && handle.startsWith('choice:') ? sourceScene.interaction.options.find(option => `choice:${option.id}` === handle)?.label : '出口'; const targetScene = definition.scenes.find(item => item.id === target); graphAction(() => connectStoryRoute(definition, source, handle, target), `已将「${sourceScene?.title ?? source}」的「${route}」连接到「${targetScene?.title ?? target}」。`) }} />
+        <StoryGraph definition={definition} selectedId={scene.id} diagnostics={diagnostics} onSelect={id => selectScene(id, true)} onConnect={(source, handle, target) => { const sourceScene = definition.scenes.find(item => item.id === source); const route = sourceScene?.interaction?.type === 'single_choice' && handle.startsWith('choice:') ? sourceScene.interaction.options.find(option => `choice:${option.id}` === handle)?.label : '出口'; const targetScene = definition.scenes.find(item => item.id === target); graphAction(() => connectStoryRoute(definition, source, handle, target), `已将「${sourceScene?.title ?? source}」的「${route}」连接到「${targetScene?.title ?? target}」。`) }} />
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-950"><p><span className="text-xs text-amber-700">正在编辑</span><strong className="ml-2">{scene.title}</strong><span className="ml-2 text-xs opacity-70">{scene.mode}</span></p><button type="button" className="min-h-11 rounded-lg border border-amber-200 bg-white px-3 text-xs font-medium" onClick={() => { inspectorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); inspectorRef.current?.focus({ preventScroll: true }) }}>跳到编辑表单</button></div>
       </section>
       <section className="bg-white rounded-xl border border-black/10 p-5 mb-5 space-y-4">
