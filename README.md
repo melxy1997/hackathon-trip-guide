@@ -1,5 +1,7 @@
 # 时空漫游者 · Trip Experience Engine
 
+换到本地环境继续开发，先读 [本地开发交接](docs/timewalker_hackathon/docs/09-本地开发交接.md)：背景与目标、最新分支、安装/迁移、代码入口、能力边界及下一步任务。2026-10-12 交接时完整成果在 `feature/timewalker-offline-demo`，尚未合并到 `main`。
+
 首轮「时空漫游者」已接入：从首页开启《一封穿越四百年的家书》，选择自然/匠心视角、人工确认观察并生成旅行手账。故事使用模拟地点事件，无需地图或模型凭据；家书与独白是文学创作。详见 [首轮实现与验收](docs/timewalker_hackathon/docs/04-首轮实现与验收.md) 和 [开发任务](docs/timewalker_hackathon/docs/03-开发任务拆解.md)。
 
 M2 已接入故事 Builder：在发布后台选择已发布景点、主题、受众、时长与语气，生成候选故事，采用到独立草稿后编辑、审核、预览和发布。模板可在纯静态前端使用；在线模型通过服务端网关调用。详见 [M2 实现与验收](docs/timewalker_hackathon/docs/05-M2实现与验收.md)。
