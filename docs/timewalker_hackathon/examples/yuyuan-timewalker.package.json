@@ -54,7 +54,7 @@
           { "id": "jade-image-n", "type": "image", "assetRef": "/spots/yu-ling-long.jpg" },
           { "id": "jade-voice-n", "type": "narration", "text": "你刚才选择了山林野趣。请看玉玲珑的轮廓、孔洞与光影：对于赏石的人来说，自然生成的变化本身就可以成为观赏对象。", "fictional": false, "sourceIds": ["shanghai-gov", "yuyuan-official"] }
         ],
-        "interaction": { "id": "jade-observation-n", "type": "photo_or_tap", "fallback": "manual_confirm", "actionsOnComplete": [{ "type": "setVar", "key": "observedJade", "value": true }, { "type": "revealMemory", "memoryId": "jade-observed" }, { "type": "goTo", "sceneId": "epilogue" }] }
+        "interaction": { "id": "jade-observation-n", "type": "photo_or_tap", "prompt": "找一处让你想到山林的轮廓、孔洞或光影。", "hints": ["先看整块石头的外轮廓。", "再找一个像山洞、云朵或水流的局部。"], "fallback": "manual_confirm", "actionsOnComplete": [{ "type": "setVar", "key": "observedJade", "value": true }, { "type": "revealMemory", "memoryId": "jade-observed" }, { "type": "goTo", "sceneId": "epilogue" }] }
       },
       {
         "id": "jade-craft", "spotId": "yu-ling-long", "title": "第三幕：石与匠心", "mode": "observation",
@@ -62,7 +62,7 @@
           { "id": "jade-image-c", "type": "image", "assetRef": "/spots/yu-ling-long.jpg" },
           { "id": "jade-voice-c", "type": "narration", "text": "你刚才选择了匠心造景。请想象造园者如何选择一块独特的石头，又怎样安排它与周围的亭台、道路和视线；我们不只是欣赏一块石头，也在理解园林的构图。", "fictional": true, "sourceIds": ["yuyuan-official"] }
         ],
-        "interaction": { "id": "jade-observation-c", "type": "photo_or_tap", "fallback": "manual_confirm", "actionsOnComplete": [{ "type": "setVar", "key": "observedJade", "value": true }, { "type": "revealMemory", "memoryId": "jade-observed" }, { "type": "goTo", "sceneId": "epilogue" }] }
+        "interaction": { "id": "jade-observation-c", "type": "photo_or_tap", "prompt": "找一处让你感受到造园安排的边缘、孔洞或视线关系。", "hints": ["先看石头与周围空间怎样相接。", "再想象站在不同方向时，这个细节会怎样改变画面。"], "fallback": "manual_confirm", "actionsOnComplete": [{ "type": "setVar", "key": "observedJade", "value": true }, { "type": "revealMemory", "memoryId": "jade-observed" }, { "type": "goTo", "sceneId": "epilogue" }] }
       },
       {
         "id": "epilogue", "spotId": "dian-chun-tang", "title": "终幕：一园一念", "mode": "ending",

@@ -15,6 +15,12 @@ test('editing and packaging legacy fields preserves story and isolated clones', 
   const next = await toPublishedPackage(draft)
   assert.equal(next.description, '修改简介')
   assert.equal(next.experience?.scenes[0].blocks[1].text, '这是人工修改后的虚构家书。')
+  const observation = next.experience?.scenes[2].interaction
+  assert.equal(observation?.type, 'photo_or_tap')
+  if (observation?.type === 'photo_or_tap') {
+    assert.equal(observation.prompt, '找一处让你想到山林的轮廓、孔洞或光影。')
+    assert.deepEqual(observation.hints, ['先看整块石头的外轮廓。', '再找一个像山洞、云朵或水流的局部。'])
+  }
   assert.notEqual(next.experience, draft.experience)
   assert.notEqual(pkg.experience?.scenes[0].blocks[1].text, next.experience?.scenes[0].blocks[1].text)
 })

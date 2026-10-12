@@ -70,7 +70,9 @@ test('adoption isolates original; pending review blocks publish, approved conten
     assert.equal(approved.storyReview?.status, 'approved')
     assert.equal(saveDraft({ ...approved, status: 'published' }).storyReview?.status, 'approved')
     const edited = structuredClone(approved)
-    edited.experience!.scenes[0].blocks[1].text = '新旁白，需要重新审核。'
+    const observation = edited.experience!.scenes[2].interaction
+    assert.equal(observation?.type, 'photo_or_tap')
+    if (observation?.type === 'photo_or_tap') observation.prompt = '修改后的观察提示，需要重新审核。'
     const saved = saveDraft(edited)
     assert.equal(saved.storyReview?.status, 'pending'); assert.equal(saved.storyReview?.reviewedAt, undefined)
     assert.equal(getDraft(draft.id)?.storyReview?.status, 'pending')

@@ -41,7 +41,11 @@ async function toObservation(page, branch) {
   await page.getByRole('button', { name: '模拟到达玉玲珑', exact: true }).click()
   await page.getByRole('button', { name: '读完了，继续探索', exact: true }).click()
   await page.getByRole('heading', { name: '留住你发现的一处细节', exact: true }).waitFor()
+  await page.getByText(branch === 'nature' ? '找一处让你想到山林的轮廓、孔洞或光影。' : '找一处让你感受到造园安排的边缘、孔洞或视线关系。', { exact: true }).waitFor()
   assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), '观察探索')
+  const hints = page.locator('.tw-observation-hints')
+  await hints.getByText('需要一点观察提示？', { exact: true }).click()
+  await hints.getByText(branch === 'nature' ? '先看整块石头的外轮廓。' : '先看石头与周围空间怎样相接。', { exact: true }).waitFor()
 }
 async function ending(page) {
   await page.getByRole('button', { name: '我已观察，收下这份发现', exact: true }).click()
