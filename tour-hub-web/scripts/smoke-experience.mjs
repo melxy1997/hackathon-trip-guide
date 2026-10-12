@@ -61,6 +61,7 @@ try {
   await fallback.getByRole('button', { name: '开启时空漫游', exact: true }).click()
   await fallback.getByRole('button', { name: '开启旁白', exact: true }).click()
   await fallback.getByText('旁白暂不可用', { exact: false }).waitFor()
+  assert.equal(await fallback.locator('.tw-speaking').count(), 0, 'failed speech clears the active narration highlight')
   await fallback.getByText('场景图片暂不可用', { exact: false }).waitFor()
   await fallback.getByRole('button', { name: '前往下一站', exact: true }).click()
   await fallback.getByRole('button', { name: '模拟到达大假山', exact: true }).click()

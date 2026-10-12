@@ -28,6 +28,7 @@ async function toObservation(page, branch) {
   await page.getByRole('button', { name: '开启时空漫游', exact: true }).click()
   await page.getByRole('button', { name: '重播本幕', exact: true }).click()
   assert.equal(await page.getByRole('button', { name: '开启旁白', exact: true }).getAttribute('aria-pressed'), 'false')
+  assert.equal(await page.locator('.tw-speaking').count(), 0, 'muted text is not presented as currently narrated')
   assert.equal(await page.evaluate(() => window.__speechCount), 0, 'muted replay never starts speech')
   const voice = await page.getByRole('button', { name: '开启旁白', exact: true }).boundingBox()
   assert.ok(voice && voice.y >= 0 && voice.y + voice.height <= 844, 'voice control stays visible on phone')
