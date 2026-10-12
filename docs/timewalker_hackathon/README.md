@@ -16,6 +16,7 @@
 - `docs/10-开发日志-可配置观察提示.md`：观察提示迭代的逻辑单元、提交与本地验收记录。
 - `docs/11-开发日志-视觉与声音一致性.md`：播放器阅读节奏、真实旁白状态和轻量过渡的开发记录。
 - `docs/12-开发日志-React-Compiler-警告清理.md`：地图与发布编辑器 imperative ref 的警告清理和回归记录。
+- `docs/13-开发日志-比赛版故事图编辑器.md`：基于 React Flow 的章节关系图、增删复制和拖线编辑验收。
 - `examples/yuyuan-timewalker.package.json`：以仓库豫园坐标与节点 ID 为基础的**示例可执行体验包**，并非经现场验证的真实导览路线。
 - `tools/validate-experience.mjs`：不需要第三方依赖的初始静态校验脚本，确保场景引用、分支和旧包核心字段正确。
 - `tools/simulate-experience.mjs`：命令行剧情路径模拟，验证自然/匠心两个选择均可到结局（不是实际游客前台运行时）。
