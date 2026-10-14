@@ -2,6 +2,8 @@
 
 2026-10-15。分支：`feature/timewalker-dual-samples`。在团队 `ebd1619` 的共享契约、独立导入、双概念、编译和 Creative Studio 基础上继续开发。目标仍是快速可用、有演示效果；不增加素材许可审核任务。
 
+后续生成素材闭环与最新待办见 [24-生成素材闭环与开发待办](24-生成素材闭环与开发待办.md)。下文保留本阶段交付记录。
+
 ## 切片一：Tavily 联网研究后端
 
 已实现 `POST /api/agent/research`，请求为现有 `CreativeBrief`。服务端加载基础包，组合景点/展区/主题进行 Tavily Search（最多四条），再对前两条结果执行 Extract。返回 `dossier`、requestId、durationMs；其中 pages 提供来源、正文或摘要，以及是否成功提取正文。

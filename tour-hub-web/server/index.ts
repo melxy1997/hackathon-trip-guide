@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import { resolve } from 'node:path'
 import { createGateway } from './gateway.ts'
 
 const port = 8787
@@ -6,6 +7,10 @@ const server = createGateway({
   publicDir: fileURLToPath(new URL('../public/', import.meta.url)),
   apiKey: process.env.DEEPSEEK_API_KEY,
   tavilyApiKey: process.env.TAVILY_API_KEY,
+  imageApiKey: process.env.ARK_API_KEY,
+  imageModel: process.env.ARK_IMAGE_MODEL,
+  imageBaseUrl: process.env.ARK_BASE_URL,
+  ...(process.env.AGENT_ARTIFACT_DIR ? { agentAssetDir: resolve(process.env.AGENT_ARTIFACT_DIR, 'assets') } : {}),
   baseUrl: process.env.DEEPSEEK_BASE_URL,
   model: process.env.DEEPSEEK_MODEL,
   ...(process.env.WEB_ORIGIN ? { allowedOrigins: process.env.WEB_ORIGIN.split(',').map(s => s.trim()) } : {}),

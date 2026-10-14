@@ -373,3 +373,47 @@ test('rehearsal CLI saves importable candidate and evidence; missing config make
     })
   } finally { await rm(directory, { recursive: true, force: true }) }
 })
+
+test('generated image becomes a validated candidate resource, survives gateway restart and reuses cache without another billed request', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'timewalker-media-gateway-'))
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64')
+  let imageCalls = 0
+  const config: Partial<GatewayConfig> = { agentAssetDir: directory, apiKey: 'model-key', imageApiKey: 'private-image-key', imageModel: 'fixture-image-model', fetchImpl: async (url, init) => {
+    if (String(url).endsWith('/chat/completions')) return jsonResponse(validCompileOutput(String(init?.body)))
+    if (String(url).endsWith('/images/generations')) { imageCalls++; return Response.json({ data: [{ url: 'https://images.volces.com/art.png?signed=private-temporary' }] }) }
+    return new Response(png, { headers: { 'Content-Type': 'image/png' } })
+  } }
+  let original: AgentCandidate
+  let imageUrl = ''
+  try {
+    await withGateway(config, async base => {
+      original = (await read(await post(base, '/api/agent/compile', compileRequest(fixture().pkg)))).candidate
+      const request = { candidate: original, sceneId: original.experience.initialSceneId, confirmBilling: true }
+      const noConsent = await post(base, '/api/agent/media', { ...request, confirmBilling: false })
+      assert.equal(noConsent.status, 400)
+      assert.equal(imageCalls, 0)
+      const response = await post(base, '/api/agent/media', request)
+      assert.equal(response.status, 200)
+      const result = await response.json() as { candidate: AgentCandidate; media: { url: string; cacheHit: boolean }; artifact: { hash: string } }
+      assertAgentCandidate(result.candidate, fixture().pkg)
+      imageUrl = result.media.url
+      assert.equal(result.candidate.resourceManifest.resources[0].value, imageUrl)
+      assert.equal(result.media.cacheHit, false)
+      assert.equal(result.artifact.hash.length, 64)
+      assert.notEqual(original.experience.scenes[0].blocks[0].assetRef, result.candidate.experience.scenes[0].blocks[0].assetRef)
+      const image = await fetch(`${base}${imageUrl}`)
+      assert.equal(image.headers.get('content-type'), 'image/png')
+      assert.deepEqual(Buffer.from(await image.arrayBuffer()), png)
+      assert.equal((await post(base, '/api/agent/media', { ...request, sceneId: 'missing' })).status, 400)
+      assert.equal(imageCalls, 1)
+    })
+    await withGateway(config, async base => {
+      assert.equal((await fetch(`${base}${imageUrl}`)).status, 200)
+      const response = await post(base, '/api/agent/media', { candidate: original!, sceneId: original!.experience.initialSceneId, confirmBilling: true })
+      assert.equal(response.status, 200)
+      assert.equal((await response.json() as { media: { cacheHit: boolean } }).media.cacheHit, true)
+      assert.equal(imageCalls, 1)
+    })
+    for (const file of (await readdir(directory)).filter(name => name.endsWith('.json'))) assert.doesNotMatch(await readFile(join(directory, file), 'utf8'), /private-image-key|private-temporary|images.volces.com/)
+  } finally { await rm(directory, { recursive: true, force: true }) }
+})

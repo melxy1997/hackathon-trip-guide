@@ -11,6 +11,8 @@ import {
   artifactFor, assertCompileRequest, assertCurrentBinding, compileBlueprint, parseCompileOutput, repairContext,
 } from './agent/compile.ts'
 import { ResearchError, researchAttraction, researchRegistry } from './agent/research.ts'
+import { MediaError } from './agent/assetStore.ts'
+import { assertMediaRequest, mediaService } from './agent/media.ts'
 
 export interface GatewayConfig {
   publicDir: string
@@ -22,6 +24,11 @@ export interface GatewayConfig {
   rateLimit?: number
   tavilyApiKey?: string
   researchTimeoutMs?: number
+  imageApiKey?: string
+  imageModel?: string
+  imageBaseUrl?: string
+  imageTimeoutMs?: number
+  agentAssetDir?: string
   fetchImpl?: typeof fetch
 }
 class ApiError extends Error {
@@ -71,6 +78,9 @@ export function createGateway(config: GatewayConfig) {
   let activeModels = 0
   let activeResearch = 0
   const research = researchRegistry()
+  const media = mediaService(config.agentAssetDir ?? resolve(config.publicDir, '..', '.agent-jobs', 'assets'), {
+    apiKey: config.imageApiKey, model: config.imageModel, baseUrl: config.imageBaseUrl, timeoutMs: config.imageTimeoutMs, fetchImpl: config.fetchImpl,
+  })
   async function loadPackage(id: unknown): Promise<PublishedAttraction> {
     if (typeof id !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(id)) throw new ApiError(400, 'INVALID_INPUT', '景点 ID 无效。')
     try { return assertPublishedAttraction(JSON.parse(await readFile(resolve(config.publicDir, 'data/attractions', `${id}.json`), 'utf8'))) }
@@ -113,9 +123,15 @@ export function createGateway(config: GatewayConfig) {
     try {
       if (req.headers.origin && !origins.has(req.headers.origin)) throw new ApiError(403, 'ORIGIN_REJECTED', '此来源不能使用模型接口。')
       if (req.method === 'GET' && req.url === '/api/health') {
-        send(res, 200, { ok: true, modelConfigured: !!config.apiKey, researchConfigured: !!config.tavilyApiKey, requestId }); return
+        send(res, 200, { ok: true, modelConfigured: !!config.apiKey, researchConfigured: !!config.tavilyApiKey, imageConfigured: !!config.imageApiKey && !!config.imageModel, requestId }); return
       }
-      if (!['/api/builder/draft', '/api/agent/research', '/api/agent/concepts', '/api/agent/compile', '/api/draft/spots', '/api/scene/ask'].includes(req.url ?? '')) throw new ApiError(404, 'NOT_FOUND', '接口不存在。')
+      const assetMatch = /^\/api\/agent\/assets\/([a-f0-9]{64}\.(?:png|jpg|webp))$/.exec(req.url ?? '')
+      if (assetMatch && req.method === 'GET') {
+        const { image, data } = await media.read(assetMatch[1])
+        res.writeHead(200, { 'Content-Type': image.mime, 'Content-Length': data.length, 'Cache-Control': 'private, max-age=31536000, immutable', 'X-Content-Type-Options': 'nosniff' })
+        res.end(data); return
+      }
+      if (!['/api/builder/draft', '/api/agent/research', '/api/agent/media', '/api/agent/concepts', '/api/agent/compile', '/api/draft/spots', '/api/scene/ask'].includes(req.url ?? '')) throw new ApiError(404, 'NOT_FOUND', '接口不存在。')
       if (req.method !== 'POST') throw new ApiError(405, 'METHOD_NOT_ALLOWED', '请使用 POST。')
       if (!req.headers['content-type']?.startsWith('application/json')) throw new ApiError(415, 'CONTENT_TYPE', '请提交 JSON。')
       const now = Date.now()
@@ -129,6 +145,13 @@ export function createGateway(config: GatewayConfig) {
       try { body = JSON.parse(await limitedText(req, 64_000)) }
       catch (e) { if (e instanceof ApiError) throw e; throw new ApiError(400, 'INVALID_JSON', '请求 JSON 无效。') }
       if (!record(body)) throw new ApiError(400, 'INVALID_INPUT', '请求必须是 JSON 对象。')
+      if (req.url === '/api/agent/media') {
+        const input = assertMediaRequest(body)
+        const pkg = await loadPackage(input.candidate?.basePackage?.id)
+        const started = performance.now()
+        const result = await media.illustrate(input, pkg, controller.signal)
+        send(res, 200, { ...result, requestId, artifact: artifactFor(result.candidate), durationMs: Math.max(0, Math.round(performance.now() - started)) }); return
+      }
       if (req.url === '/api/agent/research') {
         let brief
         try { brief = assertCreativeBrief(body) } catch (e) { throw new ApiError(400, 'INVALID_INPUT', (e as Error).message) }
@@ -233,7 +256,7 @@ presentation 必须逐字段原样返回基础包 presentation。brief、概念�
       })
       send(res, 200, { spots, mode: 'online', requestId })
     } catch (e) {
-      const error = e instanceof ApiError || e instanceof ResearchError ? e : new ApiError(500, 'INTERNAL_ERROR', '服务暂时无法完成请求，请重试。')
+      const error = e instanceof ApiError || e instanceof ResearchError || e instanceof MediaError ? e : new ApiError(500, 'INTERNAL_ERROR', '服务暂时无法完成请求，请重试。')
       send(res, error.status, { error: { code: error.code, message: error.message }, requestId })
     }
   })
