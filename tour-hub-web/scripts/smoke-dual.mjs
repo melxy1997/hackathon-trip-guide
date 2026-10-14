@@ -34,6 +34,18 @@ try {
     await page.reload()
     await page.getByRole('heading', { name: '我的航行记录', exact: true }).waitFor()
     assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.tw-experience')).backgroundColor), 'rgb(7, 20, 39)')
+    assert.doesNotMatch(await page.locator('.tw-experience').innerText(), /把这段故事装进口袋|手账仍保留|我的时空手账/)
+    if (!missing && branch === 'origin' && width === 390) {
+      await page.goto(`${base}/experience/yuyuan-timewalker`)
+      await page.locator('.tw-experience[data-preset="heritage"]').waitFor()
+      assert.equal(await page.locator('.tw-experience').getAttribute('data-preset'), 'heritage')
+      await page.getByRole('button', { name: '开启时空漫游', exact: true }).waitFor()
+      await page.goto(`${base}/experience/shanghai-planetarium`)
+      await page.locator('.tw-experience[data-preset="cosmos"]').waitFor()
+      await page.getByRole('heading', { name: '我的航行记录', exact: true }).waitFor()
+      assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.tw-experience')).backgroundColor), 'rgb(7, 20, 39)')
+      assert.doesNotMatch(await page.locator('.tw-experience').innerText(), /把这段故事装进口袋|我的时空手账/)
+    }
     await context.close()
   }
   assert.equal(requests, 0)

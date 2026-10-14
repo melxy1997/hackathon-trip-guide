@@ -5,6 +5,7 @@ import type { CatalogItem } from '../lib/tourPackage'
 import { loadCatalog } from '../lib/catalog'
 import { resolvePresentation, presentationPalette, locationLabel } from '../experience/presentation'
 import { OfflineDemoPanel } from '../offline/OfflineDemoPanel'
+import { offlineDemoIds } from '../offline/demoStories'
 
 export function HomePage() {
   const [list, setList] = useState<CatalogItem[]>([])
@@ -59,7 +60,7 @@ export function HomePage() {
                 </div>
               </Link>
             )})}
-            {stories.some(item => item.id === 'yuyuan-timewalker') && <OfflineDemoPanel />}
+            {stories.some(item => offlineDemoIds.includes(item.id)) && <OfflineDemoPanel />}
             {featured && (
               <Link
                 to={`/tour/${featured.id}`}

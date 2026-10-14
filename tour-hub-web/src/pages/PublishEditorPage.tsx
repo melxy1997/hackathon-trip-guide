@@ -19,6 +19,7 @@ import { newSpotAt, publishDraft, saveDraft, ensureEditableDraft } from '../lib/
 import type { DraftAttraction, Spot } from '../types/attraction'
 import type { LngLat } from '../lib/tourPackage'
 import { createTemplateStory } from '../experience/builderDraft'
+import { shouldResolveMapLocations, usesExhibitionOrder } from './publishLocationMode'
 
 const StoryEditor = lazy(() => import('../experience/components/StoryEditor').then(module => ({ default: module.StoryEditor })))
 
@@ -120,7 +121,7 @@ export function PublishEditorPage() {
 
   /** 阶段一：高德确定旅游范围 */
   const onResolveScope = async () => {
-    if (!draft || resolving) return
+    if (!draft || resolving || !shouldResolveMapLocations(draft.presentation)) return
     if (!draft.name.trim()) {
       setToast('请先填写景点名称')
       return
@@ -157,12 +158,12 @@ export function PublishEditorPage() {
       setToast('请先填写景点名称')
       return
     }
-    // 尚未检索范围时自动检索一次
-    if (!draft.amapContext?.trim() && draft.spots.length === 0) {
+    if (!usesExhibitionOrder(draft.presentation) && !draft.amapContext?.trim() && draft.spots.length === 0) {
       const saved = await onResolveScope()
       if (!saved) return
     }
     setStage(2)
+    if (usesExhibitionOrder(draft.presentation)) return
     window.setTimeout(() => {
       const d = getDraftSnapshot()
       if (d) {
@@ -181,6 +182,10 @@ export function PublishEditorPage() {
   /** 阶段二：高德地点 + AI 内容一次完成，再回写地图坐标 */
   const onGenerateAndLocate = async () => {
     if (!draft || generating || resolving) return
+    if (usesExhibitionOrder(draft.presentation)) {
+      setToast('室内模式请按展览顺序手动编辑展区；不会调用高德或替换现有展区。')
+      return
+    }
     if (!draft.name.trim()) {
       setToast('请先填写景点名称')
       return
@@ -331,14 +336,16 @@ export function PublishEditorPage() {
   }
 
   const busy = resolving || generating
+  const indoor = usesExhibitionOrder(draft.presentation)
   const stageNumber = stage === 'story' ? 3 : stage
-  const canPublish = draft.spots.length > 0 && (!draft.experience || draft.storyReview?.status === 'approved')
+  const canPublish = draft.spots.length > 0 && !!draft.experience && draft.storyReview?.status === 'approved'
+  const canPublishLegacy = !indoor && draft.spots.length > 0 && !draft.experience
   const startStory = () => {
     try { persist(createTemplateStory(draft)); setStage('story'); setToast('本地模板故事已起稿（未调用模型），请编辑并审核。') }
     catch (error) { setToast(error instanceof Error ? error.message : '故事起稿失败') }
   }
   const stepClass = (active: boolean) => `min-h-11 rounded-md px-3 text-sm disabled:opacity-40 ${active ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6b7280]'}`
-  const readiness = !draft.spots.length ? '还需：生成至少一个地点' : !draft.experience ? '可发布原版导览；至少三个地点可起稿故事' : !canPublish ? '还需：确认人工审核' : '已可发布'
+  const readiness = !draft.spots.length ? `还需：${indoor ? '添加至少三个展区' : '生成至少一个地点'}` : !draft.experience ? indoor ? '还需：至少三个展区并起稿故事' : '可发布原版导览；至少三个地点可起稿故事' : !canPublish ? '还需：确认人工审核' : '已可发布'
 
   return (
     <div className="h-screen flex flex-col bg-[#f7f8fa] text-[#111827]">
@@ -364,16 +371,16 @@ export function PublishEditorPage() {
         </div>
 
         <nav className="order-3 w-full overflow-x-auto border-t border-black/5 px-4 py-2 md:order-none md:w-auto md:border-0 md:px-0" aria-label="发布工作流"><ol className="flex min-w-max items-center gap-1 rounded-lg bg-[#f3f4f6] p-0.5">
-          <li><button onClick={() => setStage(1)} aria-current={stage === 1 ? 'step' : undefined} className={stepClass(stage === 1)}>1.确定范围</button></li>
-          <li><button onClick={() => void goStage2()} aria-current={stage === 2 ? 'step' : undefined} className={stepClass(stage === 2)}>2.地点与内容</button></li>
+          <li><button onClick={() => setStage(1)} aria-current={stage === 1 ? 'step' : undefined} className={stepClass(stage === 1)}>1.{indoor ? '展览信息' : '确定范围'}</button></li>
+          <li><button onClick={() => void goStage2()} aria-current={stage === 2 ? 'step' : undefined} className={stepClass(stage === 2)}>2.{indoor ? '展区顺序与内容' : '地点与内容'}</button></li>
           <li><button onClick={() => setStage('story')} disabled={!draft.experience} aria-current={stage === 'story' ? 'step' : undefined} className={stepClass(stage === 'story')}>3.故事编排</button></li>
         </ol></nav>
 
         <div className="flex items-center gap-2 shrink-0">
           {stage !== 1 && <button type="button" onClick={() => setStage(stage === 'story' ? 2 : 1)} className="min-h-11 rounded-lg border border-black/10 bg-white px-3 text-sm hover:bg-[#f3f4f6]">上一步</button>}
-          {stage === 1 && <button type="button" onClick={() => void goStage2()} disabled={busy} className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">继续：地点与内容<ArrowRight size={14} /></button>}
-          {stage === 2 && <button type="button" onClick={() => draft.experience ? setStage('story') : draft.spots.length >= 3 ? startStory() : void onGenerateAndLocate()} disabled={busy} className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">{draft.experience ? '继续：故事编排' : draft.spots.length >= 3 ? '从当前地点起稿故事' : generating ? '生成中…' : '生成地点与内容'}<ArrowRight size={14} /></button>}
-          {stage === 2 && !draft.experience && <button onClick={onPublish} disabled={busy || !canPublish} className="min-h-11 rounded-lg border border-black/10 bg-white px-3 text-sm disabled:opacity-50">发布原版导览</button>}
+          {stage === 1 && <button type="button" onClick={() => void goStage2()} disabled={busy} className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">继续：{indoor ? '展区顺序与内容' : '地点与内容'}<ArrowRight size={14} /></button>}
+          {stage === 2 && <button type="button" onClick={() => draft.experience ? setStage('story') : draft.spots.length >= 3 ? startStory() : void onGenerateAndLocate()} disabled={busy || (indoor && !draft.experience && draft.spots.length < 3)} className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">{draft.experience ? '继续：故事编排' : draft.spots.length >= 3 ? '从当前地点起稿故事' : indoor ? '至少添加三个展区' : generating ? '生成中…' : '生成地点与内容'}<ArrowRight size={14} /></button>}
+          {stage === 2 && !draft.experience && !indoor && <button onClick={onPublish} disabled={busy || !canPublishLegacy} className="min-h-11 rounded-lg border border-black/10 bg-white px-3 text-sm disabled:opacity-50">发布原版导览</button>}
           {stage === 'story' && <button type="button" onClick={onPublish} disabled={busy || !canPublish} aria-describedby="publish-readiness" className="min-h-11 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">发布体验</button>}
         </div>
       </header>
@@ -384,9 +391,9 @@ export function PublishEditorPage() {
         <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="max-w-xl mx-auto p-6 sm:p-10 space-y-6">
             <div>
-              <h2 className="text-xl font-medium tracking-tight">确定旅游范围</h2>
+              <h2 className="text-xl font-medium tracking-tight">{indoor ? '填写展览信息' : '确定旅游范围'}</h2>
               <p className="mt-1.5 text-sm text-[#6b7280] leading-relaxed">
-                先写清景点与城市，再用高德确认景区位置与周边地点；下一步会把这些地点交给 AI 生成导览。
+                {indoor ? '室内体验按展览顺序编排，不使用馆内定位、地图或距离；下一步可调整展区章节与内容。' : '先写清景点与城市，再用高德确认景区位置与周边地点；下一步会把这些地点交给 AI 生成导览。'}
               </p>
             </div>
 
@@ -400,7 +407,7 @@ export function PublishEditorPage() {
               />
             </label>
 
-            <label className="block">
+            {!indoor && <label className="block">
               <span className="text-xs text-[#9ca3af]">城市 / 区域</span>
               <div className="mt-1">
                 <CityRegionSelect
@@ -410,7 +417,7 @@ export function PublishEditorPage() {
                 />
               </div>
               <p className="mt-1 text-[11px] text-[#9ca3af]">数据来自高德行政区查询（DistrictSearch）</p>
-            </label>
+            </label>}
 
             <label className="block">
               <span className="text-xs text-[#9ca3af]">简介</span>
@@ -423,7 +430,7 @@ export function PublishEditorPage() {
               />
             </label>
 
-            <div className="rounded-xl border border-black/8 bg-white p-4 space-y-3">
+            {!indoor && <div className="rounded-xl border border-black/8 bg-white p-4 space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium">高德范围</p>
@@ -450,18 +457,18 @@ export function PublishEditorPage() {
               ) : (
                 <p className="text-sm text-[#9ca3af]">填写名称后点「检索景区」，确认旅游范围再进入下一步。</p>
               )}
-            </div>
+            </div>}
           </div>
         </div>
       ) : stage === 'story' && draft.experience ? <Suspense fallback={<div className="flex-1 p-8 text-sm text-gray-500">正在打开故事编排器…</div>}><StoryEditor draft={{ ...draft, experience: draft.experience }} onChange={experience => updateDraft({ experience })} onReview={storyReview => updateDraft({ storyReview })} onPresentationChange={presentation => updateDraft({ presentation })} /></Suspense> : (
         <div className="flex-1 min-h-0 flex">
           <aside className="w-[min(100%,380px)] shrink-0 border-r border-black/5 bg-white flex flex-col min-h-0">
             <div className="p-4 space-y-3 border-b border-black/5 shrink-0">
-              <p className="text-xs text-[#9ca3af]">阶段二 · 高德地点 + AI 导览内容</p>
+              <p className="text-xs text-[#9ca3af]">阶段二 · {indoor ? '展区顺序 + 章节内容' : '高德地点 + AI 导览内容'}</p>
               <p className="text-sm text-[#6b7280] leading-relaxed">
-                一次生成讲解并落到地图；左侧改文案/传图，右侧拖标记校准。
+                {indoor ? '按实际观展顺序调整章节；可改文案、传图，不使用地图、坐标或馆内定位。' : '一次生成讲解并落到地图；左侧改文案/传图，右侧拖标记校准。'}
               </p>
-              <button
+              {!indoor && <button
                 type="button"
                 onClick={() => void onGenerateAndLocate()}
                 disabled={busy}
@@ -469,9 +476,9 @@ export function PublishEditorPage() {
               >
                 <Sparkles size={15} />
                 {generating ? '生成中…' : draft.spots.length ? '重新生成并定位' : 'AI 生成并定位'}
-              </button>
+              </button>}
               <div className="flex flex-wrap gap-2">
-                <button
+                {!indoor && <><button
                   type="button"
                   onClick={useMapCenterAsStart}
                   className="rounded-lg border border-black/10 px-2.5 py-1.5 text-xs hover:bg-[#f9fafb]"
@@ -484,14 +491,14 @@ export function PublishEditorPage() {
                   className="rounded-lg border border-black/10 px-2.5 py-1.5 text-xs hover:bg-[#f9fafb]"
                 >
                   第一站 → 起点
-                </button>
+                </button></>}
                 <button
                   type="button"
                   onClick={onAddSpot}
                   className="inline-flex items-center gap-1 rounded-lg border border-black/10 px-2.5 py-1.5 text-xs hover:bg-[#f9fafb]"
                 >
                   <Plus size={12} />
-                  手动加点
+                  {indoor ? '添加展区' : '手动加点'}
                 </button>
               </div>
             </div>
@@ -499,7 +506,7 @@ export function PublishEditorPage() {
             <div className="flex-1 min-h-0 overflow-y-auto">
               {draft.spots.length === 0 ? (
                 <p className="px-4 py-10 text-center text-sm text-[#9ca3af]">
-                  点上方「AI 生成并定位」，会把高德地点喂给 AI
+                  {indoor ? '尚无展区；使用上方“添加展区”按观展顺序建立章节' : '点上方「AI 生成并定位」，会把高德地点喂给 AI'}
                 </p>
               ) : (
                 <div className="px-3 py-2 space-y-1">
@@ -517,7 +524,7 @@ export function PublishEditorPage() {
                           className="flex-1 flex items-center gap-2 text-left min-w-0"
                           onClick={() => {
                             setSelectedId(spot.id)
-                            setMapCenter({ lng: spot.lng, lat: spot.lat })
+                            if (!indoor) setMapCenter({ lng: spot.lng, lat: spot.lat })
                           }}
                         >
                           <span className="w-5 h-5 rounded-full bg-[#111827] text-white text-[11px] flex items-center justify-center shrink-0">
@@ -525,9 +532,9 @@ export function PublishEditorPage() {
                           </span>
                           <span className="min-w-0">
                             <span className="block truncate text-sm">{spot.name}</span>
-                            <span className="block text-[11px] text-[#9ca3af] tabular-nums">
+                            {!indoor && <span className="block text-[11px] text-[#9ca3af] tabular-nums">
                               {spot.lng.toFixed(4)}, {spot.lat.toFixed(4)}
-                            </span>
+                            </span>}
                           </span>
                         </button>
                         <button
@@ -647,8 +654,7 @@ export function PublishEditorPage() {
             </div>
           </aside>
 
-          <section className={`relative flex-1 min-w-0 ${draft.presentation?.locationMode === 'indoor' ? 'hidden md:block' : ''}`}>
-            {draft.presentation?.locationMode === 'indoor' ? <div className="p-8 text-sm leading-8"><h2 className="text-lg font-medium">展区章节导航</h2><p>这些地点代表故事展区，不使用馆内定位、地图或距离。结构中的坐标占位不可作为真实位置。</p>{draft.spots.map(s => <button className="mt-3 block rounded-lg border bg-white px-4 py-2" key={s.id} onClick={() => setSelectedId(s.id)}>{s.name}</button>)}</div> : <><PublishSpotMap
+          {!indoor && <section className="relative flex-1 min-w-0"><PublishSpotMap
               center={mapCenter || draft.start}
               zoom={draft.zoom}
               spots={draft.spots}
@@ -670,8 +676,7 @@ export function PublishEditorPage() {
             )}
             <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-[#6b7280] bg-white/90 px-3 py-1.5 rounded-full border border-black/5 shadow-sm">
               拖标记校准 · 绿色「起」为游客起点
-            </p></>}
-          </section>
+            </p></section>}
         </div>
       )}
 

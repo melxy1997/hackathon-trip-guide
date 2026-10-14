@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { assertBuilderCandidate, assertBuilderInput, buildTemplate, type BuilderInput, type BuilderResult } from '../builder'
+import { assertBuilderCandidate, assertBuilderInput, buildTemplate, suggestedBuilderTheme, type BuilderInput, type BuilderResult } from '../builder'
 import { createBuilderDraft } from '../builderDraft'
 import { loadPublishedAttraction } from '../../lib/catalog'
 import { saveDraft } from '../../lib/draftStore'
@@ -9,15 +9,22 @@ import type { CatalogItem, PublishedAttraction } from '../../lib/tourPackage'
 
 export function BuilderPanel({ catalog }: { catalog: CatalogItem[] }) {
   const navigate = useNavigate()
-  const [input, setInput] = useState<Omit<BuilderInput, 'attractionId'>>({ theme: '一封写给未来的信', audience: 'general', duration: 5, tone: 'poetic', mode: 'template' })
+  const initialSource = catalog[0]
+  const [input, setInput] = useState<Omit<BuilderInput, 'attractionId'>>({ theme: suggestedBuilderTheme(initialSource), audience: 'general', duration: 5, tone: 'poetic', mode: 'template' })
   const [attractionId, setAttractionId] = useState('')
-  const selectedId = attractionId || catalog[0]?.id || ''
+  const selectedId = attractionId || initialSource?.id || ''
+  const themeTouched = useRef(false)
   const [candidate, setCandidate] = useState<{ result: BuilderResult; pkg: PublishedAttraction } | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [showContent, setShowContent] = useState(false)
   const request = useRef<{ id: number; controller?: AbortController }>({ id: 0 })
   useEffect(() => () => { request.current.id++; request.current.controller?.abort() }, [])
+  useEffect(() => {
+    if (themeTouched.current) return
+    const source = catalog.find(item => item.id === selectedId)
+    setInput(current => ({ ...current, theme: suggestedBuilderTheme(source) }))
+  }, [catalog, selectedId])
   const generate = async () => {
     request.current.controller?.abort()
     const current = ++request.current.id
@@ -49,7 +56,7 @@ export function BuilderPanel({ catalog }: { catalog: CatalogItem[] }) {
     <div className="mb-5"><p className="text-xs tracking-widest text-emerald-700">TRIP EXPERIENCE ENGINE · BUILDER</p><h2 className="text-xl font-medium mt-2">把一个景点，编排成你的故事</h2><p className="text-sm text-gray-500 mt-2">从已有地点起稿，保留双分支与观察任务；采用后进入独立草稿，编辑审核后再发布。</p></div>
     <fieldset disabled={busy} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <label className="text-sm">资料景点<select className={field} value={selectedId} onChange={e => setAttractionId(e.target.value)}>{catalog.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-      <label className="text-sm sm:col-span-2">故事主题<input className={field} maxLength={100} value={input.theme} onChange={e => setInput({ ...input, theme: e.target.value })} /></label>
+      <label className="text-sm sm:col-span-2">故事主题<input className={field} maxLength={100} value={input.theme} onChange={e => { themeTouched.current = true; setInput({ ...input, theme: e.target.value }) }} /></label>
       <label className="text-sm">受众<select className={field} value={input.audience} onChange={e => setInput({ ...input, audience: e.target.value as BuilderInput['audience'] })}><option value="general">普通游客</option><option value="family">亲子同行</option></select></label>
       <label className="text-sm">目标时长（分钟）<input className={field} type="number" min={3} max={30} value={input.duration} onChange={e => setInput({ ...input, duration: Number(e.target.value) })} /></label>
       <label className="text-sm">叙述语气<select className={field} value={input.tone} onChange={e => setInput({ ...input, tone: e.target.value as BuilderInput['tone'] })}><option value="poetic">诗意沉浸</option><option value="lively">轻松活泼</option></select></label>

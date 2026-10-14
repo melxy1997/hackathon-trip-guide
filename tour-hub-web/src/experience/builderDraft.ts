@@ -1,4 +1,4 @@
-import { assertBuilderCandidate, buildTemplate, type BuilderResult } from './builder.ts'
+import { assertBuilderCandidate, buildTemplate, suggestedBuilderTheme, type BuilderResult } from './builder.ts'
 import { assertExperience } from './experienceSchema.ts'
 import { assertPresentation } from './presentation.ts'
 import { publishedToDraft } from '../lib/draftStore.ts'
@@ -8,8 +8,9 @@ import type { DraftAttraction } from '../types/attraction.ts'
 /** Start from the creator's own POIs, without first publishing or using a model. */
 export function createTemplateStory(draft: DraftAttraction): DraftAttraction {
   const pkg: PublishedAttraction = { schemaVersion: 1, id: draft.id, name: draft.name, description: draft.description,
-    start: draft.start, zoom: draft.zoom, spots: draft.spots, coverImage: draft.coverImage, publishedAt: draft.updatedAt }
-  const result = buildTemplate(pkg, { attractionId: pkg.id, theme: `${draft.name}：写给未来的一封信`, audience: 'general', duration: 5, tone: 'poetic', mode: 'template' }, crypto.randomUUID())
+    start: draft.start, zoom: draft.zoom, spots: draft.spots, coverImage: draft.coverImage, publishedAt: draft.updatedAt,
+    ...(draft.presentation ? { presentation: structuredClone(draft.presentation) } : {}) }
+  const result = buildTemplate(pkg, { attractionId: pkg.id, theme: suggestedBuilderTheme(pkg), audience: 'general', duration: 5, tone: 'poetic', mode: 'template' }, crypto.randomUUID())
   return { ...draft, status: 'draft', experience: result.experience,
     storyReview: { status: 'pending', generatedBy: 'template', sourceAttractionId: draft.id, requestId: result.requestId, diagnostics: result.diagnostics } }
 }

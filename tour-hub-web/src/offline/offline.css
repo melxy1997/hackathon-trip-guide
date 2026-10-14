@@ -1,12 +1,12 @@
-.tw-offline { background: #f3eddf; border: 1px solid #ddcfb6; border-radius: 8px; color: #293e32; padding: 20px; text-align: left; overflow-wrap: anywhere; }
+.tw-offline { background: var(--tw-panel, #f3eddf); border: 1px solid var(--tw-panel-border, #ddcfb6); border-radius: 8px; color: var(--tw-panel-ink, #293e32); padding: 20px; text-align: left; overflow-wrap: anywhere; }
 .tw-offline-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; font-size: 15px; }
-.tw-offline-heading b { font-size: 11px; font-weight: 400; background: #dce5d7; padding: 5px 8px; border-radius: 12px; }
+.tw-offline-heading b { font-size: 11px; font-weight: 400; color: var(--tw-panel-on-action, #293e32); background: var(--tw-panel-action, #dce5d7); padding: 5px 8px; border-radius: 12px; }
 .tw-offline p { font-size: 13px; line-height: 1.8; margin: 12px 0; }
-.tw-offline small { display: block; font-size: 11px; line-height: 1.8; color: #627062; margin-top: 10px; }
-.tw-offline .tw-offline-state { font-size: 12px; color: #516847; }
+.tw-offline small { display: block; font-size: 11px; line-height: 1.8; color: var(--tw-panel-muted, #627062); margin-top: 10px; }
+.tw-offline .tw-offline-state { font-size: 12px; color: var(--tw-panel-muted, #516847); }
 .tw-offline-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.tw-offline button { min-height: 44px; padding: 10px 14px; border: 1px solid #617255; border-radius: 4px; color: #f6f1e5; background: #344d3a; cursor: pointer; font-size: 13px; }
-.tw-offline button + button { background: transparent; color: #344d3a; }
+.tw-offline button { min-height: 44px; padding: 10px 14px; border: 1px solid var(--tw-panel-action, #617255); border-radius: 4px; color: var(--tw-panel-on-action, #f6f1e5); background: var(--tw-panel-action, #344d3a); cursor: pointer; font-size: 13px; }
+.tw-offline button + button { background: transparent; color: var(--tw-panel-ink, #344d3a); }
 .tw-offline button:disabled { opacity: .5; cursor: default; }
-.tw-offline button:focus-visible { outline: 2px solid #344d3a; outline-offset: 3px; }
-.tw-offline progress { width: 100%; accent-color: #344d3a; height: 5px; }
+.tw-offline button:focus-visible { outline: 2px solid var(--tw-focus, #344d3a); outline-offset: 3px; }
+.tw-offline progress { width: 100%; accent-color: var(--tw-panel-action, #344d3a); height: 5px; }

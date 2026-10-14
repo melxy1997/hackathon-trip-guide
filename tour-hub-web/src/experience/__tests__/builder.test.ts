@@ -1,7 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { buildTemplate, assertBuilderCandidate, assertBuilderInput, validationSuggestion, type BuilderInput } from '../builder.ts'
+import { buildTemplate, assertBuilderCandidate, assertBuilderInput, suggestedBuilderTheme, validationSuggestion, type BuilderInput } from '../builder.ts'
+import { presentationForPreset } from '../presentation.ts'
+import { shouldResolveMapLocations, usesExhibitionOrder } from '../../pages/publishLocationMode.ts'
 import { approveStoryDraft, createBuilderDraft, createTemplateStory } from '../builderDraft.ts'
 import { saveDraft, getDraft, publishDraft, publishedToDraft } from '../../lib/draftStore.ts'
 import { createStoryState, transition } from '../storyEngine.ts'
@@ -47,6 +49,43 @@ test('template uses known POIs and media; both branches reach ending through the
     assert.equal(state.phase, 'completed'); assert.equal(state.variables.lens, branch)
     assert.equal(state.observations[0].method, 'manual'); assert.equal(state.visitedSceneIds.length, 4)
   }
+})
+test('motif semantics select cosmos, heritage, and neutral vocabularies without package-id branching', () => {
+  const { pkg } = fixture()
+  const cosmosPackage = { ...pkg, id: 'renamed-indoor-sample', presentation: presentationForPreset('cosmos') }
+  const cosmos = buildTemplate(cosmosPackage, { ...brief, attractionId: cosmosPackage.id, theme: '遥远回声' }, 'cosmos')
+  const cosmosText = JSON.stringify(cosmos.experience)
+  assert.match(cosmosText, /接收.*讯号/)
+  assert.match(cosmosText, /回溯讯号起点/)
+  assert.match(cosmosText, /推演讯号目的地/)
+  assert.match(cosmosText, /展项现象/)
+  assert.match(cosmosText, /航行与观测记录/)
+  assert.doesNotMatch(cosmosText, /纸笺|石头|手札|自然的一页|创造的一页|寻找自然的形状|留意创造的细节/)
+  assert.deepEqual(cosmos.experience.initialVariables, { signalView: 'unset', observed: false })
+  for (const option of cosmos.experience.scenes[1].interaction?.type === 'single_choice' ? cosmos.experience.scenes[1].interaction.options : []) assert.equal(option.actions[0].type === 'setVar' && option.actions[0].key, 'signalView')
+
+  const heritagePackage = { ...pkg, id: 'renamed-heritage-sample', presentation: presentationForPreset('heritage') }
+  const heritage = buildTemplate(heritagePackage, { ...brief, attractionId: heritagePackage.id }, 'heritage')
+  const heritageText = JSON.stringify(heritage.experience)
+  assert.match(heritageText, /纸笺/)
+  assert.match(heritageText, /自然的一页/)
+  assert.match(heritageText, /手札/)
+
+  const legacyPackage = { ...pkg, id: 'legacy-without-presentation', presentation: undefined }
+  const legacy = buildTemplate(legacyPackage, { ...brief, attractionId: legacyPackage.id, theme: '旧城回声' }, 'legacy')
+  const legacyText = JSON.stringify(legacy.experience)
+  assert.match(legacyText, /纸笺|自然的一页|手札/)
+  assert.equal(suggestedBuilderTheme({ name: '旧样例' }), '旧样例：写给未来的一封信')
+})
+test('theme suggestions and indoor location decisions derive from presentation', () => {
+  assert.match(suggestedBuilderTheme({ name: '天文展', presentation: presentationForPreset('cosmos') }), /讯号/)
+  assert.match(suggestedBuilderTheme({ name: '古园', presentation: presentationForPreset('heritage') }), /一封信/)
+  assert.equal(suggestedBuilderTheme({ name: '旧样例' }), '旧样例：写给未来的一封信')
+  const indoor = presentationForPreset('cosmos')
+  assert.equal(usesExhibitionOrder(indoor), true)
+  assert.equal(shouldResolveMapLocations(indoor), false)
+  assert.equal(usesExhibitionOrder(presentationForPreset('heritage')), false)
+  assert.equal(shouldResolveMapLocations(undefined), true)
 })
 test('legacy packages without story or sources can produce honest fictional drafts', () => {
   const pkg = JSON.parse(readFileSync(new URL('../../../public/data/attractions/yuyuan.json', import.meta.url), 'utf8'))
