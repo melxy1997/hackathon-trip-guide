@@ -1,0 +1,16 @@
+{
+  "attractionId": "shanghai-planetarium",
+  "title": "上海天文馆：来自宇宙尽头的讯息",
+  "locationType": "indoor",
+  "genre": "science-fiction-mystery",
+  "audience": "general",
+  "targetScenes": 5,
+  "targetDemoMinutes": 3,
+  "visualPreset": "cosmos",
+  "narrativeMotif": "transmission",
+  "emotionArc": ["异常讯号", "好奇", "宇宙的宏大与孤独", "反转", "希望"],
+  "availablePlaces": ["家园", "宇宙", "征程"],
+  "storyRequirements": ["第一幕必须建立一个有悬念的讯号", "双分支分别从讯号的起点和终点解读故事", "最终两支收束到人类探索的主题", "展区为章节导航，不依赖室内 GPS"],
+  "sceneArt": ["深空通讯界面", "地球与星云", "未来探测器讯号"],
+  "fictionNote": "未来讯号、人物和故事反转均属原创科幻情节"
+}

@@ -1,0 +1,16 @@
+{
+  "attractionId": "yuyuan",
+  "title": "豫园：一封穿越四百年的家书",
+  "locationType": "outdoor",
+  "genre": "historical-emotional-fiction",
+  "audience": "general",
+  "targetScenes": 5,
+  "targetDemoMinutes": 3,
+  "visualPreset": "heritage",
+  "narrativeMotif": "letter",
+  "emotionArc": ["好奇", "疑问", "温柔的牵挂", "明白", "释然"],
+  "availablePlaces": ["三穗堂", "大假山", "玉玲珑", "点春堂"],
+  "storyRequirements": ["明确的开场悬念", "只设一个轻量双分支选择", "结局回应家书开场", "不制造需要真实现场验证的任务"],
+  "sceneArt": ["旧纸与古园光影", "水墨假山", "家书终章"],
+  "fictionNote": "家书、人物对白及情节均属艺术创作"
+}
