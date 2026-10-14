@@ -1,5 +1,7 @@
 # 23｜Agent 联网研究与演示成果交接
 
+> **文档状态：阶段记录，不是当前开发入口。** 本文中的“当前/待实现/下一步”、分支与测试数只对应文内记录阶段。最新能力见 [导航与当前状态](README.md)，领取任务见 [03](03-开发任务拆解.md)，环境接手见 [09](09-本地开发交接.md)。旧文涉及素材署名/许可复核不再作为本轮任务或验收门槛。
+
 2026-10-15。分支：`feature/timewalker-dual-samples`。在团队 `ebd1619` 的共享契约、独立导入、双概念、编译和 Creative Studio 基础上继续开发。目标仍是快速可用、有演示效果；不增加素材许可审核任务。
 
 后续生成素材闭环与最新待办见 [24-生成素材闭环与开发待办](24-生成素材闭环与开发待办.md)。下文保留本阶段交付记录。
@@ -71,7 +73,7 @@ npm run agent:rehearse -- --attraction shanghai-planetarium --concept 2 --resear
 
 成员并行提交 `095d715 docs: rebuild README around Timewalker dual-sample experience engine` 已完整保留；本地未推送的 Studio 提交重放到它之后再正常推送，没有强推。之后在其 README 结构上仅同步新增能力说明。
 
-## 下一位从这里继续
+## 本阶段结束时的后续建议（当前排期见 03）
 
 1. **优先拿到真实作品**：在服务端配置既有 `DEEPSEEK_*`，可选 Tavily，重启 API，执行两份彩排。将 `*.studio.json` 导入 Studio → 采用 → 编辑预览两分支 → 发布。成果目录自行备份或挑选需要的非敏感样板提交，默认不提交整个 `.agent-jobs`。
 2. **按效果接新图闭环**：实现 Seedream adapter 与持久 AssetStore，至少一张新图从下载到受控引用、Agent 候选、草稿、发布包完整跑通。继续复用已完成的 `resourceManifest` 和媒体打包，不把供应商临时 URL 写入最终包。不新增许可审核任务。

@@ -245,7 +245,7 @@ npm run test:playability  # 观察、记录与交互
 npm run test:offline      # 正式构建后的离线回归
 ```
 
-浏览器回归脚本依赖本机 **Playwright 和 Chromium**；特殊环境可设置 `TIMEWALKER_PLAYWRIGHT_MODULE`、`TIMEWALKER_CHROMIUM` 指向已有安装。`test:offline` 需先完成 `npm run build`。详细步骤参阅 [双样板交接记录](docs/timewalker_hackathon/docs/21-双样板落地与交接.md)。
+浏览器回归脚本依赖本机 **Playwright 和 Chromium**；特殊环境可设置 `TIMEWALKER_PLAYWRIGHT_MODULE`、`TIMEWALKER_CHROMIUM` 指向已有安装。`test:offline` 需先完成 `npm run build`。详细步骤参阅 [当前接手指南](docs/timewalker_hackathon/docs/09-本地开发交接.md)。
 
 ## 📦 体验包：可复用的内容，而非写死在页面里的剧情
 
@@ -288,11 +288,13 @@ tour-hub-web/public/experience-assets/
 
 ## 📚 进一步阅读
 
-想快速理解目标和产品叙事，可先阅读 [答辩产品说明](docs/timewalker_hackathon/docs/02-答辩产品说明.md)；准备接手开发，优先阅读以下文档：
+新成员先读 [文档导航与当前状态](docs/timewalker_hackathon/docs/README.md)，再按 [当前任务板](docs/timewalker_hackathon/docs/03-开发任务拆解.md) 接续开发；产品演示使用 [双样板五分钟讲稿](docs/timewalker_hackathon/docs/08-五分钟答辩讲稿.md)。01/02/18 和阶段日志用于追溯，不直接用作当前待办。
 
 | 文档 | 适合了解 |
 |---|---|
-| [22 · 当前状态与开发分工](docs/timewalker_hackathon/docs/22-现状调研与后续开发分工.md) | 最新完成度、当前任务、验证记录 |
+| [文档导航与当前状态](docs/timewalker_hackathon/docs/README.md) | 唯一状态入口、阅读顺序、证据轮次 |
+| [03 · 当前任务板](docs/timewalker_hackathon/docs/03-开发任务拆解.md) | 待办、优先级、分工与验收 |
+| [22 · Agent 阶段分工记录](docs/timewalker_hackathon/docs/22-现状调研与后续开发分工.md) | 历史分工与已完成增量 |
 | [23 · Agent 研究与演示成果交接](docs/timewalker_hackathon/docs/23-Agent研究与演示成果交接.md) | 联网研究、成果恢复/导入导出、真实网关彩排 |
 | [24 · 生成素材闭环与开发待办](docs/timewalker_hackathon/docs/24-生成素材闭环与开发待办.md) | 逐章生图、持久素材、携带新增媒体与后续任务 |
 | [21 · 双样板开发交接](docs/timewalker_hackathon/docs/21-双样板落地与交接.md) | 双主题落地、离线、媒体、兼容性 |
