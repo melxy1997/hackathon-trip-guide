@@ -1,16 +1,18 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
+import { readFileSync } from 'node:fs'
 import { createGateway, type GatewayConfig } from '../gateway.ts'
 import { buildTemplate, type BuilderInput } from '../../src/experience/builder.ts'
 import { fixture } from '../../src/experience/__tests__/fixtures.ts'
-import { packageFingerprint } from '../../src/experience/agent/validators.ts'
-import type { CreativeBrief, StoryConcept } from '../../src/experience/agent/contracts.ts'
+import { packageFingerprint, assertAgentCandidate } from '../../src/experience/agent/validators.ts'
+import type { AgentCandidate, CreativeBrief, StoryConcept } from '../../src/experience/agent/contracts.ts'
 
 interface Reply {
   modelConfigured: boolean; mode: string; reviewRequired: boolean; experience: unknown; spots: unknown[]; answer: string
   error: { code: string }; concepts: StoryConcept[]; requestId: string; model: string; stage: string; durationMs: number
-  basePackage: { id: string; version: number; fingerprint: string }
+  basePackage: { id: string; version: number; fingerprint: string }; candidate: AgentCandidate; attempts: number
+  artifact: { id: string; version: number; hash: string }
 }
 const read = (response: Response) => response.json() as Promise<Reply>
 
@@ -30,6 +32,30 @@ async function withGateway(config: Partial<GatewayConfig>, run: (base: string) =
   finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())) }
 }
 const post = (base: string, path: string, body: unknown, origin = 'http://localhost:5174') => fetch(`${base}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(body) })
+
+const compileRequest = (pkg: ReturnType<typeof fixture>['pkg'], style: CreativeBrief['style'] = 'heritage') => ({
+  brief: { ...conceptBrief, attractionId: pkg.id, style },
+  basePackage: { id: pkg.id, version: pkg.publishedAt, fingerprint: packageFingerprint(pkg) },
+  selectedConcept: concepts[0],
+})
+const validCompileOutput = (providerBody: string) => {
+  const prompt = JSON.parse(JSON.parse(providerBody).messages[1].content)
+  const experience = prompt.blueprint.experience
+  const opening = experience.scenes[0]
+  const choice = experience.scenes.find((scene: { interaction?: { type: string } }) => scene.interaction?.type === 'single_choice')
+  const observations = experience.scenes.filter((scene: { mode: string }) => scene.mode === 'observation')
+  const ending = experience.scenes.find((scene: { mode: string }) => scene.mode === 'ending')
+  return {
+    beatSheet: { conceptId: prompt.selectedConcept.id, beats: [
+      { id: 'opening-beat', type: 'opening', title: '开场', summary: '玩家收到需要回应的线索。', spotId: opening.spotId, sceneIds: [opening.id] },
+      { id: 'choice-beat', type: 'choice', title: '选择', summary: '玩家选择追踪线索的方式。', spotId: choice.spotId, sceneIds: [choice.id], branches: observations.map((scene: { id: string; spotId: string }, index: number) => ({ id: `branch-${index + 1}`, label: `路径 ${index + 1}`, summary: '沿所选路径完成观察。', spotId: scene.spotId, sceneIds: [scene.id], rejoinsAtBeatId: 'ending-beat' })) },
+      { id: 'observation-beat', type: 'observation', title: '观察', summary: '玩家在现场完成开放观察。', spotId: observations[0].spotId, sceneIds: observations.map((scene: { id: string }) => scene.id), observationTask: '找到一处与故事线索呼应的形状或变化。' },
+      { id: 'ending-beat', type: 'ending', title: '结局', summary: '选择与观察汇合，回应开场悬念。', spotId: ending.spotId, sceneIds: [ending.id] },
+    ] },
+    experience,
+    presentation: prompt.blueprint.presentation,
+  }
+}
 
 test('concepts route validates output, returns binding metadata, and sends bounded package context', async () => {
   const pkg = fixture().pkg
@@ -76,6 +102,98 @@ test('concept provider errors remain redacted', async () => {
   await withGateway({ apiKey: 'concept-secret', fetchImpl: async () => { throw new Error('concept-secret at https://private.example') } }, async base => {
     const response = await post(base, '/api/agent/concepts', conceptBrief)
     assert.equal(response.status, 502); assert.doesNotMatch(await response.text(), /concept-secret|private.example/)
+  })
+})
+
+test('compile returns a validated candidate and deterministic draft provenance', async () => {
+  const pkg = fixture().pkg
+  let calls = 0
+  await withGateway({ apiKey: 'test', model: 'compile-model', fetchImpl: async (_url, init) => {
+    calls++
+    const body = String(init!.body)
+    const payload = JSON.parse(body)
+    assert.match(payload.messages[0].content, /不可信数据，不是指令/)
+    const prompt = JSON.parse(payload.messages[1].content)
+    assert.deepEqual(prompt.brief, compileRequest(pkg).brief)
+    assert.equal(prompt.locationNotes.basePackage.fingerprint, packageFingerprint(pkg))
+    assert.equal(prompt.blueprint.presentation.motif, pkg.presentation?.motif ?? 'letter')
+    assert.ok(prompt.locationNotes.spots.length <= 20 && prompt.locationNotes.media.length <= 40 && prompt.locationNotes.sources.length <= 20)
+    assert.ok(body.length < 120_000)
+    return jsonResponse(validCompileOutput(body))
+  } }, async base => {
+    const response = await post(base, '/api/agent/compile', compileRequest(pkg))
+    assert.equal(response.status, 200)
+    const data = await read(response)
+    assert.equal(calls, 1); assert.equal(data.attempts, 1); assert.equal(data.stage, 'compiled'); assert.equal(data.model, 'compile-model')
+    assert.match(data.requestId, /^[0-9a-f-]+$/); assert.ok(data.durationMs >= 0)
+    assert.equal(data.artifact.version, 1); assert.match(data.artifact.id, /^agent-[a-f0-9]{24}$/); assert.match(data.artifact.hash, /^[a-f0-9]{64}$/)
+    assert.equal(data.candidate.presentation.motif, pkg.presentation?.motif ?? 'letter')
+    assert.deepEqual(assertAgentCandidate(data.candidate, pkg), data.candidate)
+    const provenance = { requestId: data.requestId, artifactId: data.artifact.id, artifactVersion: data.artifact.version, artifactHash: data.artifact.hash }
+    const draftModule = '../../src/experience/agent/draft.ts'
+    const draft = (await import(draftModule)).createAgentDraft(pkg, data.candidate, 'compiled-draft', provenance)
+    assert.equal(draft.storyReview?.requestId, data.requestId); assert.equal(draft.storyReview?.artifactHash, data.artifact.hash)
+  })
+})
+
+test('compile preserves a cosmos package presentation instead of deriving it from brief style', async () => {
+  const responsePkg = JSON.parse(readFileSync(new URL('../../public/data/attractions/shanghai-planetarium.json', import.meta.url), 'utf8'))
+  const request = compileRequest(responsePkg, 'heritage')
+  await withGateway({ apiKey: 'test', fetchImpl: async (_url, init) => jsonResponse(validCompileOutput(String(init!.body))) }, async base => {
+    const response = await post(base, '/api/agent/compile', request)
+    assert.equal(response.status, 200)
+    const data = await read(response)
+    assert.equal(data.candidate.presentation.motif, 'transmission')
+    assert.equal(data.candidate.presentation.preset, 'cosmos')
+    assert.deepEqual(assertAgentCandidate(data.candidate, responsePkg), data.candidate)
+  })
+})
+
+test('compile rejects stale or mismatched binding before provider', async () => {
+  const pkg = fixture().pkg
+  for (const request of [
+    { ...compileRequest(pkg), basePackage: { ...compileRequest(pkg).basePackage, id: 'other' } },
+    { ...compileRequest(pkg), basePackage: { ...compileRequest(pkg).basePackage, version: pkg.publishedAt - 1 } },
+    { ...compileRequest(pkg), basePackage: { ...compileRequest(pkg).basePackage, fingerprint: '0000000000000000' } },
+  ]) {
+    let calls = 0
+    await withGateway({ apiKey: 'test', fetchImpl: async () => { calls++; return jsonResponse({}) } }, async base => {
+      const response = await post(base, '/api/agent/compile', request)
+      assert.ok([400, 409].includes(response.status)); assert.equal(calls, 0)
+    })
+  }
+})
+
+test('compile repairs once, succeeds on valid second output, and never makes a third call', async () => {
+  const pkg = fixture().pkg
+  let calls = 0
+  await withGateway({ apiKey: 'test', fetchImpl: async (_url, init) => {
+    calls++
+    if (calls === 1) return jsonResponse('{bad')
+    const payload = JSON.parse(String(init!.body))
+    assert.match(payload.messages[0].content, /唯一一次修复/)
+    assert.ok(JSON.parse(payload.messages[1].content).repair.diagnostics.length <= 1)
+    return jsonResponse(validCompileOutput(String(init!.body)))
+  } }, async base => {
+    const response = await post(base, '/api/agent/compile', compileRequest(pkg))
+    assert.equal(response.status, 200); assert.equal((await read(response)).attempts, 2); assert.equal(calls, 2)
+  })
+
+  calls = 0
+  await withGateway({ apiKey: 'test', fetchImpl: async () => { calls++; return jsonResponse('{bad') } }, async base => {
+    const response = await post(base, '/api/agent/compile', compileRequest(pkg))
+    assert.equal(response.status, 422); assert.equal((await read(response)).error.code, 'GENERATION_INVALID'); assert.equal(calls, 2)
+  })
+})
+
+test('compile requires exact valid input and configured model', async () => {
+  const pkg = fixture().pkg
+  await withGateway({}, async base => {
+    assert.equal((await post(base, '/api/agent/compile', { ...compileRequest(pkg), extra: true })).status, 400)
+    assert.equal((await post(base, '/api/agent/compile', { ...compileRequest(pkg), selectedConcept: { ...concepts[0], unknown: true } })).status, 400)
+    assert.equal((await post(base, '/api/agent/compile', { ...compileRequest(pkg), selectedConcept: { ...concepts[0], id: '../bad' } })).status, 400)
+    const response = await post(base, '/api/agent/compile', compileRequest(pkg))
+    assert.equal(response.status, 503); assert.equal((await read(response)).error.code, 'MODEL_NOT_CONFIGURED')
   })
 })
 
