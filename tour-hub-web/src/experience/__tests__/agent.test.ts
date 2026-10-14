@@ -4,6 +4,9 @@ import { readFileSync } from 'node:fs'
 import { buildTemplate, type BuilderInput } from '../builder.ts'
 import { presentationForPreset } from '../presentation.ts'
 import { assertPublishedAttraction, type PublishedAttraction } from '../../lib/tourPackage.ts'
+import { getDraft, saveDraft, toPublishedPackage } from '../../lib/draftStore.ts'
+import { approveStoryDraft } from '../builderDraft.ts'
+import { createAgentDraft } from '../agent/draft.ts'
 import {
   assertAgentCandidate, assertBeatSheet, assertCreativeBrief, assertLocationNotes, assertStoryConcept,
   packageFingerprint,
@@ -110,4 +113,99 @@ test('standalone contracts reject unknown fields and invalid beat bounds', () =>
   assertCreativeBrief(candidate.brief); assertLocationNotes(candidate.locationNotes); assertStoryConcept(candidate.selectedConcept); assertBeatSheet(candidate.beatSheet)
   assert.throws(() => assertCreativeBrief({ ...candidate.brief, promptInjection: 'extra' }), /未知字段/)
   assert.throws(() => assertBeatSheet({ ...candidate.beatSheet, beats: candidate.beatSheet.beats.slice(0, 3) }), /4–6/)
+})
+
+for (const [style, file] of samples) test(`${style} agent draft is independent, unsaved and keeps candidate presentation`, () => {
+  const pkg = loadPackage(file)
+  const candidate = candidateFor(pkg, style)
+  const originalPackage = structuredClone(pkg)
+  const originalCandidate = structuredClone(candidate)
+  const newId = `draft-${style}`
+  const draft = createAgentDraft(pkg, candidate, newId, { requestId: `request-${style}`, artifactId: `artifact-${style}`, artifactVersion: 2, artifactHash: 'abc123' })
+
+  assert.equal(draft.id, newId)
+  assert.equal(draft.experience?.id, newId)
+  assert.equal(draft.status, 'draft')
+  assert.equal(draft.createdAt, draft.updatedAt)
+  assert.deepEqual(draft.presentation, candidate.presentation)
+  assert.notEqual(draft.presentation, candidate.presentation)
+  assert.deepEqual(draft.storyReview, {
+    status: 'pending', generatedBy: 'agent', sourceAttractionId: pkg.id,
+    requestId: `request-${style}`, artifactId: `artifact-${style}`, artifactVersion: 2, artifactHash: 'abc123',
+    diagnostics: candidate.diagnostics.map(item => item.message),
+  })
+  assert.equal(getDraft(newId), null, 'conversion must not persist')
+  draft.experience!.title = '独立修改'
+  draft.presentation!.openingText = '独立展示文案'
+  assert.deepEqual(pkg, originalPackage)
+  assert.deepEqual(candidate, originalCandidate)
+})
+
+test('agent draft rejects a wrong source package, stale handoff and non-independent ID', () => {
+  const yuyuan = loadPackage('yuyuan-timewalker.json')
+  const planetarium = loadPackage('shanghai-planetarium.json')
+  const candidate = candidateFor(yuyuan, 'heritage')
+  assert.throws(() => createAgentDraft(planetarium, candidate, 'wrong-source'), /基础包/)
+  candidate.basePackage.version--
+  candidate.locationNotes.basePackage.version--
+  assert.throws(() => createAgentDraft(yuyuan, candidate, 'stale-source'), /基础包版本已失效/)
+  assert.throws(() => createAgentDraft(yuyuan, candidateFor(yuyuan, 'heritage'), yuyuan.id), /安全新 ID/)
+})
+
+test('controlled resources may cite base or manifest sources but never unknown sources', () => {
+  const pkg = loadPackage('yuyuan-timewalker.json')
+  const candidate = candidateFor(pkg, 'heritage')
+  candidate.resourceManifest.sources.push({ id: 'candidate-source', title: '候选素材说明', url: 'https://example.com/media', authority: 'secondary' })
+  candidate.resourceManifest.resources.push(
+    { id: 'base-cited-image', kind: 'image', assetRef: 'agent-image', value: 'data:image/png;base64,YQ==', sourceIds: [candidate.locationNotes.sources[0].id] },
+    { id: 'manifest-cited-audio', kind: 'audio', assetRef: 'agent-audio', value: 'data:audio/mpeg;base64,YQ==', sourceIds: ['candidate-source'] },
+  )
+  candidate.experience.sources.push(candidate.resourceManifest.sources[0])
+  candidate.experience.scenes[0].blocks[0].assetRef = 'agent-image'
+  candidate.experience.scenes[0].blocks.push({ id: 'agent-audio-block', type: 'audio', assetRef: 'agent-audio', sourceIds: ['candidate-source'] })
+  assert.doesNotThrow(() => assertAgentCandidate(candidate, pkg))
+
+  candidate.resourceManifest.resources[0].sourceIds = ['unknown-source']
+  assert.throws(() => assertAgentCandidate(candidate, pkg), /引用了未知来源 unknown-source/)
+})
+
+test('agent-added image/audio survive draft save, approval, edit reset, publish and reload validation', async () => {
+  const pkg = loadPackage('shanghai-planetarium.json')
+  const candidate = candidateFor(pkg, 'cosmos')
+  const source = candidate.locationNotes.sources[0]
+  const image = 'data:image/png;base64,YQ=='
+  const audio = 'data:audio/mpeg;base64,YQ=='
+  candidate.resourceManifest.resources.push(
+    { id: 'generated-image', kind: 'image', assetRef: 'candidate-image', value: image, sourceIds: [source.id] },
+    { id: 'generated-audio', kind: 'audio', assetRef: 'candidate-audio', value: audio, sourceIds: [source.id] },
+  )
+  candidate.experience.scenes[0].blocks[0].assetRef = 'candidate-image'
+  candidate.experience.scenes[0].blocks.push({ id: 'candidate-audio-block', type: 'audio', assetRef: 'candidate-audio', sourceIds: [source.id] })
+  const newId = 'agent-media-roundtrip'
+  const store = new Map<string, string>()
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (key: string) => store.get(key) ?? null, setItem: (key: string, value: string) => store.set(key, value) } })
+  try {
+    const created = createAgentDraft(pkg, candidate, newId, { requestId: 'req-media', artifactId: 'artifact-media' })
+    assert.equal(created.experience!.scenes[0].blocks[0].assetRef, image)
+    assert.equal(created.experience!.scenes[0].blocks.at(-1)!.assetRef, audio)
+    created.coverImage = image
+    created.spots.forEach(spot => { spot.image = image })
+    created.experience!.scenes.forEach(scene => scene.blocks.forEach(block => { if (block.type === 'image') block.assetRef = image }))
+    const saved = saveDraft(created)
+    assert.equal(getDraft(newId)?.storyReview?.artifactId, saved.storyReview?.artifactId)
+    assert.deepEqual(getDraft(newId)?.experience, saved.experience)
+    const approved = saveDraft(approveStoryDraft(saved))
+    assert.equal(approved.storyReview?.status, 'approved')
+    const edited = saveDraft({ ...approved, experience: { ...approved.experience!, title: '人工编辑后标题' } })
+    assert.equal(edited.storyReview?.status, 'pending')
+    assert.equal(edited.storyReview?.reviewedAt, undefined)
+    assert.equal(edited.storyReview?.artifactId, 'artifact-media')
+
+    const published = await toPublishedPackage(edited)
+    const reloaded = assertPublishedAttraction(JSON.parse(JSON.stringify(published)))
+    const mediaBlocks = reloaded.experience!.scenes[0].blocks.filter(block => block.type === 'image' || block.type === 'audio')
+    for (const block of mediaBlocks) assert.ok(block.assetRef && reloaded.assets?.[block.assetRef])
+    assert.ok(Object.values(reloaded.assets ?? {}).includes(image))
+    assert.ok(Object.values(reloaded.assets ?? {}).includes(audio))
+  } finally { Reflect.deleteProperty(globalThis, 'localStorage') }
 })

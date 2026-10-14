@@ -29,9 +29,12 @@ export interface DraftAttraction {
   experience?: ExperienceDefinitionV1
   storyReview?: {
     status: 'pending' | 'approved'
-    generatedBy: 'template' | 'online' | 'manual'
+    generatedBy: 'template' | 'online' | 'agent' | 'manual'
     sourceAttractionId?: string
     requestId?: string
+    artifactId?: string
+    artifactVersion?: number
+    artifactHash?: string
     diagnostics?: string[]
     reviewedAt?: number
   }

@@ -159,12 +159,12 @@ function assertResource(raw: unknown, path: string): CandidateResource {
   return { id: id(value.id, `${path}.id`), kind, assetRef: text(value.assetRef, 500, `${path}.assetRef`), value: resourceValue, sourceIds }
 }
 
-function assertManifest(raw: unknown): ResourceManifest {
+function assertManifest(raw: unknown, additionalSourceIds: ReadonlySet<string> = new Set()): ResourceManifest {
   const value = strict(raw, ['resources', 'sources'], 'resourceManifest')
   const resources = array(value.resources, 0, 100, 'resourceManifest.resources').map((item, index) => assertResource(item, `resourceManifest.resources[${index}]`))
   const sources = array(value.sources, 0, 100, 'resourceManifest.sources').map((item, index) => assertSource(item, `resourceManifest.sources[${index}]`))
   unique(resources.map(item => item.id), 'resourceManifest.resources'); unique(resources.map(item => item.assetRef), 'resourceManifest.resources.assetRef'); unique(sources.map(item => item.id), 'resourceManifest.sources')
-  const sourceIds = new Set(sources.map(source => source.id))
+  const sourceIds = new Set([...additionalSourceIds, ...sources.map(source => source.id)])
   for (const resource of resources) for (const sourceId of resource.sourceIds) if (!sourceIds.has(sourceId)) fail(`resourceManifest.resources.${resource.id}`, `引用了未知来源 ${sourceId}。`)
   return { resources, sources }
 }
@@ -195,7 +195,7 @@ export function assertAgentCandidate(raw: unknown, pkg: PublishedAttraction): Ag
   const locationNotes = assertLocationNotes(value.locationNotes)
   const selectedConcept = assertStoryConcept(value.selectedConcept)
   const beatSheet = assertBeatSheet(value.beatSheet)
-  const resourceManifest = assertManifest(value.resourceManifest)
+  const resourceManifest = assertManifest(value.resourceManifest, new Set(locationNotes.sources.map(source => source.id)))
   const diagnostics = array(value.diagnostics, 0, 100, 'candidate.diagnostics').map((item, index) => assertDiagnostic(item, `candidate.diagnostics[${index}]`))
   if (brief.attractionId !== expected.id) fail('candidate.brief.attractionId', '与基础包标识不一致。')
   if (!equalIdentity(locationNotes.basePackage, expected)) fail('candidate.locationNotes.basePackage', '与当前基础包标识、版本或指纹不一致。')
