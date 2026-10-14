@@ -39,3 +39,4 @@ test-results/
 *.temp
 .temp/
 .tmp/
+.agent-jobs/

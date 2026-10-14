@@ -32,4 +32,27 @@
 
 实现入口：`src/experience/agent/studioSession.ts`、`components/CreativeStudio.tsx`、`scripts/smoke-studio.mjs`。已验证 111 项 Node 测试、build、lint；扩展 Studio Chromium 验收已通过：研究缺配置/成功、资料联动、简报失配、取消、保留成果、刷新、真实文件下载/导入、损坏文件保留候选、320/390px 与采用到编辑器。截图输出 `/tmp/timewalker-studio/`，不提交临时文件。
 
-后续切片与最终集成结果将在本文件继续更新。
+## 切片三：可复现的真实网关彩排命令
+
+新增 `npm run agent:rehearse`。默认依次生成两个样板，可选单个景点、概念序号与联网研究：
+
+```bash
+# 先在另一个终端启动配置了 .env.server.local 的 npm run dev:full
+cd tour-hub-web
+npm run agent:rehearse -- --attraction yuyuan-timewalker
+npm run agent:rehearse -- --attraction shanghai-planetarium --concept 2 --research
+# 省略 --attraction 则依次跑两个；--output 可指定成果目录
+```
+
+命令通过实际 API 网关执行，先检查配置，再调用研究/概念/编译。默认输出 `.agent-jobs/rehearsals/<时间>/`（已加入 Git 忽略）：
+
+- `run.json`：实际成功/失败、模型、请求、耗时、尝试次数、artifact 哈希与研究页数。
+- `<id>.research.json`：启用研究时保存正文/摘要及来源，可复现输入。
+- `<id>.concepts.json`：两个实际返回的概念。
+- `<id>.studio.json`：经现有校验的候选和运行元数据，可在 `/publish` 导入、采用并预览。
+
+文件采用临时写入后 rename；编译失败保留先前研究/概念和 failed 状态。不输出密钥，不把缺配置当成功：当前环境实际运行命令返回退出码 2、提示配置，未生成假成果。CLI 的成功/编译失败/缺配置流程另外使用临时测试网关验证，该自动化里的模型明确为 `test-provider-fixture`。
+
+脚本不自动修改种子包、不自动发布、不调用生图服务；如果原媒体为外部引用，导入仍需要该引用可访问。要形成正式演示包，采用后沿用编辑器审核和发布。不要直接拿资料包的 `prompt/requestedTheme` 示例当 API 的 `theme/style` 请求，它们是不同输入格式；彩排命令已构造当前实际契约。
+
+后续最终集成结果将在本文件继续更新。

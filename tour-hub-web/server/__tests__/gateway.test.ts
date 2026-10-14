@@ -2,6 +2,10 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { spawn } from 'node:child_process'
 import { createGateway, type GatewayConfig } from '../gateway.ts'
 import { buildTemplate, type BuilderInput } from '../../src/experience/builder.ts'
 import { fixture } from '../../src/experience/__tests__/fixtures.ts'
@@ -326,4 +330,46 @@ test('server-owned research flows into concepts and compiled manifest; stale or 
     assert.equal((await read(response)).error.code, 'SEARCH_NOT_CONFIGURED')
     assert.equal((await post(base, '/api/agent/research', { ...conceptBrief, url: 'https://arbitrary.com' })).status, 400)
   })
+})
+
+
+async function runRehearsal(base: string, output: string) {
+  return new Promise<{ code: number | null; log: string }>((resolve, reject) => {
+    const child = spawn(process.execPath, [fileURLToPath(new URL('../../scripts/agent-rehearse.mjs', import.meta.url)), '--base-url', base, '--output', output, '--attraction', 'yuyuan-timewalker'], { stdio: ['ignore', 'pipe', 'pipe'] })
+    let log = ''
+    child.stdout.on('data', chunk => { log += chunk })
+    child.stderr.on('data', chunk => { log += chunk })
+    child.on('error', reject)
+    child.on('close', code => resolve({ code, log }))
+  })
+}
+
+test('rehearsal CLI saves importable candidate and evidence; missing config makes no artifacts; failed compile retains concepts', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'timewalker-rehearse-'))
+  try {
+    await withGateway({}, async base => {
+      const output = join(directory, 'missing')
+      const result = await runRehearsal(base, output)
+      assert.equal(result.code, 2)
+      await assert.rejects(readdir(output))
+    })
+    for (const invalid of [false, true]) await withGateway({ apiKey: 'never-output-this', model: 'test-provider-fixture', fetchImpl: async (_url, init) => {
+      const prompt = JSON.parse(JSON.parse(String(init?.body)).messages[1].content)
+      return jsonResponse(prompt.selectedConcept ? invalid ? {} : validCompileOutput(String(init?.body)) : { concepts })
+    } }, async base => {
+      const output = join(directory, invalid ? 'failure' : 'success')
+      const result = await runRehearsal(base, output)
+      assert.equal(result.code, invalid ? 1 : 0, result.log)
+      assert.doesNotMatch(result.log, /never-output-this/)
+      const run = JSON.parse(await readFile(join(output, 'run.json'), 'utf8'))
+      assert.equal(run.status, invalid ? 'failed' : 'completed')
+      assert.ok((await readdir(output)).includes('yuyuan-timewalker.concepts.json'))
+      if (!invalid) {
+        const session = JSON.parse(await readFile(join(output, 'yuyuan-timewalker.studio.json'), 'utf8'))
+        assertAgentCandidate(session.compiled.candidate, fixture().pkg)
+        assert.equal(session.compiled.evidence.model, 'test-provider-fixture')
+        assert.equal(session.compiled.provenance.artifactHash.length, 64)
+      }
+    })
+  } finally { await rm(directory, { recursive: true, force: true }) }
 })

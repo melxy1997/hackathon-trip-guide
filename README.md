@@ -113,7 +113,9 @@ npm run dev:full
 
 Creative Studio **已实现前后端接口及候选导入链路**，其中 `POST /api/agent/concepts` 生成双故事构想，`POST /api/agent/compile` 生成节拍与可执行故事候选。两步均复用服务端模型网关、已有景点资料和当前 V1 体验包结构；失败时提供明确反馈，采纳前不改动原包。
 
-**当前边界**：上述接口已经使用自动化替身模型验证了结构、失败处理与集成流程；真实 DeepSeek 成功生成仍需在配置凭据的环境中联调。现阶段它不是已经接入 Deep Agents、实时网页搜索、AI 生图、语音合成的全自主生产系统。这些能力属于后续演进计划。
+Creative Studio 还支持可选的 Tavily 搜索/正文研究、创作进度本机恢复、成果 JSON 导出与导入；研究结果绑定当前简报并参与后续创作。`npm run agent:rehearse` 可经过实际网关生成并保存可导入的彩排成果，详见 [23 · Agent 研究与演示成果交接](docs/timewalker_hackathon/docs/23-Agent研究与演示成果交接.md)。
+
+**当前边界**：上述接口已经使用自动化替身模型和搜索服务验证了结构、失败处理与集成流程；真实 DeepSeek/Tavily 成功仍需在配置凭据的环境中联调。Deep Agents 自主工具编排、AI 生图、云端语音合成尚未接入应用。
 
 ### 创作产物怎样变成真正能播放的故事？
 
@@ -214,7 +216,7 @@ VITE_AMAP_KEY=your_amap_js_key
 VITE_AMAP_SECURITY_CODE=your_amap_security_code
 ```
 
-故事样板、手动展区推进、编辑器和本地模板不要求高德 Key。当前仓库没有已经接入的 Tavily / Seedream / 云端 TTS 服务配置，不必为了运行样板申请这些密钥。
+故事样板、手动展区推进、编辑器和本地模板不要求高德 Key。Studio 联网研究可选配置服务端 `TAVILY_API_KEY`；不配置则使用已有资料。Seedream / 云端 TTS 尚未接入应用，不必为了运行样板申请这些密钥。
 
 ### 打包与离线体验
 
@@ -274,10 +276,12 @@ tour-hub-web/public/experience-assets/
 | Creative Studio 双概念 → 节拍 → 候选导入 | ✅ 前后端已实现，自动化使用替身模型验证 |
 | 真实 DeepSeek 创作质量 | 🧪 待使用团队真实凭据联调 |
 | Deep Agents 自主研究与任务编排 | 📐 设计方向，尚未集成到应用 |
-| Tavily 搜索、Seedream 生图、云端 TTS | 📐 已有调研与独立接入资料，尚未接进应用 |
+| Tavily 搜索与结果正文提取 | ✅ 已接入 Studio 与创作上下文；真实凭据联调待完成 |
+| Studio 恢复、成果导入导出、网关彩排命令 | ✅ 已实现，刷新/换浏览器可继续使用已完成候选 |
+| Seedream 生图、云端 TTS | 📐 已有调研与独立接入资料，尚未接进应用 |
 | 真实 GPS / 室内定位、正式 CMS 服务 | — 不属于当前演示版能力 |
 
-现阶段优先事项是**验证真实模型能为两个题材生成不同的故事构想并成功编译**，之后再逐步接入资料搜索、自动素材生产和更完整的创作智能体。项目没有把重型任务调度、严格空间导航或复杂游戏验证作为第一版的必要条件。
+现阶段优先事项是**验证真实模型能为两个题材生成不同的故事构想并成功编译**，按需结合已接入的研究资料，之后再逐步接入自动素材生产和更完整的创作智能体。项目没有把重型任务调度、严格空间导航或复杂游戏验证作为第一版的必要条件。
 
 ## 📚 进一步阅读
 
@@ -286,6 +290,7 @@ tour-hub-web/public/experience-assets/
 | 文档 | 适合了解 |
 |---|---|
 | [22 · 当前状态与开发分工](docs/timewalker_hackathon/docs/22-现状调研与后续开发分工.md) | 最新完成度、当前任务、验证记录 |
+| [23 · Agent 研究与演示成果交接](docs/timewalker_hackathon/docs/23-Agent研究与演示成果交接.md) | 联网研究、成果恢复/导入导出、真实网关彩排 |
 | [21 · 双样板开发交接](docs/timewalker_hackathon/docs/21-双样板落地与交接.md) | 双主题落地、离线、媒体、兼容性 |
 | [18 · Builder Agent 原始设计](docs/timewalker_hackathon/docs/18-Builder-Agent-设计.md) | Agent 平台方案与架构背景，部分范围已调整 |
 | [Builder Agent V2 实施设计](docs/timewalker_4_builder/docs/18-Builder-Agent-设计-V2.0-可实施版.md) | Deep Agents、Tools、编译与素材生产的下一阶段参考 |

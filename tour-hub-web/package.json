@@ -13,6 +13,7 @@
     "test:smoke": "node scripts/smoke-experience.mjs",
     "test:builder": "node scripts/smoke-builder.mjs",
     "test:studio": "node scripts/smoke-studio.mjs",
+    "agent:rehearse": "node scripts/agent-rehearse.mjs",
     "test:playability": "node scripts/smoke-playability.mjs",
     "test:offline": "node scripts/smoke-offline.mjs",
     "test:creator": "node scripts/smoke-creator.mjs",
