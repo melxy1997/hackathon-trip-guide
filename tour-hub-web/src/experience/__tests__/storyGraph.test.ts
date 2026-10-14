@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { fixture } from './fixtures.ts'
-import { assertExperience } from '../experienceSchema.ts'
+import { assertExperience, MAX_IDENTIFIER_LENGTH } from '../experienceSchema.ts'
 import { addStoryChoiceOption, addStoryScene, connectStoryRoute, deleteStoryChoiceOption, deleteStoryScene, duplicateStoryScene, storyDepths, storyRoutes } from '../storyGraph.ts'
 
 const definition = () => structuredClone(fixture().definition)
@@ -43,6 +43,40 @@ test('duplicate deep copies scene, block, interaction and option ids', () => {
   assert.notDeepEqual(copy.interaction.options.map(option => option.id), source.interaction.options.map(option => option.id))
   copy.blocks[0].text = 'changed'
   assert.notEqual(source.blocks[0].text, 'changed')
+})
+
+test('copy keeps maximum-length identifiers unique and within schema bounds', () => {
+  const draft = definition()
+  const source = draft.scenes.find(scene => scene.id === 'rockery')!
+  const longId = 's'.repeat(MAX_IDENTIFIER_LENGTH)
+  source.id = longId
+  source.blocks[0].id = 'b'.repeat(MAX_IDENTIFIER_LENGTH)
+  if (source.interaction?.type !== 'single_choice') assert.fail('expected choices')
+  source.interaction.id = 'i'.repeat(MAX_IDENTIFIER_LENGTH)
+  source.interaction.options[0].id = 'o'.repeat(MAX_IDENTIFIER_LENGTH)
+  source.interaction.options[1].id = 'p'.repeat(MAX_IDENTIFIER_LENGTH)
+
+  const first = duplicateStoryScene(draft, longId)
+  const second = duplicateStoryScene(first.definition, longId)
+  const copies = [first, second].map(result => result.definition.scenes.find(scene => scene.id === result.sceneId)!)
+  assert.equal(new Set(copies.map(scene => scene.id)).size, 2)
+  for (const copy of copies) {
+    assert.ok(copy.id.length <= MAX_IDENTIFIER_LENGTH)
+    assert.ok(copy.blocks.every(block => block.id.length <= MAX_IDENTIFIER_LENGTH))
+    assert.ok(!copy.interaction || copy.interaction.id.length <= MAX_IDENTIFIER_LENGTH)
+    if (copy.interaction?.type === 'single_choice') assert.ok(copy.interaction.options.every(option => option.id.length <= MAX_IDENTIFIER_LENGTH))
+  }
+})
+
+test('copy preserves numeric collision suffixes at the identifier length bound', () => {
+  const draft = definition()
+  const source = draft.scenes.find(scene => scene.id === 'rockery')!
+  const longId = 's'.repeat(MAX_IDENTIFIER_LENGTH)
+  source.id = longId
+  draft.scenes.push({ ...structuredClone(source), id: `${'s'.repeat(MAX_IDENTIFIER_LENGTH - 2)}-2` })
+  const result = duplicateStoryScene(draft, longId)
+  assert.match(result.sceneId, /-3$/)
+  assert.equal(result.sceneId.length, MAX_IDENTIFIER_LENGTH)
 })
 
 test('connect replaces only the addressed route and preserves side effects', () => {

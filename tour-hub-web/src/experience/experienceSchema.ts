@@ -51,9 +51,11 @@ export class ExperienceValidationError extends Error {
   }
 }
 
+export const MAX_IDENTIFIER_LENGTH = 80
+
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v)
 const value = (v: unknown): v is StoryValue => typeof v === 'string' || typeof v === 'boolean' || (typeof v === 'number' && Number.isFinite(v))
-const identifier = (v: unknown): v is string => typeof v === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(v) && !['__proto__', 'constructor', 'prototype'].includes(v)
+const identifier = (v: unknown): v is string => typeof v === 'string' && new RegExp(`^[a-zA-Z0-9][a-zA-Z0-9_-]{0,${MAX_IDENTIFIER_LENGTH - 1}}$`).test(v) && !['__proto__', 'constructor', 'prototype'].includes(v)
 const text = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0 && v.length <= 10000
 
 export function safeAssetUrl(ref: unknown, kind: 'image' | 'audio'): ref is string {

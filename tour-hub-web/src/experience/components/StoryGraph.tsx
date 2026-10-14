@@ -14,9 +14,9 @@ function StoryNodeCard({ data, selected }: NodeProps<StoryNode>) {
     <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-gray-500"><span>{data.mode === 'ending' ? '终幕' : data.mode}</span>{data.initial && <b className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">起点</b>}{selected && <b className="rounded bg-amber-700 px-1.5 py-0.5 text-white">✓ 编辑中</b>}{hasDiagnostics && <b className="rounded bg-red-700 px-1.5 py-0.5 text-white">! {data.diagnostics.length} 个问题</b>}</div>
     <p className="mt-1 max-w-44 truncate text-sm font-medium" title={data.title}>{data.title}</p>
     <p className="mt-1 max-w-44 truncate font-mono text-[10px] text-gray-400">{data.id}</p>
-    {data.handles.map((handle, index) => <div key={handle.id} className={`relative mt-2 border-t border-dashed pt-1 pr-3 text-[10px] ${handle.diagnostics.length ? 'border-red-300 text-red-800' : 'border-gray-200 text-gray-500'}`}>
+    {data.handles.map(handle => <div key={handle.id} className={`relative mt-2 border-t border-dashed pt-1 pr-3 text-[10px] ${handle.diagnostics.length ? 'border-red-300 text-red-800' : 'border-gray-200 text-gray-500'}`}>
       <span className="block max-w-36 truncate" title={handle.diagnostics.join('\n') || handle.label}>{handle.label}{handle.diagnostics.length ? ` · ! ${handle.diagnostics.length}` : ''}</span>
-      <Handle type="source" id={handle.id} position={Position.Right} style={{ top: 70 + index * 24 }} className={handle.diagnostics.length ? '!h-3 !w-3 !bg-red-600' : '!h-3 !w-3 !bg-amber-600'} />
+      <Handle type="source" id={handle.id} position={Position.Right} style={{ top: '50%', transform: 'translateY(-50%)' }} className={handle.diagnostics.length ? '!h-3 !w-3 !bg-red-600' : '!h-3 !w-3 !bg-amber-600'} />
     </div>)}
   </div>
 }

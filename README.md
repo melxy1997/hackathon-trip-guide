@@ -38,10 +38,10 @@ M2 已接入故事 Builder：在发布后台选择已发布景点、主题、受
 cd tour-hub-web
 node --version        # 使用 Node.js 24
 npm ci
-npm run dev:full      # 前端 5173 + 服务端模型网关 8787
+npm run dev:full      # 前端 5174 + 服务端模型网关 8787
 ```
 
-开发前端端口为 5173。无需凭据即可使用故事播放和模板 Builder；只需静态前端时可用 `npm run dev`。
+开发前端端口为 5174。无需凭据即可使用故事播放和模板 Builder；只需静态前端时可用 `npm run dev`。
 
 - `/` 前台  
 - `/tour/:id` 导览  

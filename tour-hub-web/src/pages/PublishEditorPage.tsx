@@ -18,6 +18,7 @@ import { locateAttractionOnMap, resolveAttractionScope } from '../lib/amapLocate
 import { newSpotAt, publishDraft, saveDraft, ensureEditableDraft } from '../lib/draftStore'
 import type { DraftAttraction, Spot } from '../types/attraction'
 import type { LngLat } from '../lib/tourPackage'
+import { canPublishDraft, publishReadiness } from '../lib/publishEligibility'
 
 const StoryEditor = lazy(() => import('../experience/components/StoryEditor').then(module => ({ default: module.StoryEditor })))
 
@@ -331,8 +332,8 @@ export function PublishEditorPage() {
 
   const busy = resolving || generating
   const stageNumber = stage === 'story' ? 3 : stage
-  const canPublish = Boolean(draft.experience && draft.storyReview?.status === 'approved')
-  const readiness = !draft.spots.length ? '还需：生成至少一个地点' : !draft.experience ? '还需：生成故事内容' : !canPublish ? '还需：确认人工审核' : '已可发布'
+  const canPublish = canPublishDraft(draft)
+  const readiness = publishReadiness(draft)
 
   return (
     <div className="h-screen flex flex-col bg-[#f7f8fa] text-[#111827]">
@@ -362,7 +363,7 @@ export function PublishEditorPage() {
         <div className="flex items-center gap-2 shrink-0">
           {stage !== 1 && <button type="button" onClick={() => setStage(stage === 'story' ? 2 : 1)} className="min-h-11 rounded-lg border border-black/10 bg-white px-3 text-sm hover:bg-[#f3f4f6]">上一步</button>}
           {stage === 1 && <button type="button" onClick={() => void goStage2()} disabled={busy} className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">继续：地点与内容<ArrowRight size={14} /></button>}
-          {stage === 2 && <button type="button" onClick={() => draft.experience ? setStage('story') : void onGenerateAndLocate()} disabled={busy} className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">{draft.experience ? '继续：故事编排' : generating ? '生成中…' : '生成地点与内容'}<ArrowRight size={14} /></button>}
+          {stage === 2 && (draft.experience ? <button type="button" onClick={() => setStage('story')} disabled={busy} className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">继续：故事编排<ArrowRight size={14} /></button> : canPublish ? <button type="button" onClick={onPublish} disabled={busy} aria-describedby="publish-readiness" className="min-h-11 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">发布普通导览</button> : <button type="button" onClick={() => void onGenerateAndLocate()} disabled={busy} className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">{generating ? '生成中…' : '生成地点与内容'}<ArrowRight size={14} /></button>)}
           {stage === 'story' && <button type="button" onClick={onPublish} disabled={busy || !canPublish} aria-describedby="publish-readiness" className="min-h-11 rounded-lg bg-[#3b82f6] px-3.5 text-sm text-white hover:bg-[#2563eb] disabled:opacity-50">发布体验</button>}
         </div>
       </header>

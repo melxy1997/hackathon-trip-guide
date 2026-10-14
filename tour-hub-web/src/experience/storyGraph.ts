@@ -1,4 +1,4 @@
-import type { Action, ExperienceDefinitionV1, Scene } from './experienceSchema'
+import { MAX_IDENTIFIER_LENGTH, type Action, type ExperienceDefinitionV1, type Scene } from './experienceSchema.ts'
 
 export type StoryRoute = {
   id: string
@@ -10,10 +10,11 @@ export type StoryRoute = {
 
 const nextId = (base: string, used: Set<string>) => {
   const clean = base.replace(/[^a-zA-Z0-9_-]/g, '-').replace(/^-+|-+$/g, '') || 'item'
-  if (!used.has(clean)) return clean
-  let suffix = 2
-  while (used.has(`${clean}-${suffix}`)) suffix++
-  return `${clean}-${suffix}`
+  const candidate = (suffix = '') => `${clean.slice(0, MAX_IDENTIFIER_LENGTH - suffix.length)}${suffix}`
+  if (!used.has(candidate())) return candidate()
+  let number = 2
+  while (used.has(candidate(`-${number}`))) number++
+  return candidate(`-${number}`)
 }
 
 const targetOf = (actions: Action[]) => actions.find(action => action.type === 'goTo')?.sceneId
