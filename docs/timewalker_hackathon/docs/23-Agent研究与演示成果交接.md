@@ -55,4 +55,25 @@ npm run agent:rehearse -- --attraction shanghai-planetarium --concept 2 --resear
 
 脚本不自动修改种子包、不自动发布、不调用生图服务；如果原媒体为外部引用，导入仍需要该引用可访问。要形成正式演示包，采用后沿用编辑器审核和发布。不要直接拿资料包的 `prompt/requestedTheme` 示例当 API 的 `theme/style` 请求，它们是不同输入格式；彩排命令已构造当前实际契约。
 
-后续最终集成结果将在本文件继续更新。
+## 最终验收与提交状态
+
+2026-10-15 集成收口：112/112 Node 测试通过，TypeScript/Vite 生产 build 通过，oxlint 通过。七套 Chromium 验收 `test:studio`、`test:builder`、`test:creator`、`test:dual`、`test:smoke`、`test:playability`、`test:offline` 全部完成且退出码为 0。Studio 新增验收使用明确标记的 mock provider；离线使用最新构建的真实 Worker，完成回滚、版本替换、豫园五轮与天文馆双分支断网流程。Markdown 本地链接与代码围栏检查通过。
+
+本轮已推送的功能提交：
+
+| 提交 | 交付 |
+|---|---|
+| `de0160c` | Tavily 研究、受简报/包绑定的上下文、概念与编译衔接 |
+| `196169c` | Studio 研究入口、自动恢复、成果导入导出、旧简报保护 |
+| `76c615d` | 实际网关彩排脚本、失败留存、示例配置与使用说明 |
+
+成员并行提交 `095d715 docs: rebuild README around Timewalker dual-sample experience engine` 已完整保留；本地未推送的 Studio 提交重放到它之后再正常推送，没有强推。之后在其 README 结构上仅同步新增能力说明。
+
+## 下一位从这里继续
+
+1. **优先拿到真实作品**：在服务端配置既有 `DEEPSEEK_*`，可选 Tavily，重启 API，执行两份彩排。将 `*.studio.json` 导入 Studio → 采用 → 编辑预览两分支 → 发布。成果目录自行备份或挑选需要的非敏感样板提交，默认不提交整个 `.agent-jobs`。
+2. **按效果接新图闭环**：实现 Seedream adapter 与持久 AssetStore，至少一张新图从下载到受控引用、Agent 候选、草稿、发布包完整跑通。继续复用已完成的 `resourceManifest` 和媒体打包，不把供应商临时 URL 写入最终包。不新增许可审核任务。
+3. **再做自主工具编排**：先用真实模型证明标准 `tool_calls` 往返可用，再按 `timewalker_4_builder` 接 Deep Agents Director/研究/编剧与确定性编译。当前研究由确定性服务调用，不是模型自主选工具，也未安装 Deep Agents 依赖。参考包中旧分支、天文馆“待创建”、媒体“待打包”等描述已过时，不要重复实现。
+4. **声音与答辩打磨可并行**：用预生成 MP3 增强主要章节；两包实测各 2–3 分钟；真机检查声音/分享/下载；彩排时用成功成果文件接续耗时步骤。
+
+尚未交付：真实供应商成功证据、Deep Agents/tool calling、Seedream 自动生成/持久资产服务、云端 TTS、服务端持久 Job 与进程重启恢复。它们不影响已有固定样板、本地 Builder 和本次完成的工作台成果恢复。不要把浏览器恢复/文件导入描述成服务器任务续跑。
