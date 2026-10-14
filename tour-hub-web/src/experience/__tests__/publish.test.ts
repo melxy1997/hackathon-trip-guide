@@ -6,10 +6,12 @@ import path from 'node:path'
 import { createServer } from 'vite'
 import { exportToDisplayPlugin } from '../../../vite-plugin-export-to-display.ts'
 import { fixture } from './fixtures.ts'
+import { presentationForPreset } from '../presentation.ts'
 
 test('local dev publishing validates and writes experience + catalog without losing existing entries', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'timewalker-publish-'))
   const { pkg } = fixture()
+  pkg.presentation = presentationForPreset('cosmos')
   await mkdir(path.join(root, 'public/data/attractions'), { recursive: true })
   await writeFile(path.join(root, `public/data/attractions/${pkg.id}.json`), JSON.stringify(pkg))
   await writeFile(path.join(root, 'public/data/catalog.json'), JSON.stringify({ schemaVersion: 1, updatedAt: 1, items: [{ id: 'existing' }] }))
@@ -27,9 +29,11 @@ test('local dev publishing validates and writes experience + catalog without los
     assert.equal(reloadResponse.status, 200)
     const reloaded = await reloadResponse.json()
     assert.equal(reloaded.experience.scenes[0].blocks[1].text, pkg.experience!.scenes[0].blocks[1].text)
+    assert.deepEqual(reloaded.presentation, pkg.presentation)
     assert.deepEqual(JSON.parse(await readFile(path.join(root, `public/data/attractions/${pkg.id}.json`), 'utf8')).experience, pkg.experience)
     const catalog = JSON.parse(await readFile(path.join(root, 'public/data/catalog.json'), 'utf8'))
     assert.equal(catalog.items[0].experience.title, pkg.experience!.title)
+    assert.deepEqual(catalog.items[0].presentation, pkg.presentation)
     assert.equal(catalog.items[1].id, 'existing')
     assert.equal((await post({ ...pkg, id: '../../escape' })).status, 400)
     const invalid = structuredClone(pkg)

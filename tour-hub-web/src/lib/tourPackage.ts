@@ -4,6 +4,7 @@
  */
 
 import { assertExperience, type ExperienceDefinitionV1 } from '../experience/experienceSchema.ts'
+import { assertPresentation, type ExperiencePresentation } from '../experience/presentation.ts'
 
 export const PACKAGE_SCHEMA_VERSION = 1 as const
 
@@ -31,6 +32,7 @@ export interface PublishedSpot {
 }
 
 export interface PublishedAttraction {
+  presentation?: ExperiencePresentation
   schemaVersion: typeof PACKAGE_SCHEMA_VERSION
   id: string
   name: string
@@ -46,6 +48,7 @@ export interface PublishedAttraction {
 }
 
 export interface CatalogItem {
+  presentation?: ExperiencePresentation
   id: string
   name: string
   description: string
@@ -78,6 +81,7 @@ export function toCatalogItem(pkg: PublishedAttraction): CatalogItem {
     description: pkg.description,
     coverImage: resolveMediaUrl(pkg, pkg.coverImage),
     publishedAt: pkg.publishedAt,
+    ...(pkg.presentation ? { presentation: structuredClone(pkg.presentation) } : {}),
     ...(pkg.experience ? { experience: { title: pkg.experience.title, estimatedMinutes: pkg.experience.estimatedMinutes } } : {}),
   }
 }
@@ -98,6 +102,7 @@ export function assertPublishedAttraction(raw: unknown): PublishedAttraction {
     if (!spot?.image) throw new Error(`节点 ${spot?.id || '?'} 缺少 image`)
   }
   if (!p.coverImage) throw new Error('发布包缺少 coverImage')
+  assertPresentation(p.presentation)
   if (p.experience !== undefined) {
     assertExperience(p.experience, { spotIds: p.spots.map(s => s.id), assets: p.assets })
   }
@@ -111,6 +116,7 @@ export function assertAttractionCatalog(raw: unknown): AttractionCatalog {
     throw new Error(`目录 schemaVersion 不支持：${String(c.schemaVersion)}`)
   }
   if (!Array.isArray(c.items)) throw new Error('目录缺少 items')
+  for (const item of c.items) assertPresentation(item.presentation)
   return c as AttractionCatalog
 }
 

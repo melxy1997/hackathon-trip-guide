@@ -64,6 +64,7 @@ function mergeCatalog(existing: Catalog | null, pkg: PublishedPkg): Catalog {
     coverImage: resolveCover(pkg),
     publishedAt: pkg.publishedAt,
     ...(pkg.experience ? { experience: { title: pkg.experience.title, estimatedMinutes: pkg.experience.estimatedMinutes } } : {}),
+    ...(pkg.presentation ? { presentation: pkg.presentation } : {}),
   }
   const prev = Array.isArray(existing?.items) ? existing!.items : []
   return {

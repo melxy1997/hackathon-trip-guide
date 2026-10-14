@@ -6,13 +6,16 @@ import { approveStoryDraft } from '../builderDraft'
 import { addStoryChoiceOption, addStoryScene, connectStoryRoute, deleteStoryChoiceOption, deleteStoryScene, duplicateStoryScene } from '../storyGraph'
 import { StoryGraph } from './StoryGraph'
 import { ConfirmDialog } from './ConfirmDialog'
+import { PresentationEditor } from './PresentationEditor'
+import { assertPresentation, type ExperiencePresentation } from '../presentation'
 import { shouldShowStoryEditorOnboarding, writeStoryEditorOnboarding } from '../storyEditorOnboarding'
 import type { DraftAttraction } from '../../types/attraction'
 
-export function StoryEditor({ draft, onChange, onReview }: {
+export function StoryEditor({ draft, onChange, onReview, onPresentationChange }: {
   draft: DraftAttraction & { experience: ExperienceDefinitionV1 }
   onChange: (experience: ExperienceDefinitionV1) => void
   onReview: (review: DraftAttraction['storyReview']) => void
+  onPresentationChange: (presentation: ExperiencePresentation) => void
 }) {
   const [selectedId, setSelectedId] = useState(draft.experience.initialSceneId)
   const [reviewChecked, setReviewChecked] = useState(false)
@@ -68,7 +71,7 @@ export function StoryEditor({ draft, onChange, onReview }: {
   let validation = '结构与分支校验通过；史实和素材授权仍须人工审核。'
   let diagnostics: ExperienceDiagnostic[] = []
   let valid = true
-  try { assertExperience(definition, { spotIds: draft.spots.map(s => s.id) }) }
+  try { assertExperience(definition, { spotIds: draft.spots.map(s => s.id) }); assertPresentation(draft.presentation) }
   catch (error) { valid = false; validation = error instanceof Error ? error.message : '故事结构无效'; diagnostics = error instanceof ExperienceValidationError ? error.diagnostics : [] }
   const locateDiagnostic = (diagnostic: ExperienceDiagnostic) => {
     if (!diagnostic.sceneId) return
@@ -108,6 +111,7 @@ export function StoryEditor({ draft, onChange, onReview }: {
         <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={reviewChecked} onChange={e => setReviewChecked(e.target.checked)} className="mt-1" />我已核对事实与来源、虚构标注、地点顺序和素材授权，并完成两条分支预览。</label>
         <button disabled={!valid || !reviewChecked} onClick={() => { onReview(approveStoryDraft(draft).storyReview); setReviewChecked(false) }} className="rounded-lg bg-emerald-700 text-white px-4 py-2 text-sm disabled:opacity-40">确认人工审核</button><p className="text-xs text-gray-500">修改故事、地点、图片或景点信息后，审核会重置。结构校验不代替史实与授权审核。</p>
       </section>
+      <PresentationEditor value={draft.presentation} onChange={p => { setReviewChecked(false); setUndo(null); onPresentationChange(p) }} />
       <details className="rounded-xl border border-black/10 bg-white p-4 mb-5"><summary className="text-sm cursor-pointer">章节连接与来源管理</summary>
         <div className="space-y-2 mt-4 text-sm">{definition.scenes.map(s => <button className="block text-left text-gray-600 break-words" onClick={() => setSelectedId(s.id)} key={s.id}>{s.id}（{s.title}） → {targets(s).join(' / ') || '终幕'}{s.id === definition.initialSceneId ? ' · 起点' : ''}</button>)}</div>
         <div className="space-y-4 mt-5">{definition.sources.map(source => <div className="rounded-lg border border-black/10 p-3" key={source.id}><p className="text-xs text-gray-500">来源 {source.id}</p><label className="block text-sm">来源标题<input className={field} value={source.title} onChange={e => change({ ...definition, sources: definition.sources.map(s => s.id === source.id ? { ...s, title: e.target.value } : s) })} /></label><label className="block text-sm mt-2">来源网址（HTTPS）<input className={field} value={source.url} onChange={e => change({ ...definition, sources: definition.sources.map(s => s.id === source.id ? { ...s, url: e.target.value } : s) })} /></label><label className="block text-sm mt-2">来源类型<select className={field} value={source.authority} onChange={e => change({ ...definition, sources: definition.sources.map(s => s.id === source.id ? { ...s, authority: e.target.value as 'official' | 'secondary' } : s) })}><option value="official">官方</option><option value="secondary">二级资料</option></select></label><button className="text-xs text-red-700 mt-3" onClick={() => change({ ...definition, sources: definition.sources.filter(s => s.id !== source.id) })}>删除来源（需同步修复旁白引用）</button></div>)}</div>

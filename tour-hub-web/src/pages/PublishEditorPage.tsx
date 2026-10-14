@@ -453,7 +453,7 @@ export function PublishEditorPage() {
             </div>
           </div>
         </div>
-      ) : stage === 'story' && draft.experience ? <Suspense fallback={<div className="flex-1 p-8 text-sm text-gray-500">正在打开故事编排器…</div>}><StoryEditor draft={{ ...draft, experience: draft.experience }} onChange={experience => updateDraft({ experience })} onReview={storyReview => updateDraft({ storyReview })} /></Suspense> : (
+      ) : stage === 'story' && draft.experience ? <Suspense fallback={<div className="flex-1 p-8 text-sm text-gray-500">正在打开故事编排器…</div>}><StoryEditor draft={{ ...draft, experience: draft.experience }} onChange={experience => updateDraft({ experience })} onReview={storyReview => updateDraft({ storyReview })} onPresentationChange={presentation => updateDraft({ presentation })} /></Suspense> : (
         <div className="flex-1 min-h-0 flex">
           <aside className="w-[min(100%,380px)] shrink-0 border-r border-black/5 bg-white flex flex-col min-h-0">
             <div className="p-4 space-y-3 border-b border-black/5 shrink-0">

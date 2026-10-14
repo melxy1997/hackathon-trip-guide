@@ -1,4 +1,23 @@
 .tw-experience { min-height: 100%; color: #f4eedf; background: #151d1a; --tw-gold: #dcc497; }
+.tw-experience[data-preset="cosmos"] { --tw-gold: #91dcff; --tw-surface: #0b203c; --tw-ink: #edf7ff; --tw-muted: #a4bbd3; color: var(--tw-ink); background: #071427; font-family: system-ui, sans-serif; }
+.tw-experience[data-preset="cosmos"] .tw-stage { background: var(--tw-surface); border: 1px solid #91dcff30; border-radius: 16px; }
+.tw-experience[data-preset="cosmos"] .tw-stage-shade { background: linear-gradient(180deg, #07142710, #07142766 25%, #071427f5 80%); }
+.tw-experience[data-preset="cosmos"] :is(.tw-stage h1, .tw-journal h1, .tw-letter p) { font-family: system-ui, sans-serif; }
+.tw-experience[data-preset="cosmos"] .tw-letter { border: 1px solid #91dcff50; background: #0b203cbb; border-radius: 8px; padding: 20px; box-shadow: inset 3px 0 #91dcff; }
+.tw-experience[data-preset="cosmos"] :is(.tw-primary, .tw-photo-pin) { background: var(--tw-gold); color: #071427; border-color: var(--tw-gold); }
+.tw-experience[data-preset="cosmos"] :is(.tw-volume, .tw-intro, .tw-narration, .tw-choice, .tw-controls button, .tw-letter p, .tw-journal-detail p) { color: var(--tw-ink); }
+.tw-experience[data-preset="cosmos"] :is(.tw-fineprint, .tw-letter small, .tw-route small, .tw-sources p) { color: var(--tw-muted); }
+.tw-experience[data-preset="cosmos"] :is(.tw-eyebrow, .tw-letter > span, .tw-journey-seal h2, .tw-discovery-entry h3, .tw-route-active p, .tw-sources a) { color: var(--tw-gold); }
+.tw-experience[data-preset="cosmos"] :is(.tw-choice-echo, .tw-travel-card, .tw-journey-seal) { background: #102c4b; border-color: #91dcff60; color: var(--tw-ink); }
+.tw-experience[data-preset="cosmos"] .tw-choice { border-color: #91dcff60; }
+.tw-experience[data-preset="cosmos"] .tw-choice:hover { background: #91dcff15; }
+.tw-experience[data-preset="cosmos"] :is(.tw-playbar, .tw-observation-card) { background: #0b203c; color: var(--tw-ink); border-color: #91dcff40; }
+.tw-experience[data-preset="cosmos"] :is(.tw-observation-card p, .tw-observation-card h2, .tw-observation-note, .tw-point-status) { color: var(--tw-ink); }
+.tw-experience[data-preset="cosmos"] :is(.tw-discovery-tags button, .tw-observation-note textarea) { background: #071427; color: var(--tw-ink); border-color: #91dcff50; }
+.tw-experience[data-preset="cosmos"] .tw-discovery-tags button[aria-pressed="true"] { background: var(--tw-gold); color: #071427; }
+.tw-experience[data-preset="cosmos"] .tw-photo-target { border-color: #91dcff60; }
+.tw-experience[data-preset="cosmos"] .tw-reading-current { border-color: #91dcff80; }
+.tw-experience[data-preset="cosmos"] .tw-speaking { background: #91dcff10; border-color: var(--tw-gold); }
 .tw-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 5vw; border-bottom: 1px solid #ffffff12; font-size: 13px; }
 .tw-header a { display: inline-flex; align-items: center; gap: 9px; color: #f4eedf; text-decoration: none; }
 .tw-header > span { color: #c6b896; font-size: 12px; }

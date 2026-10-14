@@ -10,6 +10,7 @@
 import { exportPackageViaServer } from './exportTarget.ts'
 import { loadPublishedAttraction } from './catalog.ts'
 import { assertExperience } from '../experience/experienceSchema.ts'
+import { assertPresentation } from '../experience/presentation.ts'
 import type { DraftAttraction, Spot } from '../types/attraction'
 
 const STORAGE_KEY = 'trip-guide:drafts:v1'
@@ -83,6 +84,7 @@ export function publishedToDraft(pkg: PublishedAttraction): DraftAttraction {
     createdAt: pkg.publishedAt || now,
     updatedAt: now,
     ...(experience ? { experience } : {}),
+    ...(pkg.presentation ? { presentation: structuredClone(pkg.presentation) } : {}),
   }
 }
 
@@ -124,7 +126,7 @@ export function createDraft(input: {
 }
 
 function contentChanged(before: DraftAttraction, after: DraftAttraction): boolean {
-  const content = (d: DraftAttraction) => [d.name, d.description, d.start, d.zoom, d.spots, d.coverImage, d.experience]
+  const content = (d: DraftAttraction) => [d.name, d.description, d.start, d.zoom, d.spots, d.coverImage, d.experience, d.presentation]
   return JSON.stringify(content(before)) !== JSON.stringify(content(after))
 }
 
@@ -244,6 +246,7 @@ export async function toPublishedPackage(
 ): Promise<PublishedAttraction> {
   const first = draft.spots[0]
   if (!first) throw new Error('没有节点，无法发布')
+  assertPresentation(draft.presentation)
   if (draft.experience) assertExperience(draft.experience, { spotIds: draft.spots.map(s => s.id) })
   const media = await materializeMedia(draft)
   const spots = media.spots.map(({ searchHint: _hint, ...rest }) => rest)
@@ -260,6 +263,7 @@ export async function toPublishedPackage(
     assets: media.assets,
     ...(routes && Object.keys(routes).length > 0 ? { routes } : {}),
     ...(draft.experience ? { experience: structuredClone(draft.experience) } : {}),
+    ...(draft.presentation ? { presentation: structuredClone(draft.presentation) } : {}),
   }
   return assertPublishedAttraction(pkg)
 }

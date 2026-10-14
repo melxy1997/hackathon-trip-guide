@@ -1,5 +1,6 @@
 import { assertBuilderCandidate, buildTemplate, type BuilderResult } from './builder.ts'
 import { assertExperience } from './experienceSchema.ts'
+import { assertPresentation } from './presentation.ts'
 import { publishedToDraft } from '../lib/draftStore.ts'
 import { resolveMediaUrl, type PublishedAttraction } from '../lib/tourPackage.ts'
 import type { DraftAttraction } from '../types/attraction.ts'
@@ -25,6 +26,7 @@ export function createBuilderDraft(pkg: PublishedAttraction, result: BuilderResu
 
 export function approveStoryDraft(draft: DraftAttraction): DraftAttraction {
   if (!draft.experience) throw new Error('草稿没有故事。')
+  assertPresentation(draft.presentation)
   assertExperience(draft.experience, { spotIds: draft.spots.map(s => s.id) })
   return { ...draft, storyReview: { ...draft.storyReview, generatedBy: draft.storyReview?.generatedBy ?? 'manual', status: 'approved', reviewedAt: Date.now() } }
 }

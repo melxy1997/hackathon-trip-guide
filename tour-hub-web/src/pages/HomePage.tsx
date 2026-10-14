@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import type { CatalogItem } from '../lib/tourPackage'
 import { loadCatalog } from '../lib/catalog'
+import { resolvePresentation, presentationPalette, locationLabel } from '../experience/presentation'
 import { OfflineDemoPanel } from '../offline/OfflineDemoPanel'
 
 export function HomePage() {
@@ -42,19 +43,22 @@ export function HomePage() {
           </div>
         ) : (
           <>
-            {stories.map(item => (
-              <Link key={item.id} to={`/experience/${item.id}`} className="relative block overflow-hidden rounded-2xl bg-[#17251d] text-[#f5ecd9] p-7 sm:p-10 min-h-[300px]">
+            {stories.map(item => {
+              const p = resolvePresentation(item.presentation)
+              const palette = presentationPalette(p.preset)
+              return (
+              <Link key={item.id} to={`/experience/${item.id}`} data-preset={p.preset} style={{ backgroundColor: palette.background }} className="relative block overflow-hidden rounded-2xl bg-[#17251d] text-[#f5ecd9] p-7 sm:p-10 min-h-[300px]">
                 <img src={item.coverImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35" />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#102119] via-[#102119]/80 to-transparent" />
+                <div className="absolute inset-0" style={{ background: `linear-gradient(90deg, ${palette.background}, ${palette.background}cc, transparent)` }} />
                 <div className="relative max-w-xl">
                   <p className="text-xs text-[#dcc497] tracking-widest mb-5">TIMEWALKER · 沉浸故事</p>
-                  <h2 className="text-3xl sm:text-4xl font-serif leading-relaxed mb-3">{item.experience?.title}</h2>
-                  <p className="text-sm text-[#e2dac9] leading-relaxed">一园山水，一封虚构家书。选择你的视角，走进属于自己的豫园故事。</p>
-                  <p className="mt-4 text-xs text-[#c5b897]">{item.experience?.estimatedMinutes} 分钟 · 分支探索 · 模拟游览</p>
-                  <span className="mt-6 inline-flex items-center gap-3 bg-[#dcc497] text-[#15251c] px-5 py-3 rounded-lg text-sm">开启时空漫游 <ArrowRight size={16} /></span>
+                  <h2 className={`text-3xl sm:text-4xl ${p.preset === 'cosmos' ? 'font-sans' : 'font-serif'} leading-relaxed mb-3`}>{item.experience?.title}</h2>
+                  <p className="text-sm text-[#e2dac9] leading-relaxed">{item.description}</p>
+                  <p className="mt-4 text-xs text-[#c5b897]">{item.experience?.estimatedMinutes} 分钟 · 分支探索 · {locationLabel(p)}</p>
+                  <span style={{ backgroundColor: palette.accent }} className="mt-6 inline-flex items-center gap-3 bg-[#dcc497] text-[#15251c] px-5 py-3 rounded-lg text-sm">{p.labels.start} <ArrowRight size={16} /></span>
                 </div>
               </Link>
-            ))}
+            )})}
             {stories.some(item => item.id === 'yuyuan-timewalker') && <OfflineDemoPanel />}
             {featured && (
               <Link

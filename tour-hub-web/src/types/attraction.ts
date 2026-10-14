@@ -1,6 +1,7 @@
 ﻿import type { LngLat, PublishedSpot, Slide } from '../lib/tourPackage'
 
 import type { ExperienceDefinitionV1 } from '../experience/experienceSchema'
+import type { ExperiencePresentation } from '../experience/presentation'
 
 export type { LngLat, Slide }
 export type Spot = PublishedSpot & {
@@ -10,6 +11,7 @@ export type Spot = PublishedSpot & {
 
 /** 发布端草稿（不进入展示端契约） */
 export interface DraftAttraction {
+  presentation?: ExperiencePresentation
   id: string
   name: string
   description: string
