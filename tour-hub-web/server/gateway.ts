@@ -140,9 +140,10 @@ export function createGateway(config: GatewayConfig) {
       const rate = rates.get(ip) ?? { count: 0, expires: now + 60_000 }
       if (++rate.count > (config.rateLimit ?? 15) || rates.size > 1000) throw new ApiError(429, 'RATE_LIMITED', '请求过于频繁，请稍后重试。')
       rates.set(ip, rate)
-      if (Number(req.headers['content-length']) > 64_000) throw new ApiError(413, 'PAYLOAD_TOO_LARGE', '请求超过大小限制。')
+      const payloadLimit = req.url === '/api/agent/media' ? 8 * 1024 * 1024 : 64_000
+      if (Number(req.headers['content-length']) > payloadLimit) throw new ApiError(413, 'PAYLOAD_TOO_LARGE', '请求超过大小限制。')
       let body: unknown
-      try { body = JSON.parse(await limitedText(req, 64_000)) }
+      try { body = JSON.parse(await limitedText(req, payloadLimit)) }
       catch (e) { if (e instanceof ApiError) throw e; throw new ApiError(400, 'INVALID_JSON', '请求 JSON 无效。') }
       if (!record(body)) throw new ApiError(400, 'INVALID_INPUT', '请求必须是 JSON 对象。')
       if (req.url === '/api/agent/media') {

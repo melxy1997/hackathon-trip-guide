@@ -185,7 +185,7 @@ function extFromMimeOrRef(ref: string, mime?: string): string {
 }
 
 /** 把草稿中的图片引用变成 data URL（支持 data: / http(s) / 站点相对路径） */
-async function toDataUrl(ref: string): Promise<{ dataUrl: string; ext: string }> {
+export async function materializeMediaReference(ref: string): Promise<{ dataUrl: string; ext: string }> {
   if (!ref) throw new Error('空图片引用')
   if (ref.startsWith('data:')) {
     return { dataUrl: ref, ext: extFromMimeOrRef(ref) }
@@ -235,7 +235,7 @@ export async function materializeMedia(draft: DraftAttraction): Promise<{
   const put = async (logicalName: string, ref: string, kind: 'image' | 'audio' = 'image'): Promise<string> => {
     if (!safeAssetUrl(ref, kind)) throw new Error('素材引用无效或不支持此媒体类型。')
     if (refToKey.has(ref)) return refToKey.get(ref)!
-    const { dataUrl, ext } = await toDataUrl(ref)
+    const { dataUrl, ext } = await materializeMediaReference(ref)
     if (!safeAssetUrl(dataUrl, kind)) throw new Error('素材类型不受支持或大小超出上限。')
     const existing = dataUrlToKey.get(dataUrl)
     if (existing) return existing

@@ -35,6 +35,7 @@ test('Seedream adapter sends one image request and never sends provider auth to 
       if (calls.length === 1) {
         assert.equal(new Headers(init?.headers).get('Authorization'), 'Bearer private-image-key')
         assert.equal(JSON.parse(String(init?.body)).sequential_image_generation, 'disabled')
+        assert.equal(JSON.parse(String(init?.body)).size, '1440x2560')
         return Response.json({ data: [{ url: 'https://images.tos-cn-beijing.volces.com/test.png?signed=temporary' }] })
       }
       assert.equal(new Headers(init?.headers).get('Authorization'), null)

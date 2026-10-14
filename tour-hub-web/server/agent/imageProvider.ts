@@ -8,6 +8,7 @@ export interface ImageProviderConfig {
   maxBytes?: number
   fetchImpl?: typeof fetch
 }
+export const IMAGE_SIZE = '1440x2560'
 export function imageProviderBase(raw = 'https://ark.cn-beijing.volces.com/api/v3'): string {
   try {
     const url = new URL(raw)
@@ -45,7 +46,7 @@ export async function generateImage(prompt: string, signal: AbortSignal, config:
   try {
     const response = await (config.fetchImpl ?? fetch)(`${base}/images/generations`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.apiKey}` },
-      body: JSON.stringify({ model: config.model, prompt, size: '2K', response_format: 'url', watermark: true, sequential_image_generation: 'disabled' }),
+      body: JSON.stringify({ model: config.model, prompt, size: IMAGE_SIZE, response_format: 'url', watermark: true, sequential_image_generation: 'disabled' }),
       signal: deadline, redirect: 'error',
     })
     const generated = JSON.parse(Buffer.from(await bounded(response, 1_000_000)).toString('utf8'))

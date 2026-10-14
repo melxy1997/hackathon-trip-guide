@@ -6,6 +6,7 @@ import { presentationForPreset } from '../presentation.ts'
 import { assertPublishedAttraction, type PublishedAttraction } from '../../lib/tourPackage.ts'
 import { getDraft, saveDraft, toPublishedPackage } from '../../lib/draftStore.ts'
 import { approveStoryDraft } from '../builderDraft.ts'
+import { portableAgentCandidate } from '../agent/portable.ts'
 import { createAgentDraft } from '../agent/draft.ts'
 import {
   assertAgentCandidate, assertBeatSheet, assertCreativeBrief, assertLocationNotes, assertStoryConcept,
@@ -208,4 +209,28 @@ test('agent-added image/audio survive draft save, approval, edit reset, publish 
     assert.ok(Object.values(reloaded.assets ?? {}).includes(image))
     assert.ok(Object.values(reloaded.assets ?? {}).includes(audio))
   } finally { Reflect.deleteProperty(globalThis, 'localStorage') }
+})
+
+
+test('portable Agent export embeds added image/audio, rewrites aliases and preserves the working candidate', async () => {
+  const pkg = loadPackage('yuyuan-timewalker.json')
+  const candidate = candidateFor(pkg, 'heritage')
+  const imageUrl = '/api/agent/assets/image.png'
+  candidate.resourceManifest.resources.push(
+    { id: 'new-image', kind: 'image', assetRef: 'managed-image', value: imageUrl, sourceIds: [] },
+    { id: 'new-audio', kind: 'audio', assetRef: 'managed-audio', value: '/api/agent/assets/voice.mp3', sourceIds: [] },
+  )
+  candidate.experience.scenes[0].blocks[0].assetRef = imageUrl
+  candidate.locationNotes.media.push({ id: 'new-image-alias', kind: 'image', assetRef: imageUrl, sourceIds: [] })
+  candidate.experience.scenes[0].blocks.push({ id: 'new-audio-block', type: 'audio', assetRef: 'managed-audio' })
+  const original = structuredClone(candidate)
+  const result = await portableAgentCandidate(candidate, pkg, async ref => ({ dataUrl: ref.endsWith('.mp3') ? 'data:audio/mpeg;base64,YQ==' : 'data:image/png;base64,YQ==', ext: '.unused' }))
+  assert.equal(result.experience.scenes[0].blocks[0].assetRef, 'managed-image')
+  assert.equal(result.locationNotes.media.at(-1)!.assetRef, 'managed-image')
+  assert.ok(result.resourceManifest.resources.every(resource => resource.value.startsWith('data:')))
+  assertAgentCandidate(result, pkg)
+  assert.deepEqual(candidate, original)
+  await assert.rejects(portableAgentCandidate(candidate, pkg, async () => { throw new Error('missing managed file') }), /missing managed file/)
+  await assert.rejects(portableAgentCandidate(candidate, pkg, async () => ({ dataUrl: 'data:text/html;base64,YQ==', ext: '.html' })), /无法携带/)
+  assert.deepEqual(candidate, original)
 })

@@ -66,6 +66,26 @@ try {
     assert.equal(request.selectedConcept.id, concepts[1].id)
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ candidate: fixture.candidate, requestId: 'req-compile', artifact: { id: 'artifact-studio', version: 1, hash: 'hash-studio' }, model: 'mock-browser-fixture', durationMs: 1234, attempts: 1 }) })
   })
+  let mediaCalls = 0
+  let assetReads = 0
+  let assetUnavailable = false
+  const managedUrl = `/api/agent/assets/${'a'.repeat(64)}.png`
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64')
+  await page.route('**/api/agent/assets/*.png', route => {
+    assetReads++
+    return assetUnavailable ? route.fulfill({ status: 404, body: 'missing on new machine' }) : route.fulfill({ status: 200, contentType: 'image/png', body: png })
+  })
+  await page.route('**/api/agent/media', async route => {
+    mediaCalls++
+    const body = route.request().postDataJSON()
+    assert.equal(body.confirmBilling, true)
+    if (mediaCalls === 1) return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { message: '生图尚未配置 ARK_API_KEY / ARK_IMAGE_MODEL' } }) })
+    const candidate = structuredClone(body.candidate)
+    const assetRef = `assets/agent/${'a'.repeat(64)}.png`
+    if (!candidate.resourceManifest.resources.some(resource => resource.assetRef === assetRef)) candidate.resourceManifest.resources.push({ id: 'fixture-generated-image', kind: 'image', assetRef, value: managedUrl, sourceIds: [] })
+    candidate.experience.scenes.find(scene => scene.id === body.sceneId).blocks.find(block => block.type === 'image').assetRef = assetRef
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ candidate, requestId: 'req-media-fixture', artifact: { id: 'artifact-media', version: 1, hash: 'hash-media' }, media: { cacheHit: mediaCalls > 2 } }) })
+  })
   const studio = page.getByRole('region', { name: 'Creative Studio' })
   await studio.getByRole('button', { name: '生成两个故事构想' }).click()
   await studio.getByRole('alert').filter({ hasText: '在线模型尚未配置' }).waitFor()
@@ -101,13 +121,30 @@ try {
   await studio.getByRole('textbox', { name: '故事主题' }).fill(fixture.candidate.brief.theme)
   assert.equal(await studio.getByRole('button', { name: '编译所选构想' }).isEnabled(), true)
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('timewalker:studio:v1') || '{}').compiled?.candidate?.selectedConcept?.id === 'stone-memory')
+  const mediaPanel = studio.getByRole('region', { name: '章节配图' })
+  const generateImage = mediaPanel.getByRole('button', { name: '为本章生成插画' })
+  assert.equal(await generateImage.isDisabled(), true, 'billing consent is per image action')
+  await mediaPanel.getByRole('checkbox').check()
+  await generateImage.click()
+  await studio.getByRole('alert').filter({ hasText: '生图尚未配置' }).waitFor()
+  assert.equal(await mediaPanel.getByRole('checkbox').isChecked(), false)
+  assert.equal(await studio.getByRole('heading', { name: fixture.candidate.experience.title }).count(), 1)
+  await mediaPanel.getByRole('checkbox').check()
+  await generateImage.click()
+  await studio.getByText('新插画已保存并用于本章；导出成果时会携带新增素材。', { exact: true }).waitFor()
+  await page.waitForFunction(() => document.querySelector('section[aria-label="章节配图"] img')?.naturalWidth === 1)
+  await mediaPanel.getByRole('checkbox').check()
+  await generateImage.click()
+  await studio.getByText('已复用保存的插画，本章配图已更新。', { exact: true }).waitFor()
   const downloadPromise = page.waitForEvent('download')
   await studio.getByRole('button', { name: '导出创作成果' }).click()
   const download = await downloadPromise
   const exported = await readFile(await download.path(), 'utf8')
   const saved = JSON.parse(exported)
   assert.equal(saved.compiled.evidence.model, 'mock-browser-fixture')
-  assert.equal(saved.compiled.provenance.artifactHash, 'hash-studio')
+  assert.equal(saved.compiled.provenance.artifactHash, 'hash-media')
+  assert.match(saved.compiled.candidate.resourceManifest.resources[0].value, /^data:image\/png;base64,/)
+  assert.ok(!JSON.stringify(saved.compiled.candidate).includes('/api/agent/assets/'), 'added media travels inside the exported file')
   await page.screenshot({ path: `${output}/studio-research-390.png`, fullPage: true })
   await page.reload()
   await studio.getByText('已恢复本机创作成果；没有重新调用模型。联网研究可按需重新获取。', { exact: true }).waitFor()
@@ -120,10 +157,14 @@ try {
   await page.evaluate(() => localStorage.removeItem('timewalker:studio:v1'))
   await page.reload()
   await studio.getByRole('button', { name: '导入创作成果' }).waitFor()
+  assetUnavailable = true
+  const readsBeforeImport = assetReads
   await studio.getByLabel('创作成果文件').setInputFiles({ name: 'studio.json', mimeType: 'application/json', buffer: Buffer.from(exported) })
   await studio.getByText('已导入已完成的创作成果；没有重新调用模型，采用后仍进入独立待审草稿。', { exact: true }).waitFor()
   await studio.getByRole('heading', { name: fixture.candidate.experience.title }).waitFor()
   assert.equal(conceptCalls + compileCalls, modelCallsBeforeImport, 'restore/import does not silently call providers')
+  await page.waitForFunction(() => document.querySelector('section[aria-label="章节配图"] img')?.src.startsWith('data:image/png'))
+  assert.equal(assetReads, readsBeforeImport, 'imported media no longer depends on old API files')
   await page.setViewportSize({ width: 320, height: 844 })
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'restored Studio fits 320px')
   await page.screenshot({ path: `${output}/studio-restored-320.png`, fullPage: true })
@@ -132,6 +173,18 @@ try {
   await page.getByText('待人工审核', { exact: false }).first().waitFor()
   await page.getByText('构建智能体起稿', { exact: false }).waitFor()
   assert.match(page.url(), /publish\/attr-.*tab=story/)
+  const packaged = await page.evaluate(async () => {
+    const [{ getDraft, toPublishedPackage }, { approveStoryDraft }, { assertPublishedAttraction }] = await Promise.all([
+      import('/src/lib/draftStore.ts'), import('/src/experience/builderDraft.ts'), import('/src/lib/tourPackage.ts'),
+    ])
+    const id = location.pathname.split('/').at(-1)
+    const draft = getDraft(id)
+    const pkg = assertPublishedAttraction(await toPublishedPackage(approveStoryDraft(draft)))
+    const image = pkg.experience.scenes[0].blocks.find(block => block.type === 'image')
+    return { image: pkg.assets[image.assetRef], hasApiMedia: JSON.stringify(pkg).includes('/api/agent/assets/') }
+  })
+  assert.equal(packaged.image, `data:image/png;base64,${png.toString('base64')}`)
+  assert.equal(packaged.hasApiMedia, false)
   assert.deepEqual(errors, [])
-  console.log('PASS Studio research/fallback, bound concepts/compile, stale brief prevention, cancel/retention, refresh, export/import, 320/390px and agent adoption (mock providers)')
+  console.log('PASS Studio research, stale/cancel retention, per-call image consent/error/success/cache, portable media import without API files, real publish packing, refresh, 320/390px (mock providers)')
 } finally { await browser.close() }

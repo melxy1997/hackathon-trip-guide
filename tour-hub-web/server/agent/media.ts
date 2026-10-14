@@ -2,7 +2,7 @@ import type { AgentCandidate } from '../../src/experience/agent/contracts.ts'
 import { assertAgentCandidate } from '../../src/experience/agent/validators.ts'
 import type { PublishedAttraction } from '../../src/lib/tourPackage.ts'
 import { assetStore, digest, MediaError, type StoredImage } from './assetStore.ts'
-import { generateImage, imageProviderBase, type ImageProviderConfig } from './imageProvider.ts'
+import { generateImage, imageProviderBase, IMAGE_SIZE, type ImageProviderConfig } from './imageProvider.ts'
 
 export interface MediaRequest { candidate: AgentCandidate; sceneId: string; artDirection: string; confirmBilling: true }
 export function assertMediaRequest(raw: unknown): MediaRequest {
@@ -38,7 +38,7 @@ export function mediaService(directory: string, config: ImageProviderConfig) {
         `Narrative: ${scene.blocks.filter(block => block.text).map(block => block.text).join(' ').slice(0, 1800)}`,
         request.artDirection ? `Art direction: ${request.artDirection}` : '',
       ].filter(Boolean).join('\n')
-      const requestKey = digest(JSON.stringify({ base: imageProviderBase(config.baseUrl), model: config.model, prompt, size: '2K' }))
+      const requestKey = digest(JSON.stringify({ base: imageProviderBase(config.baseUrl), model: config.model, prompt, size: IMAGE_SIZE }))
       let image = await store.cached(requestKey)
       let cacheHit = !!image
       if (!image) {

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { CandidateMediaPanel } from './CandidateMediaPanel'
+import { portableAgentCandidate } from '../agent/portable'
 import { useNavigate } from 'react-router-dom'
 import { createAgentDraft, type AgentDraftProvenance } from '../agent/draft'
 import { assertAgentCandidate, assertCreativeBrief, assertStoryConcept } from '../agent/validators'
@@ -30,7 +32,7 @@ export function CreativeStudio({ catalog }: { catalog: CatalogItem[] }) {
   const [basePackage, setBasePackage] = useState<BasePackageIdentity | null>(null)
   const [selection, setSelection] = useState('')
   const [compiled, setCompiled] = useState<Compiled | null>(null)
-  const [busy, setBusy] = useState<'research' | 'concepts' | 'compile' | 'import' | ''>('')
+  const [busy, setBusy] = useState<'research' | 'concepts' | 'compile' | 'import' | 'export' | 'media' | ''>('')
   const [conceptBrief, setConceptBrief] = useState<CreativeBrief>()
   const [research, setResearch] = useState<ResearchDossier | null>(null)
   const [conceptResearchId, setConceptResearchId] = useState<string>()
@@ -45,7 +47,7 @@ export function CreativeStudio({ catalog }: { catalog: CatalogItem[] }) {
   useEffect(() => {
     if (!themeTouched.current) setTheme(themeFor(selected))
   }, [selected])
-  const brief = useMemo(() => ({ attractionId: selectedId, theme, audience, targetMinutes, style }), [selectedId, theme, audience, targetMinutes, style])
+  const brief = useMemo(() => ({ attractionId: selectedId, theme: theme.trim(), audience, targetMinutes, style }), [selectedId, theme, audience, targetMinutes, style])
   const conceptCurrent = sameBrief(conceptBrief, brief)
   const researchCurrent = !!research && sameBrief(research.brief, brief)
   const applySession = (session: StudioSession, pkg?: PublishedAttraction) => {
@@ -91,7 +93,7 @@ export function CreativeStudio({ catalog }: { catalog: CatalogItem[] }) {
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, brief, concepts, conceptBrief, basePackage, selection, conceptResearchId, compiled])
-  const run = async <T,>(stage: 'research' | 'concepts' | 'compile' | 'import', work: (signal: AbortSignal) => Promise<T>, accept: (result: T) => void) => {
+  const run = async <T,>(stage: 'research' | 'concepts' | 'compile' | 'import' | 'export' | 'media', work: (signal: AbortSignal) => Promise<T>, accept: (result: T) => void) => {
     if (busy || !ready) return
     active.current.controller?.abort()
     const token = ++active.current.token
@@ -143,17 +145,29 @@ export function CreativeStudio({ catalog }: { catalog: CatalogItem[] }) {
     themeTouched.current = true
     setTheme(preset === 'cosmos' ? '解码一段来自未来的深空讯号' : '寻找一封被园林保存至今的回信')
   }
-  const exportSession = () => {
-    try {
-      const content = JSON.stringify(snapshot(), null, 2)
-      if (new Blob([content]).size > MAX_STUDIO_FILE_BYTES) throw new Error('成果超过 8 MiB，请减少内嵌素材。')
-      const url = URL.createObjectURL(new Blob([content], { type: 'application/json' }))
-      const link = document.createElement('a')
-      link.href = url; link.download = `timewalker-studio-${selectedId}.json`; link.click()
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
-      setNotice('已导出创作成果，可在其他浏览器导入；素材引用仍需可访问。')
-    } catch (e) { setError(e instanceof Error ? e.message : '成果导出失败。') }
+  const generateMedia = (sceneId: string, artDirection: string) => {
+    if (!compiled) return
+    const source = compiled
+    run('media', async signal => {
+      const response = await requestModel<{ candidate: AgentCandidate; artifact: { id: string; version: number; hash: string }; requestId: string; media: { cacheHit: boolean } }>(
+        '/api/agent/media', { candidate: source.candidate, sceneId, artDirection, confirmBilling: true }, signal)
+      const candidate = assertAgentCandidate(response.candidate, source.pkg)
+      return { ...source, candidate, provenance: { ...source.provenance, requestId: response.requestId, artifactId: response.artifact.id, artifactVersion: response.artifact.version, artifactHash: response.artifact.hash }, cacheHit: response.media.cacheHit }
+    }, result => { const { cacheHit, ...next } = result; setCompiled(next); setNotice(cacheHit ? '已复用保存的插画，本章配图已更新。' : '新插画已保存并用于本章；导出成果时会携带新增素材。') })
   }
+  const exportSession = () => run('export', async () => {
+    const saved = snapshot()
+    if (saved.compiled && compiled) saved.compiled.candidate = await portableAgentCandidate(saved.compiled.candidate, compiled.pkg)
+    const content = JSON.stringify(saved, null, 2)
+    if (new Blob([content]).size > MAX_STUDIO_FILE_BYTES) throw new Error('成果超过 8 MiB，请减少新增素材后导出。')
+    return content
+  }, content => {
+    const url = URL.createObjectURL(new Blob([content], { type: 'application/json' }))
+    const link = document.createElement('a')
+    link.href = url; link.download = `timewalker-studio-${selectedId}.json`; link.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    setNotice('已导出创作成果，新增素材已随文件携带，可在其他浏览器导入。')
+  })
   const importSession = (file?: File) => {
     if (!file) return
     run('import', async () => {
@@ -168,7 +182,7 @@ export function CreativeStudio({ catalog }: { catalog: CatalogItem[] }) {
     <div><p className="text-xs tracking-widest text-indigo-700">CREATIVE STUDIO · 在线智能体</p><h2 className="mt-2 text-xl font-medium">从故事构想到可编辑体验</h2><p className="mt-2 text-sm text-gray-500">先生成两个构想，人工选择后再编译。创作进度自动保存在本机，可导出交接；采用后进入独立草稿。</p></div>
     <div className="mt-4 flex flex-wrap gap-2" aria-label="示例主题"><button type="button" className="min-h-11 rounded-lg border px-3 text-sm" disabled={!!busy || !ready} onClick={() => fillDemo('heritage')}>填入园林家书示例</button><button type="button" className="min-h-11 rounded-lg border px-3 text-sm" disabled={!!busy || !ready} onClick={() => fillDemo('cosmos')}>填入深空讯号示例</button></div>
     <div className="mt-3 flex flex-wrap items-center gap-3">
-      <button type="button" className="min-h-11 rounded-lg border px-3 text-sm disabled:opacity-40" disabled={!!busy || !ready || !selectedId} onClick={exportSession}>导出创作成果</button>
+      <button type="button" className="min-h-11 rounded-lg border px-3 text-sm disabled:opacity-40" disabled={!!busy || !ready || !selectedId} onClick={exportSession}>{busy === 'export' ? '正在打包成果…' : '导出创作成果'}</button>
       <button type="button" className="min-h-11 rounded-lg border px-3 text-sm disabled:opacity-40" disabled={!!busy || !ready} onClick={() => fileInput.current?.click()}>导入创作成果</button>
       <input ref={fileInput} type="file" accept="application/json,.json" className="sr-only" aria-label="创作成果文件" onChange={event => { importSession(event.target.files?.[0]); event.target.value = '' }} />
       <span className="text-xs text-gray-500" role="status">{ready ? storageNote : '正在恢复创作进度…'}</span>
@@ -192,6 +206,6 @@ export function CreativeStudio({ catalog }: { catalog: CatalogItem[] }) {
     <div className="mt-5 flex flex-wrap items-center gap-3"><button type="button" disabled={!!busy || !ready || !selectedId} onClick={generateConcepts} className="min-h-11 rounded-lg bg-indigo-700 px-5 text-sm text-white disabled:opacity-40">{busy === 'concepts' ? '正在生成构想…' : '生成两个故事构想'}</button>{busy && <button type="button" className="min-h-11 px-2 text-sm underline" onClick={cancel}>取消当前请求</button>}<span className="text-xs text-gray-500">需要服务端在线模型配置；下方本地 Builder 可随时使用。</span></div>
     {error && <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900 break-words" role="alert">{error}</p>}
     {concepts.length === 2 && <fieldset className="mt-6 border-t pt-5" disabled={!!busy || !ready}><legend className="text-base font-medium">选择一个故事构想</legend>{!conceptCurrent && <p className="mt-2 text-sm text-amber-800">简报已改变，请重新生成构想。上一份候选仍可采用或导出。</p>}<div className="mt-3 grid gap-3 sm:grid-cols-2">{concepts.map(concept => <label key={concept.id} className={`block min-h-11 cursor-pointer rounded-xl border p-4 ${selection === concept.id ? 'border-indigo-600 ring-2 ring-indigo-100' : 'border-black/10'}`}><span className="flex items-start gap-3"><input className="mt-1 size-4" type="radio" name="studio-concept" value={concept.id} checked={selection === concept.id} onChange={() => setSelection(concept.id)} /><span><strong>{concept.title}</strong><span className="mt-2 block text-sm text-gray-600"><b>故事前提：</b>{concept.premise}</span><span className="mt-2 block text-sm text-gray-600"><b>悬念：</b>{concept.suspense}</span><span className="mt-2 block text-sm text-gray-600"><b>地点作用：</b>{concept.locationRole}</span><span className="mt-2 block text-sm text-gray-600"><b>结局：</b>{concept.resolution}</span></span></span></label>)}</div><button type="button" className="mt-4 min-h-11 rounded-lg bg-[#17251d] px-5 text-sm text-white disabled:opacity-40" disabled={!selection || !!busy || !ready || !conceptCurrent} onClick={compile}>{busy === 'compile' ? '正在编译故事…' : '编译所选构想'}</button></fieldset>}
-    {compiled && <div className="mt-6 border-t pt-5" aria-label="已编译候选"><p className="text-xs text-indigo-700">智能体候选 · 尚未采用 · 待人工审核</p><h3 className="mt-2 text-lg">{compiled.candidate.experience.title}</h3><p className="mt-1 text-sm text-gray-500">所选构想：{compiled.candidate.selectedConcept.title} · {compiled.pkg.name}</p>{compiled.evidence && <details className="mt-3 text-xs text-gray-500"><summary className="cursor-pointer">查看本次运行记录</summary><p className="mt-2 break-all">请求：{compiled.evidence.requestId} · 模型：{compiled.evidence.model ?? '未记录'} · 耗时：{compiled.evidence.durationMs === undefined ? '未记录' : `${(compiled.evidence.durationMs / 1000).toFixed(1)} 秒`} · 尝试：{compiled.evidence.attempts ?? '未记录'}</p><p className="mt-1 break-all">产物：{compiled.provenance.artifactId} · {compiled.provenance.artifactHash}</p></details>}<ol className="mt-4 space-y-3" aria-label="故事节拍时间线">{compiled.candidate.beatSheet.beats.map((beat, index) => { const spot = compiled.pkg.spots.find(item => item.id === beat.spotId)?.name || beat.spotId; return <li key={beat.id} className="rounded-lg bg-gray-50 p-3 text-sm"><strong>{index + 1}. {beat.title}</strong><span className="block text-gray-600">地点：{spot} · {beat.summary}</span>{beat.branches?.map(branch => { const rejoin = compiled.candidate.beatSheet.beats.find(item => item.id === branch.rejoinsAtBeatId)?.title || branch.rejoinsAtBeatId; return <span className="mt-1 block text-gray-600" key={branch.id}>选择「{branch.label}」：{branch.summary}（在 {compiled.pkg.spots.find(item => item.id === branch.spotId)?.name || branch.spotId}；汇合到：{rejoin}）</span> })}{beat.observationTask && <span className="mt-1 block text-gray-600">观察任务：{beat.observationTask}</span>}</li> })}</ol><button type="button" className="mt-4 min-h-11 rounded-lg bg-emerald-700 px-4 text-sm text-white disabled:opacity-40" onClick={adopt} disabled={!!busy || !ready}>采用并进入故事编辑器</button></div>}
+    {compiled && <div className="mt-6 border-t pt-5" aria-label="已编译候选"><p className="text-xs text-indigo-700">智能体候选 · 尚未采用 · 待人工审核</p><h3 className="mt-2 text-lg">{compiled.candidate.experience.title}</h3><p className="mt-1 text-sm text-gray-500">所选构想：{compiled.candidate.selectedConcept.title} · {compiled.pkg.name}</p>{compiled.evidence && <details className="mt-3 text-xs text-gray-500"><summary className="cursor-pointer">查看本次运行记录</summary><p className="mt-2 break-all">请求：{compiled.evidence.requestId} · 模型：{compiled.evidence.model ?? '未记录'} · 耗时：{compiled.evidence.durationMs === undefined ? '未记录' : `${(compiled.evidence.durationMs / 1000).toFixed(1)} 秒`} · 尝试：{compiled.evidence.attempts ?? '未记录'}</p><p className="mt-1 break-all">产物：{compiled.provenance.artifactId} · {compiled.provenance.artifactHash}</p></details>}<ol className="mt-4 space-y-3" aria-label="故事节拍时间线">{compiled.candidate.beatSheet.beats.map((beat, index) => { const spot = compiled.pkg.spots.find(item => item.id === beat.spotId)?.name || beat.spotId; return <li key={beat.id} className="rounded-lg bg-gray-50 p-3 text-sm"><strong>{index + 1}. {beat.title}</strong><span className="block text-gray-600">地点：{spot} · {beat.summary}</span>{beat.branches?.map(branch => { const rejoin = compiled.candidate.beatSheet.beats.find(item => item.id === branch.rejoinsAtBeatId)?.title || branch.rejoinsAtBeatId; return <span className="mt-1 block text-gray-600" key={branch.id}>选择「{branch.label}」：{branch.summary}（在 {compiled.pkg.spots.find(item => item.id === branch.spotId)?.name || branch.spotId}；汇合到：{rejoin}）</span> })}{beat.observationTask && <span className="mt-1 block text-gray-600">观察任务：{beat.observationTask}</span>}</li> })}</ol><CandidateMediaPanel candidate={compiled.candidate} pkg={compiled.pkg} disabled={!!busy || !ready} generating={busy === 'media'} onGenerate={generateMedia} onCancel={cancel} /><button type="button" className="mt-4 min-h-11 rounded-lg bg-emerald-700 px-4 text-sm text-white disabled:opacity-40" onClick={adopt} disabled={!!busy || !ready}>采用并进入故事编辑器</button></div>}
   </section>
 }
