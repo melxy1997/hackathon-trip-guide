@@ -6,6 +6,25 @@ import { addStoryChoiceOption, addStoryScene, connectStoryRoute, deleteStoryChoi
 
 const definition = () => structuredClone(fixture().definition)
 
+test('copying valid long scene/block/interaction IDs stays within the V1 limit', () => {
+  const { pkg } = fixture()
+  let d = definition()
+  const long = 'a'.repeat(80)
+  for (const scene of d.scenes) {
+    if (scene.id === 'jade-nature') scene.id = long
+    const actions = scene.interaction?.type === 'single_choice' ? scene.interaction.options.flatMap(o => o.actions) : scene.interaction?.type === 'photo_or_tap' ? scene.interaction.actionsOnComplete : []
+    for (const action of actions) if (action.type === 'goTo' && action.sceneId === 'jade-nature') action.sceneId = long
+  }
+  assertExperience(d, { spotIds: pkg.spots.map(s => s.id) })
+  const copied = duplicateStoryScene(d, long)
+  assert.ok(copied.sceneId.length <= 80)
+  d = connectStoryRoute(copied.definition, 'rockery', 'choice:nature', copied.sceneId)
+  // Keep the original branch reachable through an additional choice.
+  const rock = d.scenes.find(s => s.id === 'rockery')!
+  if (rock.interaction?.type === 'single_choice') rock.interaction.options.push({ id: 'original', label: '原章', actions: [{ type: 'goTo', sceneId: long }] })
+  assertExperience(d, { spotIds: pkg.spots.map(s => s.id) })
+})
+
 test('story graph exposes every transition, choice and observation route', () => {
   const routes = storyRoutes(definition())
   assert.ok(routes.some(route => route.handle === 'choice:nature' && route.target === 'jade-nature'))

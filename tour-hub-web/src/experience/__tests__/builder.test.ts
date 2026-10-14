@@ -2,13 +2,24 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { buildTemplate, assertBuilderCandidate, assertBuilderInput, validationSuggestion, type BuilderInput } from '../builder.ts'
-import { approveStoryDraft, createBuilderDraft } from '../builderDraft.ts'
-import { saveDraft, getDraft, publishDraft } from '../../lib/draftStore.ts'
+import { approveStoryDraft, createBuilderDraft, createTemplateStory } from '../builderDraft.ts'
+import { saveDraft, getDraft, publishDraft, publishedToDraft } from '../../lib/draftStore.ts'
 import { createStoryState, transition } from '../storyEngine.ts'
 import type { ExperienceEvent } from '../events.ts'
 import { fixture, sceneEvent } from './fixtures.ts'
 
 const brief: BuilderInput = { attractionId: 'yuyuan-timewalker', theme: '一封写给未来的信', audience: 'general', duration: 5, tone: 'poetic', mode: 'template' }
+test('unpublished local POIs can become a pending story without changing draft identity or source', () => {
+  const { pkg } = fixture()
+  const draft = publishedToDraft({ ...pkg, experience: undefined })
+  const before = structuredClone(draft)
+  const story = createTemplateStory(draft)
+  assert.equal(story.id, draft.id)
+  assert.equal(story.storyReview?.status, 'pending')
+  assert.ok(story.experience)
+  assert.deepEqual(draft, before)
+  assert.throws(() => createTemplateStory({ ...draft, spots: draft.spots.slice(0, 2) }))
+})
 test('template uses known POIs and media; both branches reach ending through the real reducer', () => {
   const { pkg } = fixture()
   const result = buildTemplate(pkg, brief, 'template-1')

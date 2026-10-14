@@ -9,11 +9,12 @@ export type StoryRoute = {
 }
 
 const nextId = (base: string, used: Set<string>) => {
-  const clean = base.replace(/[^a-zA-Z0-9_-]/g, '-').replace(/^-+|-+$/g, '') || 'item'
+  const clean = (base.replace(/[^a-zA-Z0-9_-]/g, '-').replace(/^[^a-zA-Z0-9]+|[-_]+$/g, '') || 'item').slice(0, 80)
   if (!used.has(clean)) return clean
   let suffix = 2
-  while (used.has(`${clean}-${suffix}`)) suffix++
-  return `${clean}-${suffix}`
+  const candidate = () => `${clean.slice(0, 80 - String(suffix).length - 1)}-${suffix}`
+  while (used.has(candidate())) suffix++
+  return candidate()
 }
 
 const targetOf = (actions: Action[]) => actions.find(action => action.type === 'goTo')?.sceneId
