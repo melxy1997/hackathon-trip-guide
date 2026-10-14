@@ -10,6 +10,8 @@ npm run dev
 
 Agent 创作需另复制 `.env.server.example` 为 `.env.server.local`，配置服务端 `DEEPSEEK_*` 后运行 `npm run dev:full`（前端 5174、API 8787）。可选 `TAVILY_API_KEY` 用于联网补充灵感。
 
+可选 `ARK_API_KEY`、`ARK_IMAGE_MODEL` 用于 Studio 的逐章插画；生成图保存至 `.agent-jobs/assets`，迁移需复制素材目录或导出携带媒体的创作成果。每次生图操作在界面确认。详见 [24-生成素材闭环与开发待办](../docs/timewalker_hackathon/docs/24-生成素材闭环与开发待办.md)。
+
 发布后台 `/publish` 可选择构想、编译、导出/导入创作成果并采用到编辑器。命令行彩排：
 
 ```bash
