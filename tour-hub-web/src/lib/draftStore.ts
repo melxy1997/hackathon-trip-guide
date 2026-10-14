@@ -9,7 +9,7 @@
 } from './tourPackage.ts'
 import { exportPackageViaServer } from './exportTarget.ts'
 import { loadPublishedAttraction } from './catalog.ts'
-import { assertExperience } from '../experience/experienceSchema.ts'
+import { assertExperience, safeAssetUrl, type ExperienceDefinitionV1 } from '../experience/experienceSchema.ts'
 import { assertPresentation } from '../experience/presentation.ts'
 import type { DraftAttraction, Spot } from '../types/attraction'
 
@@ -170,6 +170,8 @@ export function newSpotAt(pos: LngLat, index: number): Spot {
 }
 
 function extFromMimeOrRef(ref: string, mime?: string): string {
+  const audioMime = mime || (ref.startsWith('data:') ? ref.slice(5, ref.indexOf(';')) : '')
+  if (audioMime.startsWith('audio/')) return ({ 'audio/mpeg': '.mp3', 'audio/wav': '.wav', 'audio/x-wav': '.wav', 'audio/ogg': '.ogg', 'audio/mp4': '.m4a', 'audio/aac': '.aac', 'audio/webm': '.webm' } as Record<string, string>)[audioMime] || '.mp3'
   if (mime?.includes('png')) return '.png'
   if (mime?.includes('webp')) return '.webp'
   if (mime?.includes('gif')) return '.gif'
@@ -192,7 +194,21 @@ async function toDataUrl(ref: string): Promise<{ dataUrl: string; ext: string }>
   const url = /^https?:\/\//i.test(ref) ? ref : new URL(ref, window.location.origin).href
   const res = await fetch(url)
   if (!res.ok) throw new Error(`图片读取失败: ${ref} (${res.status})`)
-  const blob = await res.blob()
+  let blob = await res.blob()
+  // Preserve original static files; compress only the portable publishing copy.
+  if (blob.type.startsWith('image/') && blob.size > 2_000_000 && typeof createImageBitmap !== 'undefined') {
+    const bitmap = await createImageBitmap(blob)
+    try {
+      const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale)); canvas.height = Math.max(1, Math.round(bitmap.height * scale))
+      const context = canvas.getContext('2d')
+      if (!context) throw new Error('素材编码不可用，请压缩图片后重试。')
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+      const smaller = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/webp', 0.9))
+      if (smaller && smaller.size < blob.size) blob = smaller
+    } finally { bitmap.close() }
+  }
   const dataUrl = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(String(reader.result || ''))
@@ -210,17 +226,23 @@ export async function materializeMedia(draft: DraftAttraction): Promise<{
   spots: Spot[]
   coverImage: string
   assets: Record<string, string>
+  experience?: ExperienceDefinitionV1
 }> {
   const assets: Record<string, string> = {}
   const dataUrlToKey = new Map<string, string>()
+  const refToKey = new Map<string, string>()
 
-  const put = async (logicalName: string, ref: string): Promise<string> => {
+  const put = async (logicalName: string, ref: string, kind: 'image' | 'audio' = 'image'): Promise<string> => {
+    if (!safeAssetUrl(ref, kind)) throw new Error('素材引用无效或不支持此媒体类型。')
+    if (refToKey.has(ref)) return refToKey.get(ref)!
     const { dataUrl, ext } = await toDataUrl(ref)
+    if (!safeAssetUrl(dataUrl, kind)) throw new Error('素材类型不受支持或大小超出上限。')
     const existing = dataUrlToKey.get(dataUrl)
     if (existing) return existing
     const key = `assets/${draft.id}/${logicalName}${ext}`
     assets[key] = dataUrl
     dataUrlToKey.set(dataUrl, key)
+    refToKey.set(ref, key)
     return key
   }
 
@@ -236,7 +258,11 @@ export async function materializeMedia(draft: DraftAttraction): Promise<{
     ? coverRef
     : await put('cover', coverRef)
 
-  return { spots, coverImage, assets }
+  const experience = draft.experience ? structuredClone(draft.experience) : undefined
+  for (const scene of experience?.scenes ?? []) for (const block of scene.blocks) {
+    if ((block.type === 'image' || block.type === 'audio') && block.assetRef) block.assetRef = await put(`scene-${scene.id}-${block.id}`, block.assetRef, block.type)
+  }
+  return { spots, coverImage, assets, ...(experience ? { experience } : {}) }
 }
 
 /** 草稿 → 展示端契约发布包（含 assets 图片） */
@@ -262,7 +288,7 @@ export async function toPublishedPackage(
     publishedAt: Date.now(),
     assets: media.assets,
     ...(routes && Object.keys(routes).length > 0 ? { routes } : {}),
-    ...(draft.experience ? { experience: structuredClone(draft.experience) } : {}),
+    ...(media.experience ? { experience: media.experience } : {}),
     ...(draft.presentation ? { presentation: structuredClone(draft.presentation) } : {}),
   }
   return assertPublishedAttraction(pkg)

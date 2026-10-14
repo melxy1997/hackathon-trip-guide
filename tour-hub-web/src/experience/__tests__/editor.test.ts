@@ -3,6 +3,24 @@ import assert from 'node:assert/strict'
 import { publishedToDraft, toPublishedPackage } from '../../lib/draftStore.ts'
 import { fixture } from './fixtures.ts'
 
+test('story-only image and audio are collected into portable assets with references replaced', async () => {
+  const draft = publishedToDraft(fixture().pkg)
+  draft.coverImage = 'data:image/jpeg;base64,YQ=='
+  draft.spots.forEach(s => { s.image = draft.coverImage })
+  draft.experience?.scenes.forEach(scene => scene.blocks.forEach(block => { if (block.type === 'image') block.assetRef = draft.coverImage }))
+  const image = 'data:image/png;base64,Yg=='
+  const audio = 'data:audio/mpeg;base64,Yw=='
+  draft.experience!.scenes[0].blocks[0].assetRef = image
+  draft.experience!.scenes[0].blocks.push({ id: 'prepared-voice', type: 'audio', assetRef: audio })
+  const pkg = await toPublishedPackage(draft)
+  const blocks = pkg.experience!.scenes[0].blocks
+  assert.equal(pkg.assets?.[blocks[0].assetRef!], image)
+  const voice = blocks.find(b => b.id === 'prepared-voice')!
+  assert.match(voice.assetRef!, /\.mp3$/)
+  assert.equal(pkg.assets?.[voice.assetRef!], audio)
+  assert.equal(draft.experience!.scenes[0].blocks[0].assetRef, image)
+})
+
 test('editing and packaging legacy fields preserves story and isolated clones', async () => {
   const { pkg } = fixture()
   const draft = publishedToDraft(pkg)
@@ -12,6 +30,7 @@ test('editing and packaging legacy fields preserves story and isolated clones', 
   // Embedded fixture images avoid browser-only FileReader in this unit test.
   draft.coverImage = 'data:image/jpeg;base64,YQ=='
   draft.spots.forEach(s => { s.image = draft.coverImage })
+  draft.experience?.scenes.forEach(scene => scene.blocks.forEach(block => { if (block.type === 'image') block.assetRef = draft.coverImage }))
   const next = await toPublishedPackage(draft)
   assert.equal(next.description, '修改简介')
   assert.equal(next.experience?.scenes[0].blocks[1].text, '这是人工修改后的虚构家书。')

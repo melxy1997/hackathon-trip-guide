@@ -63,6 +63,7 @@ export function safeAssetUrl(ref: unknown, kind: 'image' | 'audio'): ref is stri
     catch { return false }
   }
   if (kind === 'image' && /^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(ref)) return true
+  if (kind === 'audio' && /^data:audio\/(?:mpeg|wav|x-wav|ogg|mp4|aac|webm);base64,[A-Za-z0-9+/=]+$/.test(ref)) return true
   try { const u = new URL(ref); return u.protocol === 'https:' && !u.username && !u.password }
   catch { return false }
 }

@@ -24,6 +24,7 @@ test('presentation round-trips through editor, package and catalog and resets hu
   assert.notEqual(draft.presentation!.openingText, pkg.presentation.openingText)
   draft.coverImage = 'data:image/jpeg;base64,YQ=='
   draft.spots.forEach(s => { s.image = draft.coverImage })
+  draft.experience?.scenes.forEach(scene => scene.blocks.forEach(block => { if (block.type === 'image') block.assetRef = draft.coverImage }))
   const next = await toPublishedPackage(draft)
   assert.deepEqual(next.presentation, draft.presentation)
   assert.deepEqual(toCatalogItem(next).presentation, draft.presentation)
