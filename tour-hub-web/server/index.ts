@@ -5,6 +5,7 @@ const port = 8787
 const server = createGateway({
   publicDir: fileURLToPath(new URL('../public/', import.meta.url)),
   apiKey: process.env.DEEPSEEK_API_KEY,
+  tavilyApiKey: process.env.TAVILY_API_KEY,
   baseUrl: process.env.DEEPSEEK_BASE_URL,
   model: process.env.DEEPSEEK_MODEL,
   ...(process.env.WEB_ORIGIN ? { allowedOrigins: process.env.WEB_ORIGIN.split(',').map(s => s.trim()) } : {}),

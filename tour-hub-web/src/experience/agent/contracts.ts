@@ -39,6 +39,18 @@ export interface LocationNotes {
   sources: LocationSource[]
 }
 
+/** Server-owned, bounded research snapshot; never accepted as arbitrary prompt input. */
+export interface ResearchDossier {
+  id: string
+  basePackage: BasePackageIdentity
+  brief: CreativeBrief
+  query: string
+  createdAt: number
+  provider: 'tavily'
+  pages: Array<{ source: LocationSource; excerpt: string; extracted: boolean }>
+  warnings: string[]
+}
+
 export interface StoryConcept {
   id: string
   title: string

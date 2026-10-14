@@ -6,7 +6,7 @@ import { createGateway, type GatewayConfig } from '../gateway.ts'
 import { buildTemplate, type BuilderInput } from '../../src/experience/builder.ts'
 import { fixture } from '../../src/experience/__tests__/fixtures.ts'
 import { packageFingerprint, assertAgentCandidate } from '../../src/experience/agent/validators.ts'
-import type { AgentCandidate, CreativeBrief, StoryConcept } from '../../src/experience/agent/contracts.ts'
+import type { AgentCandidate, CreativeBrief, ResearchDossier, StoryConcept } from '../../src/experience/agent/contracts.ts'
 
 interface Reply {
   modelConfigured: boolean; mode: string; reviewRequired: boolean; experience: unknown; spots: unknown[]; answer: string
@@ -293,5 +293,37 @@ test('disconnect cancels active provider request and excess concurrency gets an 
     } finally { controllers.forEach(c => c.abort()); await Promise.all(pending) }
     for (let n = 0; n < 100 && cancelled !== 2; n++) await new Promise(resolve => setTimeout(resolve, 5))
     assert.equal(cancelled, 2)
+  })
+})
+
+test('server-owned research flows into concepts and compiled manifest; stale or invented research never reaches model', async () => {
+  let models = 0
+  await withGateway({ apiKey: 'model-private', tavilyApiKey: 'search-private', fetchImpl: async (url, init) => {
+    if (String(url).endsWith('/search')) return Response.json({ results: [{ url: 'https://example.com/garden', title: '园林空间', content: '研究摘要' }] })
+    if (String(url).endsWith('/extract')) return Response.json({ results: [{ url: 'https://example.com/garden', raw_content: '从搜索结果读取的正文' }] })
+    models++
+    const input = JSON.parse(JSON.parse(String(init?.body)).messages[1].content)
+    assert.equal(input.research.pages[0].excerpt, '从搜索结果读取的正文')
+    return jsonResponse(input.selectedConcept ? validCompileOutput(String(init?.body)) : { concepts })
+  } }, async base => {
+    const response = await post(base, '/api/agent/research', conceptBrief)
+    assert.equal(response.status, 200)
+    const { dossier } = await response.json() as { dossier: ResearchDossier }
+    const conceptual = await post(base, '/api/agent/concepts', { ...conceptBrief, researchId: dossier.id })
+    assert.equal(conceptual.status, 200)
+    const compiled = await post(base, '/api/agent/compile', { ...compileRequest(fixture().pkg), researchId: dossier.id })
+    assert.equal(compiled.status, 200)
+    const output = await read(compiled)
+    assert.equal(output.candidate.resourceManifest.sources[0].url, 'https://example.com/garden')
+    assertAgentCandidate(output.candidate, fixture().pkg)
+    assert.equal((await post(base, '/api/agent/concepts', { ...conceptBrief, theme: '换了主题', researchId: dossier.id })).status, 409)
+    assert.equal((await post(base, '/api/agent/compile', { ...compileRequest(fixture().pkg), researchId: 'research-00000000-0000-0000-0000-000000000000' })).status, 409)
+    assert.equal(models, 2)
+  })
+  await withGateway({}, async base => {
+    const response = await post(base, '/api/agent/research', conceptBrief)
+    assert.equal(response.status, 503)
+    assert.equal((await read(response)).error.code, 'SEARCH_NOT_CONFIGURED')
+    assert.equal((await post(base, '/api/agent/research', { ...conceptBrief, url: 'https://arbitrary.com' })).status, 400)
   })
 })
