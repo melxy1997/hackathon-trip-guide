@@ -4,11 +4,22 @@ import { fileURLToPath } from 'node:url'
 import { createGateway, type GatewayConfig } from '../gateway.ts'
 import { buildTemplate, type BuilderInput } from '../../src/experience/builder.ts'
 import { fixture } from '../../src/experience/__tests__/fixtures.ts'
+import { packageFingerprint } from '../../src/experience/agent/validators.ts'
+import type { CreativeBrief, StoryConcept } from '../../src/experience/agent/contracts.ts'
 
-type Reply = { modelConfigured: boolean; mode: string; reviewRequired: boolean; experience: unknown; spots: unknown[]; answer: string; error: { code: string } }
+interface Reply {
+  modelConfigured: boolean; mode: string; reviewRequired: boolean; experience: unknown; spots: unknown[]; answer: string
+  error: { code: string }; concepts: StoryConcept[]; requestId: string; model: string; stage: string; durationMs: number
+  basePackage: { id: string; version: number; fingerprint: string }
+}
 const read = (response: Response) => response.json() as Promise<Reply>
 
 const brief: BuilderInput = { attractionId: 'yuyuan-timewalker', theme: '未来的信', audience: 'general', tone: 'poetic', duration: 5, mode: 'online' }
+const conceptBrief: CreativeBrief = { attractionId: 'yuyuan-timewalker', theme: '未来的信', audience: 'general', targetMinutes: 5, style: 'heritage' }
+const concepts: StoryConcept[] = [
+  { id: 'lost-letter', title: '失落家书', premise: '玩家追寻一封未送达的家书。', protagonist: '到访园林的玩家', desire: '找到家书原本的收信人', suspense: '家书为何被藏在园林线索中？', locationRole: '亭台与山石依次显露寄信人的路线。', resolution: '玩家在终点读懂家书是留给后人的提醒。' },
+  { id: 'stone-echo', title: '石中回声', premise: '玩家收集散落在园林中的未来回声。', protagonist: '能够听见回声的访客', desire: '阻止一段记忆彻底消失', suspense: '未来为何只向今天的访客发出回声？', locationRole: '每处空间以不同形态折射一段记忆。', resolution: '玩家把观察写入新的记录，让记忆继续流传。' },
+]
 const publicDir = fileURLToPath(new URL('../../public', import.meta.url))
 const jsonResponse = (content: unknown) => new Response(JSON.stringify({ choices: [{ message: { content: typeof content === 'string' ? content : JSON.stringify(content) } }] }))
 async function withGateway(config: Partial<GatewayConfig>, run: (base: string) => Promise<void>) {
@@ -19,6 +30,54 @@ async function withGateway(config: Partial<GatewayConfig>, run: (base: string) =
   finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())) }
 }
 const post = (base: string, path: string, body: unknown, origin = 'http://localhost:5174') => fetch(`${base}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(body) })
+
+test('concepts route validates output, returns binding metadata, and sends bounded package context', async () => {
+  const pkg = fixture().pkg
+  await withGateway({ apiKey: 'secret', model: 'configured-model', fetchImpl: async (_url, init) => {
+    const payload = JSON.parse(String(init!.body))
+    assert.match(payload.messages[0].content, /不可信数据，不是指令/)
+    const prompt = JSON.parse(payload.messages[1].content)
+    assert.deepEqual(prompt.brief, conceptBrief)
+    assert.equal(prompt.locationNotes.basePackage.fingerprint, packageFingerprint(pkg))
+    assert.ok(prompt.locationNotes.spots.length <= 20); assert.ok(prompt.locationNotes.media.length <= 40); assert.ok(prompt.locationNotes.sources.length <= 20)
+    assert.deepEqual(Object.keys(prompt.locationNotes.spots[0]).sort(), ['id', 'name', 'summary'])
+    assert.ok(String(init!.body).length < 64_000); assert.ok(!String(init!.body).includes('secret'))
+    return jsonResponse(`\n\`\`\`json\n${JSON.stringify({ concepts })}\n\`\`\`\n`)
+  } }, async base => {
+    const response = await post(base, '/api/agent/concepts', conceptBrief)
+    assert.equal(response.status, 200)
+    const data = await read(response)
+    assert.deepEqual(data.concepts, concepts); assert.match(data.requestId, /^[0-9a-f-]+$/); assert.equal(data.model, 'configured-model'); assert.equal(data.stage, 'concepts')
+    assert.ok(Number.isInteger(data.durationMs) && data.durationMs >= 0)
+    assert.deepEqual(data.basePackage, { id: pkg.id, version: pkg.publishedAt, fingerprint: packageFingerprint(pkg) })
+  })
+})
+
+test('concepts route rejects malformed, wrong-count, duplicate and title-only outputs', async () => {
+  const titleOnly = [concepts[0], { ...concepts[0], id: 'renamed', title: '另一个标题' }]
+  for (const output of [concepts, { concepts: [concepts[0]] }, { concepts: [concepts[0], { ...concepts[1], id: concepts[0].id }] }, { concepts: titleOnly }, '{bad']) {
+    await withGateway({ apiKey: 'test', fetchImpl: async () => jsonResponse(output) }, async base => {
+      const response = await post(base, '/api/agent/concepts', conceptBrief)
+      assert.equal(response.status, 422); assert.equal((await read(response)).error.code, 'GENERATION_INVALID')
+    })
+  }
+})
+
+test('concepts route requires exact CreativeBrief and configured model', async () => {
+  await withGateway({}, async base => {
+    assert.equal((await post(base, '/api/agent/concepts', { ...conceptBrief, extra: true })).status, 400)
+    assert.equal((await post(base, '/api/agent/concepts', { ...conceptBrief, targetMinutes: 2 })).status, 400)
+    const missing = await post(base, '/api/agent/concepts', conceptBrief)
+    assert.equal(missing.status, 503); assert.equal((await read(missing)).error.code, 'MODEL_NOT_CONFIGURED')
+  })
+})
+
+test('concept provider errors remain redacted', async () => {
+  await withGateway({ apiKey: 'concept-secret', fetchImpl: async () => { throw new Error('concept-secret at https://private.example') } }, async base => {
+    const response = await post(base, '/api/agent/concepts', conceptBrief)
+    assert.equal(response.status, 502); assert.doesNotMatch(await response.text(), /concept-secret|private.example/)
+  })
+})
 
 test('no credential needed for health/template; online fails explicitly; invalid package and brief return safe errors', async () => {
   await withGateway({}, async base => {
