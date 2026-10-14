@@ -1,0 +1,8 @@
+{
+  "attractionId": "yuyuan",
+  "prompt": "为上海豫园创作一段10分钟左右的沉浸式历史情感故事：一封穿越四百年的家书。情绪克制而动人，要借助真实园林地点推动悬念、最终情绪回收。至少提出两个不同故事创意，再选一个分幕。用户只需作一次有意义的选择。",
+  "audience": "general",
+  "targetMinutes": 10,
+  "language": "zh-CN",
+  "requestedTheme": "heritage"
+}

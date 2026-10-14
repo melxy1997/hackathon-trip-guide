@@ -1,0 +1,8 @@
+{
+  "attractionId": "shanghai-planetarium",
+  "prompt": "为上海天文馆创作一段10分钟的科幻悬疑体验：收到来自宇宙尽头的神秘讯号。从家园、宇宙、征程等真实展区汲取灵感，制造探索和反转、强烈视觉尺度感。提供两种不同创意并生成分幕。只允许人工点击切换馆内章节，不声称有室内定位。",
+  "audience": "general",
+  "targetMinutes": 10,
+  "language": "zh-CN",
+  "requestedTheme": "cosmos"
+}
