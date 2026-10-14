@@ -1,4 +1,4 @@
-type ModelPath = '/api/builder/draft' | '/api/agent/concepts' | '/api/agent/compile' | '/api/draft/spots' | '/api/scene/ask'
+type ModelPath = '/api/builder/draft' | '/api/agent/research' | '/api/agent/concepts' | '/api/agent/compile' | '/api/draft/spots' | '/api/scene/ask'
 
 export async function requestModel<T>(path: ModelPath, body: unknown, signal?: AbortSignal): Promise<T> {
   const timeout = path === '/api/agent/compile' ? 60_000 : 30_000

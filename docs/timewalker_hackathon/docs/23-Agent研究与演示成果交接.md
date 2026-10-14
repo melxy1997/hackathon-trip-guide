@@ -18,4 +18,18 @@
 
 本环境未发现 `DEEPSEEK_*`、`TAVILY_API_KEY`、`ARK_API_KEY` 配置，也没有 `.env.server.local`。因此尚未运行真实模型、Tavily 或 Seedream；不将 mock 验证写成真实联调。团队可在配置现有 DeepSeek 三变量和 Tavily 后从 Studio 实际生成两份作品。Deep Agents、工具调用模型、自动生图、TTS 仍需后续切片；参考资料中的旧分支/已完成缺口不得照搬重做。
 
-后续切片与最终验证结果将在本文件继续更新。
+## 切片二：Studio 研究入口与可交接成果
+
+发布后台 `/publish` 的 Creative Studio 新增「联网补充故事灵感」：展示真实响应中的来源、正文/摘要区别和降级说明，之后生成的构想/候选携带研究 ID。可点击「使用已有资料」主动回退。修改简报后研究不会误用于新简报；旧构想禁止继续编译，但上一份成功候选仍可采用和导出。
+
+创作输入、构想、选择、候选和运行元数据自动保存到 `timewalker:studio:v1`。刷新后重新校验当前基础包并恢复，不自动调用模型。研究 ID 是进程内临时绑定，恢复/导入时会清除，必要时重新研究；恢复不是服务端 Job 续跑。研究页预览本身暂不持久保存。
+
+「导出创作成果」下载 JSON，「导入创作成果」可换浏览器继续演示并采用。文件包含候选、选择、artifact 来源与模型/耗时/尝试次数，不包含密钥；它是工作台成果文件，不是正式发布包。导入执行基础包和候选校验，失败保留原成果。素材 URL 仍须可访问，内嵌媒体则随候选保存。基础包更新会阻止旧候选直接恢复，需要重新生成或人工迁移。
+
+本机自动保存限制 750,000 字符，避免多兆 base64 撑满 localStorage；存储不可用/超限明确提示导出，旧成功快照不被失败写入覆盖。导入/导出文件上限 8 MiB，正式发布继续使用既有媒体打包逻辑。不是任意故事的离线包管理系统。
+
+运行记录折叠显示 request ID、model、duration、attempts 与 artifact。导入/恢复明确提示「没有重新调用模型」。测试 fixture 的 model 标为 `mock-browser-fixture`，不得用于答辩的真实供应商成功证据。
+
+实现入口：`src/experience/agent/studioSession.ts`、`components/CreativeStudio.tsx`、`scripts/smoke-studio.mjs`。已验证 111 项 Node 测试、build、lint；扩展 Studio Chromium 验收已通过：研究缺配置/成功、资料联动、简报失配、取消、保留成果、刷新、真实文件下载/导入、损坏文件保留候选、320/390px 与采用到编辑器。截图输出 `/tmp/timewalker-studio/`，不提交临时文件。
+
+后续切片与最终集成结果将在本文件继续更新。
