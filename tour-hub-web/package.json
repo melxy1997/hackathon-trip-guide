@@ -12,6 +12,7 @@
     "test": "node --test src/experience/__tests__/*.test.ts server/__tests__/*.test.ts",
     "test:smoke": "node scripts/smoke-experience.mjs",
     "test:builder": "node scripts/smoke-builder.mjs",
+    "test:studio": "node scripts/smoke-studio.mjs",
     "test:playability": "node scripts/smoke-playability.mjs",
     "test:offline": "node scripts/smoke-offline.mjs",
     "test:creator": "node scripts/smoke-creator.mjs",

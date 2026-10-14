@@ -1,5 +1,8 @@
-export async function requestModel<T>(path: '/api/builder/draft' | '/api/draft/spots' | '/api/scene/ask', body: unknown, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(30_000)]) })
+type ModelPath = '/api/builder/draft' | '/api/agent/concepts' | '/api/agent/compile' | '/api/draft/spots' | '/api/scene/ask'
+
+export async function requestModel<T>(path: ModelPath, body: unknown, signal?: AbortSignal): Promise<T> {
+  const timeout = path === '/api/agent/compile' ? 60_000 : 30_000
+  const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(timeout)]) })
   let data
   try { data = await response.json() }
   catch { throw new Error('模型服务尚未启动或响应无效；可先使用模板起稿。') }

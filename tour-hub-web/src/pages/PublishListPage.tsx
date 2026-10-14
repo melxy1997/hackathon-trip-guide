@@ -6,6 +6,7 @@ import { createDraft, deleteDraft, listLocalDrafts } from '../lib/draftStore'
 import type { CatalogItem } from '../lib/tourPackage'
 import type { DraftAttraction } from '../types/attraction'
 import { BuilderPanel } from '../experience/components/BuilderPanel'
+import { CreativeStudio } from '../experience/components/CreativeStudio'
 
 type ListRow = {
   id: string
@@ -111,7 +112,11 @@ export function PublishListPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-5 sm:px-8 py-6 sm:py-8 space-y-6">
-        <BuilderPanel catalog={catalog} />
+        <CreativeStudio catalog={catalog} />
+        <div aria-label="本地 Builder 备用入口">
+          <p className="mb-2 text-xs text-gray-500">备用方式 · 本地 Builder 可在未配置在线模型时直接起稿</p>
+          <BuilderPanel catalog={catalog} />
+        </div>
         {error && rows.length === 0 ? (
           <div className="rounded-2xl border border-red-100 bg-white px-6 py-8 text-sm text-red-600">{error}</div>
         ) : null}
