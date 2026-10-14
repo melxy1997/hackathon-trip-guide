@@ -3,6 +3,7 @@ import { readFile, readdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import type { Plugin } from 'vite'
 import { assertPublishedAttraction, resolveMediaUrl } from './src/lib/tourPackage.ts'
+import { offlineDemoIds } from './src/offline/demoStories.ts'
 
 /** Build a bounded, fingerprinted sample bundle; never cache API responses or drafts. */
 export function offlineDemoPlugin(): Plugin {
@@ -13,13 +14,12 @@ export function offlineDemoPlugin(): Plugin {
     apply: 'build',
     configResolved(config) { root = config.root; output = resolve(root, config.build.outDir) },
     async closeBundle() {
-      const pkg = assertPublishedAttraction(JSON.parse(await readFile(resolve(output, 'data/attractions/yuyuan-timewalker.json'), 'utf8')))
-      const urls = new Set(['/index.html', '/favicon.svg', '/data/catalog.json', '/data/attractions/yuyuan-timewalker.json'])
+      const packages = await Promise.all(offlineDemoIds.map(async id => assertPublishedAttraction(JSON.parse(await readFile(resolve(output, `data/attractions/${id}.json`), 'utf8')))))
+      const urls = new Set(['/index.html', '/favicon.svg', '/data/catalog.json', ...offlineDemoIds.map(id => `/data/attractions/${id}.json`)])
       for (const entry of await readdir(resolve(output, 'assets'))) {
         if (/\.(js|css)$/.test(entry)) urls.add(`/assets/${entry}`)
       }
-      const refs = [pkg.coverImage, ...pkg.spots.map(s => s.image), ...pkg.experience!.scenes.flatMap(s => s.blocks.flatMap(b => b.assetRef ? [b.assetRef] : []))]
-      for (const ref of refs) {
+      for (const pkg of packages) for (const ref of [pkg.coverImage, ...pkg.spots.map(s => s.image), ...pkg.experience!.scenes.flatMap(s => s.blocks.flatMap(b => b.assetRef ? [b.assetRef] : []))]) {
         const url = resolveMediaUrl(pkg, ref)
         if (url.startsWith('data:')) continue // Embedded assets already belong to the package checksum.
         if (!url.startsWith('/') || url.startsWith('//') || /[?#\\]|(?:^|\/)\.\.?\//.test(url)) throw new Error(`离线演示素材必须为本站静态文件：${url}`)
@@ -32,7 +32,7 @@ export function offlineDemoPlugin(): Plugin {
       const bytes = files.reduce((sum, file) => sum + file.bytes, 0)
       if (bytes > 20 * 1024 * 1024) throw new Error('离线演示包超过 20 MB，请压缩样例素材。')
       const version = createHash('sha256').update(JSON.stringify(files)).digest('hex').slice(0, 20)
-      const manifest = { version, bytes, storyId: pkg.id, title: pkg.experience!.title, files }
+      const manifest = { version, bytes, storyIds: packages.map(p => p.id), title: '豫园家书与天文馆讯号', files }
       const worker = await readFile(resolve(root, 'offline/worker.js'), 'utf8')
       await writeFile(resolve(output, 'offline-worker.js'), worker.replace('/* OFFLINE_MANIFEST */ null', JSON.stringify(manifest)))
     },

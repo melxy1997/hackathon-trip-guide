@@ -18,6 +18,8 @@
 .tw-experience[data-preset="cosmos"] .tw-photo-target { border-color: #91dcff60; }
 .tw-experience[data-preset="cosmos"] .tw-reading-current { border-color: #91dcff80; }
 .tw-experience[data-preset="cosmos"] .tw-speaking { background: #91dcff10; border-color: var(--tw-gold); }
+.tw-experience[data-preset="cosmos"] :is(.tw-journey-seal h2, .tw-my-discoveries h2) { font-family: system-ui, sans-serif; }
+.tw-experience[data-preset="cosmos"] :is(.tw-journey-seal small, .tw-journey-seal svg, .tw-journal-detail span, .tw-discovery-entry small, .tw-my-discoveries h2) { color: var(--tw-gold); }
 .tw-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 5vw; border-bottom: 1px solid #ffffff12; font-size: 13px; }
 .tw-header a { display: inline-flex; align-items: center; gap: 9px; color: #f4eedf; text-decoration: none; }
 .tw-header > span { color: #c6b896; font-size: 12px; }

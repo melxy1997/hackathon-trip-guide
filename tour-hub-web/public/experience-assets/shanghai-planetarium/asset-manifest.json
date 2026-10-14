@@ -1,0 +1,35 @@
+{
+  "experienceId": "planetarium-signal-demo",
+  "status": "ai-art-prototype-awaiting-content-review",
+  "generatedOn": "2026-10-14",
+  "notes": [
+    "本轮使用 image_gen 工具生成并保存原图；未调用 Seedream、NASA 或场馆图片服务。",
+    "未来讯号、探测器与宇宙画面为艺术创作，不是科学观测或场馆实拍。",
+    "展区节点 0,0 为结构占位，不代表馆内/场馆位置；室内 UI 不显示地图或距离。",
+    "展区名依据用户提供的 V2 brief，仍待内容方复核；图像内容与展示发布须人工审核。"
+  ],
+  "assets": [
+    {
+      "path": "/experience-assets/shanghai-planetarium/home-signal.png",
+      "type": "image/png",
+      "bytes": 2088510,
+      "sha256": "839240d078e88e9f6f51e8fbfb0660805cd4d2e892e3633ba5acb7ee324ecf45",
+      "provider": "image_gen",
+      "aiDisclosure": true,
+      "fictional": true,
+      "source": "本轮生成艺术插画",
+      "reviewStatus": "pending"
+    },
+    {
+      "path": "/experience-assets/shanghai-planetarium/deep-reply.png",
+      "type": "image/png",
+      "bytes": 2399477,
+      "sha256": "d0d228d03f17fa69c0bc40170e3ba180760cef820b343e293cb1a13d5f15b923",
+      "provider": "image_gen",
+      "aiDisclosure": true,
+      "fictional": true,
+      "source": "本轮生成艺术插画",
+      "reviewStatus": "pending"
+    }
+  ]
+}

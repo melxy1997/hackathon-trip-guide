@@ -15,6 +15,7 @@
     "test:playability": "node scripts/smoke-playability.mjs",
     "test:offline": "node scripts/smoke-offline.mjs",
     "test:creator": "node scripts/smoke-creator.mjs",
+    "test:dual": "node scripts/smoke-dual.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

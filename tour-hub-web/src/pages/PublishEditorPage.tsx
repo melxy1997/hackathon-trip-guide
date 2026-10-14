@@ -647,8 +647,8 @@ export function PublishEditorPage() {
             </div>
           </aside>
 
-          <section className="relative flex-1 min-w-0">
-            <PublishSpotMap
+          <section className={`relative flex-1 min-w-0 ${draft.presentation?.locationMode === 'indoor' ? 'hidden md:block' : ''}`}>
+            {draft.presentation?.locationMode === 'indoor' ? <div className="p-8 text-sm leading-8"><h2 className="text-lg font-medium">展区章节导航</h2><p>这些地点代表故事展区，不使用馆内定位、地图或距离。结构中的坐标占位不可作为真实位置。</p>{draft.spots.map(s => <button className="mt-3 block rounded-lg border bg-white px-4 py-2" key={s.id} onClick={() => setSelectedId(s.id)}>{s.name}</button>)}</div> : <><PublishSpotMap
               center={mapCenter || draft.start}
               zoom={draft.zoom}
               spots={draft.spots}
@@ -670,7 +670,7 @@ export function PublishEditorPage() {
             )}
             <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-[#6b7280] bg-white/90 px-3 py-1.5 rounded-full border border-black/5 shadow-sm">
               拖标记校准 · 绿色「起」为游客起点
-            </p>
+            </p></>}
           </section>
         </div>
       )}

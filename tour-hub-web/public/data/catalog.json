@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": 1790755495576,
+  "updatedAt": 1791936000000,
   "items": [
     {
       "id": "yuyuan-timewalker",
@@ -19,6 +19,31 @@
       "description": "上海著名江南古典园林，明代潘允端为父颐养所建，园中亭台假山、玉玲珑与九曲桥闻名。",
       "coverImage": "/spots/san-sui-tang.jpg",
       "publishedAt": 1790749091038
+    },
+    {
+      "id": "shanghai-planetarium",
+      "name": "上海天文馆｜深空讯号",
+      "description": "从家园、宇宙到征程，解读一段来自未来的虚构讯号。手动进入展区；画面为 AI 艺术插画，不是场馆实拍或科学观测图。",
+      "coverImage": "/experience-assets/shanghai-planetarium/home-signal.png",
+      "publishedAt": 1791936000000,
+      "presentation": {
+        "preset": "cosmos",
+        "motif": "transmission",
+        "locationMode": "indoor",
+        "openingTitle": "接收端：此刻的你",
+        "openingText": "一段尚未解码的讯号。\n它从哪里来，又要抵达哪里？",
+        "labels": {
+          "start": "接收宇宙讯号",
+          "next": "继续接收讯号",
+          "finish": "解码完成，生成航行记录",
+          "journal": "我的航行记录",
+          "stage": "展区"
+        }
+      },
+      "experience": {
+        "title": "来自宇宙尽头的讯息",
+        "estimatedMinutes": 3
+      }
     }
   ]
 }

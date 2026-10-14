@@ -64,7 +64,7 @@ async function ending(page) {
 try {
   const touch = await pageFor()
   await toObservation(touch, 'nature')
-  const photo = touch.getByRole('button', { name: '点选照片中的细节', exact: true })
+  const photo = touch.getByRole('button', { name: '点选画面中的细节', exact: true })
   await photo.waitFor(); await photo.scrollIntoViewIfNeeded()
   await touch.waitForFunction(() => document.querySelector('.tw-photo-target')?.disabled === false)
   const box = await photo.boundingBox(); assert.ok(box)
@@ -77,8 +77,10 @@ try {
   await ending(touch)
   await touch.getByRole('heading', { name: '山林寻趣者', exact: true }).waitFor()
   await touch.getByText(note, { exact: true }).waitFor()
-  const pin = await touch.locator('.tw-discovery-photo .tw-photo-pin').getAttribute('style')
-  assert.match(pin, /left: 4[45]/); assert.match(pin, /top: 40/)
+  const pin = await touch.locator('.tw-discovery-photo .tw-photo-pin').evaluate(element => ({ x: parseFloat(element.style.left), y: parseFloat(element.style.top) }))
+  // Touch client coordinates round to pixels; verify location within half a percentage point.
+  assert.ok(Math.abs(pin.x - 45) <= .5)
+  assert.ok(Math.abs(pin.y - 40) <= .5)
   await touch.reload()
   await touch.getByText(note, { exact: true }).waitFor()
   const [download] = await Promise.all([touch.waitForEvent('download'), touch.getByRole('button', { name: '保存手账卡', exact: true }).click()])
@@ -113,7 +115,7 @@ try {
 
   const keyboard = await pageFor(320)
   await toObservation(keyboard, 'craft')
-  const keyboardPhoto = keyboard.getByRole('button', { name: '点选照片中的细节', exact: true })
+  const keyboardPhoto = keyboard.getByRole('button', { name: '点选画面中的细节', exact: true })
   await keyboard.waitForFunction(() => document.querySelector('.tw-photo-target')?.disabled === false)
   await keyboardPhoto.focus(); await keyboardPhoto.press('Enter'); await keyboardPhoto.press('ArrowRight'); await keyboardPhoto.press('ArrowUp')
   await keyboard.getByLabel('这一刻让我想到…', { exact: false }).fill('我想从这个角度画一幅自己的园林。')
@@ -126,7 +128,7 @@ try {
 
   const fallback = await pageFor(390, true)
   await toObservation(fallback, 'nature')
-  await fallback.getByText('照片暂不可用，仍可以写下观察或直接确认。', { exact: true }).waitFor()
+  await fallback.getByText('画面暂不可用，仍可以写下观察或直接确认。', { exact: true }).waitFor()
   await fallback.getByLabel('这一刻让我想到…', { exact: false }).fill('没能加载照片，也想记住今天的心情。')
   await ending(fallback)
   await fallback.getByText('没能加载照片，也想记住今天的心情。', { exact: true }).waitFor()

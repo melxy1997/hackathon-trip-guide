@@ -35,12 +35,12 @@ export function OfflineDemoPanel() {
   }
   return <section className="tw-offline" aria-label="离线故事包">
     <div className="tw-offline-heading"><span>把这段故事装进口袋</span><b>{status?.ready ? '离线已准备' : '尚未准备'}</b></div>
-    <p>豫园样例的两条分支、照片与手账，可提前保存在当前浏览器。</p>
+    <p>豫园家书与天文馆讯号：两份样例的分支、画面与旅途记录，可提前保存在当前浏览器。</p>
     <p className="tw-offline-state" role="status">{online ? '浏览器报告网络可用' : '浏览器报告已断网'}{status?.ready ? ' · 可离线继续本故事' : ' · 请先联网准备'}</p>
     {progress && busy && <div><progress aria-label="离线准备进度" max={progress.total} value={progress.done} /><small>{progress.done} / {progress.total} 份素材</small></div>}
     <div className="tw-offline-actions"><button disabled={busy || !import.meta.env.PROD || !online} onClick={() => void action('PREPARE')}>{busy ? '正在处理…' : status?.ready ? '重新检查并准备' : '准备离线故事'}</button>{status && <button disabled={busy} onClick={() => void action('CLEAR')}>清除离线素材</button>}</div>
     {status && <small>完整包约 {(status.bytes / 1024 / 1024).toFixed(1)} MB · 构建 {status.version.slice(0, 8)}</small>}
     {message && <p role="status">{message}</p>}
-    <small>{import.meta.env.PROD ? '仅保证已准备的豫园样例。地图、在线 AI、外部来源页面仍需联网。浏览器清理存储或新版本发布后，请重新检查准备状态。' : '开发模式可直接试玩；离线准备请使用 npm run build 与 npm run preview。'}</small>
+    <small>{import.meta.env.PROD ? '仅保证已准备的两份固定样例。地图、在线 AI、外部来源页面仍需联网。浏览器清理存储或新版本发布后，请重新检查准备状态。' : '开发模式可直接试玩；离线准备请使用 npm run build 与 npm run preview。'}</small>
   </section>
 }

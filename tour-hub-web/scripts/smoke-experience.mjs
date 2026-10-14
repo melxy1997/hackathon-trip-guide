@@ -20,7 +20,7 @@ async function pageFor(viewport = { width: 1365, height: 900 }) {
 }
 async function complete(page, branch, refresh = false) {
   await page.goto(`${base}/`)
-  await page.getByRole('link').filter({ hasText: '沉浸故事' }).click()
+  await page.locator('a[href="/experience/yuyuan-timewalker"]').filter({ hasText: '沉浸故事' }).click()
   await page.getByRole('button', { name: '开启时空漫游', exact: true }).click()
   await page.getByRole('button', { name: '前往下一站', exact: true }).click()
   if (refresh) {
@@ -89,7 +89,7 @@ try {
   assert.equal(await editor.locator('.tw-director').count(), 1)
   await editor.getByRole('button', { name: '终幕：一园一念', exact: true }).click()
   await editor.getByRole('button', { name: '读完家书，收下手账', exact: true }).click()
-  await editor.getByText('这次还没有留下审美选择', { exact: true }).waitFor()
+  await editor.getByText('这次还没有留下选择', { exact: true }).waitFor()
   await editor.getByText('这次没有完成观察任务', { exact: true }).waitFor()
   console.log('PASS story editor → saved local draft → player preview; director journal does not fabricate choices')
 

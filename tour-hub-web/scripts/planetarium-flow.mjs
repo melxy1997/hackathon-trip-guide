@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
+
+export async function playPlanetarium(page, base, branch, note, output, missingArt = false) {
+  await page.goto(`${base}/experience/shanghai-planetarium`)
+  await page.locator('.tw-experience').waitFor()
+  const restart = page.getByRole('button', { name: '换个视角，再走一次', exact: true })
+  if (await restart.isVisible()) await restart.click()
+  await page.getByRole('button', { name: '接收宇宙讯号', exact: true }).click()
+  assert.equal(await page.locator('.tw-experience').getAttribute('data-preset'), 'cosmos')
+  assert.equal(await page.getByRole('link', { name: '打开原版地图导览' }).count(), 0)
+  await page.getByRole('button', { name: '继续接收讯号', exact: true }).click()
+  await page.getByRole('button', { name: '进入展区家园', exact: true }).click()
+  await page.getByRole('button', { name: '继续接收讯号', exact: true }).click()
+  await page.getByRole('button', { name: '进入展区宇宙', exact: true }).click()
+  await page.getByRole('button', { name: '读完了，继续探索', exact: true }).click()
+  await page.getByRole('button', { name: branch === 'origin' ? '追寻讯号的起点' : '追寻讯号的终点', exact: true }).click()
+  await page.getByRole('heading', { name: branch === 'origin' ? '第三幕：出发的人' : '第三幕：等待回信的人', exact: true }).waitFor()
+  await page.getByRole('button', { name: '读完了，继续探索', exact: true }).click()
+  if (!missingArt) {
+    await page.waitForFunction(() => document.querySelector('.tw-photo-target')?.disabled === false)
+    const photo = page.getByRole('button', { name: '点选画面中的细节', exact: true })
+    await photo.focus(); await photo.press('Enter')
+  } else await page.getByText('画面暂不可用', { exact: false }).waitFor()
+  await page.getByLabel('这一刻让我想到…', { exact: false }).fill(note)
+  await page.getByRole('button', { name: '我已观察，收下这份发现', exact: true }).click()
+  await page.reload()
+  await page.getByRole('button', { name: '进入展区征程', exact: true }).click()
+  await page.getByRole('button', { name: '解码完成，生成航行记录', exact: true }).click()
+  await page.getByRole('heading', { name: '我的航行记录', exact: true }).waitFor()
+  await page.getByRole('heading', { name: branch === 'origin' ? '起源追寻者' : '未来领航者', exact: true }).waitFor()
+  await page.getByText(note, { exact: true }).waitFor()
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'cosmos mobile layout fits')
+  const downloading = page.waitForEvent('download')
+  await page.getByRole('button', { name: '保存航行卡', exact: true }).click()
+  const download = await downloading
+  assert.equal(await download.failure(), null)
+  const path = `${output}/planetarium-${branch}.svg`
+  await download.saveAs(path)
+  const svg = await readFile(path, 'utf8')
+  assert.match(svg, /我的航行记录/)
+  assert.match(svg, /#071427/)
+  assert.ok(svg.includes(note))
+  assert.equal(await page.evaluate(source => new DOMParser().parseFromString(source, 'image/svg+xml').querySelectorAll('parsererror').length, svg), 0)
+  assert.doesNotMatch(svg, /<script|foreignObject|<image/)
+}

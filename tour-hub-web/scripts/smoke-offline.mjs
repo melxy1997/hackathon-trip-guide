@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
 import { readFile, mkdir } from 'node:fs/promises'
 import { resolve, extname } from 'node:path'
+import { playPlanetarium } from './planetarium-flow.mjs'
 
 // Test the built artifact with a real worker and browser offline mode, never Vite/HMR.
 const { chromium } = await import(process.env.TIMEWALKER_PLAYWRIGHT_MODULE || 'playwright')
@@ -14,7 +15,7 @@ let requests = 0
 let apiRequests = 0
 let originDown = false
 const offlineAttempts = []
-const mime = { '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.html': 'text/html', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml' }
+const mime = { '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.html': 'text/html', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml' }
 const server = createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname
   if (originDown) { offlineAttempts.push(path); req.socket.destroy(); return }
@@ -51,8 +52,8 @@ async function play(branch, note, round) {
   await page.getByRole('button', { name: '模拟到达玉玲珑', exact: true }).click()
   await page.getByRole('button', { name: '读完了，继续探索', exact: true }).click()
   await page.waitForFunction(() => document.querySelector('.tw-photo-target')?.disabled === false)
-  await page.getByRole('button', { name: '点选照片中的细节', exact: true }).focus()
-  await page.getByRole('button', { name: '点选照片中的细节', exact: true }).press('Enter')
+  await page.getByRole('button', { name: '点选画面中的细节', exact: true }).focus()
+  await page.getByRole('button', { name: '点选画面中的细节', exact: true }).press('Enter')
   await page.getByLabel('这一刻让我想到…', { exact: false }).fill(note)
   await page.getByRole('button', { name: '我已观察，收下这份发现', exact: true }).click()
   await page.reload()
@@ -132,6 +133,12 @@ try {
   await second.goto(`${base}/experience/yuyuan-timewalker?director=1`)
   await second.getByRole('heading', { name: '我的时空手账', exact: true }).waitFor()
   await second.close()
+  for (const branch of ['origin', 'destination']) {
+    await playPlanetarium(page, base, branch, `离线宇宙${branch}回信`, output)
+    await page.reload()
+    await page.getByRole('heading', { name: '我的航行记录', exact: true }).waitFor()
+  }
+  console.log('Both planetarium branches also completed with origin unavailable.')
   assert.equal(await page.evaluate(() => fetch('/api/health').then(() => false).catch(() => true)), true, 'API requests never replay from caches')
   assert.equal(requests, before, 'offline rounds receive zero responses from origin')
   assert.ok(offlineAttempts.every(path => path === '/offline-worker.js'), `unexpected uncached resource attempts: ${offlineAttempts.join(', ')}`)

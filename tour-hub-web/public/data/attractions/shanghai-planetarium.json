@@ -1,0 +1,331 @@
+{
+  "schemaVersion": 1,
+  "id": "shanghai-planetarium",
+  "name": "上海天文馆｜深空讯号",
+  "description": "从家园、宇宙到征程，解读一段来自未来的虚构讯号。手动进入展区；画面为 AI 艺术插画，不是场馆实拍或科学观测图。",
+  "start": {
+    "lng": 0,
+    "lat": 0
+  },
+  "zoom": 17,
+  "publishedAt": 1791936000000,
+  "coverImage": "/experience-assets/shanghai-planetarium/home-signal.png",
+  "presentation": {
+    "preset": "cosmos",
+    "motif": "transmission",
+    "locationMode": "indoor",
+    "openingTitle": "接收端：此刻的你",
+    "openingText": "一段尚未解码的讯号。\n它从哪里来，又要抵达哪里？",
+    "labels": {
+      "start": "接收宇宙讯号",
+      "next": "继续接收讯号",
+      "finish": "解码完成，生成航行记录",
+      "journal": "我的航行记录",
+      "stage": "展区"
+    }
+  },
+  "spots": [
+    {
+      "id": "home",
+      "name": "家园",
+      "poetic": "从一盏灯开始",
+      "lng": 0,
+      "lat": 0,
+      "triggerRadiusMeters": 38,
+      "image": "/experience-assets/shanghai-planetarium/home-signal.png",
+      "imageCredit": "AI艺术插画 · image_gen 生成 · 非场馆实拍 / 非科学观测图",
+      "slides": [
+        {
+          "title": "家园",
+          "bullets": [
+            "展区名称来自所选场馆资料，需内容方复核",
+            "人物、讯号与反转为原创科幻创作",
+            "本样例不提供馆内定位或距离"
+          ],
+          "narration": "这里是故事中的家园章节。画面采用艺术插画，人物和讯号是原创虚构；展区名用于章节导航，不表示我们已经判断你的馆内位置。请按自己感兴趣的视角阅读、观察，留下你愿意寄给未来的一句话。"
+        }
+      ]
+    },
+    {
+      "id": "universe",
+      "name": "宇宙",
+      "poetic": "讯号穿过时间",
+      "lng": 0,
+      "lat": 0,
+      "triggerRadiusMeters": 38,
+      "image": "/experience-assets/shanghai-planetarium/deep-reply.png",
+      "imageCredit": "AI艺术插画 · image_gen 生成 · 非场馆实拍 / 非科学观测图",
+      "slides": [
+        {
+          "title": "宇宙",
+          "bullets": [
+            "展区名称来自所选场馆资料，需内容方复核",
+            "人物、讯号与反转为原创科幻创作",
+            "本样例不提供馆内定位或距离"
+          ],
+          "narration": "这里是故事中的宇宙章节。画面采用艺术插画，人物和讯号是原创虚构；展区名用于章节导航，不表示我们已经判断你的馆内位置。请按自己感兴趣的视角阅读、观察，留下你愿意寄给未来的一句话。"
+        }
+      ]
+    },
+    {
+      "id": "journey",
+      "name": "征程",
+      "poetic": "把回答寄向未来",
+      "lng": 0,
+      "lat": 0,
+      "triggerRadiusMeters": 38,
+      "image": "/experience-assets/shanghai-planetarium/deep-reply.png",
+      "imageCredit": "AI艺术插画 · image_gen 生成 · 非场馆实拍 / 非科学观测图",
+      "slides": [
+        {
+          "title": "征程",
+          "bullets": [
+            "展区名称来自所选场馆资料，需内容方复核",
+            "人物、讯号与反转为原创科幻创作",
+            "本样例不提供馆内定位或距离"
+          ],
+          "narration": "这里是故事中的征程章节。画面采用艺术插画，人物和讯号是原创虚构；展区名用于章节导航，不表示我们已经判断你的馆内位置。请按自己感兴趣的视角阅读、观察，留下你愿意寄给未来的一句话。"
+        }
+      ]
+    }
+  ],
+  "experience": {
+    "schemaVersion": 1,
+    "id": "planetarium-signal-demo",
+    "title": "来自宇宙尽头的讯息",
+    "premise": "你收到一段无法解释的讯号。沿着家园、宇宙、征程三个展区章节，选择从起点或终点理解它，最后把自己的回答送向未来。原创科幻情节；插画为艺术创作。",
+    "initialSceneId": "signal-intro",
+    "estimatedMinutes": 3,
+    "initialVariables": {
+      "signalView": "unset",
+      "observedSignal": false
+    },
+    "sources": [
+      {
+        "id": "sam-official",
+        "title": "上海天文馆公开网站（展区名称待人工复核）",
+        "url": "https://www.sstm-sam.org.cn/",
+        "authority": "official"
+      }
+    ],
+    "scenes": [
+      {
+        "id": "signal-intro",
+        "title": "序幕：一段迟到的讯号",
+        "mode": "cinematic",
+        "blocks": [
+          {
+            "id": "signal-intro-image",
+            "type": "image",
+            "assetRef": "/experience-assets/shanghai-planetarium/home-signal.png",
+            "fictional": true
+          },
+          {
+            "id": "signal-intro-voice",
+            "type": "narration",
+            "text": "接收器在此刻亮起。讯号没有署名，也没有坐标，只有一句反复出现的话：如果你听见，请告诉我，家园还好吗？它的发送时间写在遥远的未来。你暂时无法判断这是一封求救信，还是一段尚未发生的回答。先别急着破译，让我们从最熟悉的地方开始。这是一段原创科幻故事，不是实际接收到的宇宙讯号。",
+            "fictional": true
+          }
+        ],
+        "transitions": [
+          {
+            "to": "home-anchor"
+          }
+        ]
+      },
+      {
+        "id": "home-anchor",
+        "title": "第一幕：家园的一盏灯",
+        "spotId": "home",
+        "mode": "cinematic",
+        "blocks": [
+          {
+            "id": "home-anchor-image",
+            "type": "image",
+            "assetRef": "/experience-assets/shanghai-planetarium/home-signal.png",
+            "fictional": true
+          },
+          {
+            "id": "home-anchor-voice",
+            "type": "narration",
+            "text": "你将讯号里的停顿重新排列，听见一个陌生人的回忆：出发那天，地球在舷窗里慢慢变小，我却一直想着家门口那盏灯。原来，对发送者而言，家园不只是一个位置，也是某个人等你归来的理由。接收器留下新的疑问：它是在回望出发的那一刻，还是盼望某个尚未抵达的未来？",
+            "fictional": true
+          }
+        ],
+        "transitions": [
+          {
+            "to": "universe-choice"
+          }
+        ]
+      },
+      {
+        "id": "universe-choice",
+        "title": "第二幕：讯号的两端",
+        "spotId": "universe",
+        "mode": "cinematic",
+        "blocks": [
+          {
+            "id": "universe-choice-image",
+            "type": "image",
+            "assetRef": "/experience-assets/shanghai-planetarium/deep-reply.png",
+            "fictional": true
+          },
+          {
+            "id": "universe-choice-voice",
+            "type": "narration",
+            "text": "同一段波形，在屏幕上有了两种读法。向左读，像是一个人刚刚踏上旅程；向右读，又像一封等待很久的回信。你发现，真正改变意义的不是仪器，而是你愿意从哪里开始理解它。请选择一种视角，接下来的讲述会沿着你的目光展开。这里没有正确答案，也不需要找到真实的天文信号。",
+            "fictional": true
+          }
+        ],
+        "interaction": {
+          "id": "signal-choice",
+          "type": "single_choice",
+          "options": [
+            {
+              "id": "origin",
+              "label": "追寻讯号的起点",
+              "description": "听听发送者为何出发，寻找记忆里那盏灯。",
+              "actions": [
+                {
+                  "type": "setVar",
+                  "key": "signalView",
+                  "value": "origin"
+                },
+                {
+                  "type": "goTo",
+                  "sceneId": "signal-origin"
+                }
+              ]
+            },
+            {
+              "id": "destination",
+              "label": "追寻讯号的终点",
+              "description": "想象谁会收到它，寻找未来可能给出的回答。",
+              "actions": [
+                {
+                  "type": "setVar",
+                  "key": "signalView",
+                  "value": "destination"
+                },
+                {
+                  "type": "goTo",
+                  "sceneId": "signal-destination"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "signal-origin",
+        "title": "第三幕：出发的人",
+        "spotId": "universe",
+        "mode": "observation",
+        "blocks": [
+          {
+            "id": "signal-origin-image",
+            "type": "image",
+            "assetRef": "/experience-assets/shanghai-planetarium/deep-reply.png",
+            "fictional": true
+          },
+          {
+            "id": "signal-origin-voice",
+            "type": "narration",
+            "text": "你选择从起点读起。发送者的声音变得清晰：我不是因为忘记家园才出发，而是想知道，家的边界能不能更宽一些。波形里那次短暂的亮起，像一盏被记在心里的灯。请在这幅虚构的深空画面上挑一处让你想到出发的细节，或者写一句你愿意带上旅程的话；你的发现会成为回答的一部分。",
+            "fictional": true
+          }
+        ],
+        "interaction": {
+          "id": "origin-observation",
+          "type": "photo_or_tap",
+          "fallback": "manual_confirm",
+          "prompt": "哪一处光或轮廓，让你想到出发的理由？",
+          "hints": [
+            "看看探测器与远方之间的留白。",
+            "也可以不标位置，只留下你想带走的一句话。"
+          ],
+          "actionsOnComplete": [
+            {
+              "type": "setVar",
+              "key": "observedSignal",
+              "value": true
+            },
+            {
+              "type": "revealMemory",
+              "memoryId": "signal-discovery"
+            },
+            {
+              "type": "goTo",
+              "sceneId": "journey-ending"
+            }
+          ]
+        }
+      },
+      {
+        "id": "signal-destination",
+        "title": "第三幕：等待回信的人",
+        "spotId": "universe",
+        "mode": "observation",
+        "blocks": [
+          {
+            "id": "signal-destination-image",
+            "type": "image",
+            "assetRef": "/experience-assets/shanghai-planetarium/deep-reply.png",
+            "fictional": true
+          },
+          {
+            "id": "signal-destination-voice",
+            "type": "narration",
+            "text": "你选择从终点读起。讯号的另一端，仿佛有人问：如果未来的我收到这段声音，会怎样回答现在的自己？同一圈光，不再只是遥远的边界，也可能是一次归来的路线。请在艺术画面里挑一处让你想到回应的细节，或写一句想寄给未来的话。我们不会替你判断答案，重要的是你愿意留下什么。",
+            "fictional": true
+          }
+        ],
+        "interaction": {
+          "id": "destination-observation",
+          "type": "photo_or_tap",
+          "fallback": "manual_confirm",
+          "prompt": "哪一处细节，像是未来给现在的回应？",
+          "hints": [
+            "试着从光环的另一侧看这段讯号。",
+            "想象十年后的自己会记住哪一句话。"
+          ],
+          "actionsOnComplete": [
+            {
+              "type": "setVar",
+              "key": "observedSignal",
+              "value": true
+            },
+            {
+              "type": "revealMemory",
+              "memoryId": "signal-discovery"
+            },
+            {
+              "type": "goTo",
+              "sceneId": "journey-ending"
+            }
+          ]
+        }
+      },
+      {
+        "id": "journey-ending",
+        "title": "终幕：征程仍在继续",
+        "spotId": "journey",
+        "mode": "ending",
+        "blocks": [
+          {
+            "id": "journey-ending-image",
+            "type": "image",
+            "assetRef": "/experience-assets/shanghai-planetarium/deep-reply.png",
+            "fictional": true
+          },
+          {
+            "id": "journey-ending-voice",
+            "type": "narration",
+            "text": "你来到故事的最后一段。接收器终于解开署名：发送者不是一位遥远的英雄，而是某个仍然愿意探索的后来者。那句家园还好吗，并不是等待唯一正确的答案；它邀请每一位接收者说出自己的发现。你刚才留下的目光与文字，就是这封回信。征程的意义，也许正是不断出发，同时记得为什么出发。",
+            "fictional": true
+          }
+        ]
+      }
+    ]
+  }
+}

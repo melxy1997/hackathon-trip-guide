@@ -11,12 +11,14 @@ import type { Discovery } from '../events'
 
 function DiscoveryPhoto({ src, title, discovery }: { src: string; title: string; discovery: Discovery }) {
   const [failed, setFailed] = useState(false)
-  if (failed) return <p className="tw-fineprint">照片暂不可用，你的发现文字仍保留在手账中。</p>
-  return <figure className="tw-discovery-photo"><img src={src} alt={`${title} · 本次观察的样例照片`} onError={() => setFailed(true)} />{discovery.x !== undefined && discovery.y !== undefined && <span className="tw-photo-pin" style={{ left: `${discovery.x * 100}%`, top: `${discovery.y * 100}%` }} aria-hidden="true"><span>✦</span></span>}</figure>
+  if (failed) return <p className="tw-fineprint">画面暂不可用，你的发现文字仍保留在手账中。</p>
+  return <figure className="tw-discovery-photo"><img src={src} alt={`${title} · 本次观察的样例画面`} onError={() => setFailed(true)} />{discovery.x !== undefined && discovery.y !== undefined && <span className="tw-photo-pin" style={{ left: `${discovery.x * 100}%`, top: `${discovery.y * 100}%` }} aria-hidden="true"><span>✦</span></span>}</figure>
 }
 
 export function EndingJournal({ pkg, definition, state, onRestart }: { pkg: PublishedAttraction; definition: ExperienceDefinitionV1; state: ExperienceState; onRestart: () => void }) {
   const presentation = resolvePresentation(pkg.presentation)
+  const recordLabel = presentation.motif === 'transmission' ? '航行记录' : '手账'
+  const cardLabel = presentation.motif === 'transmission' ? '航行卡' : '手账卡'
   const scenes = state.visitedSceneIds.map(id => definition.scenes.find(s => s.id === id)).filter(s => !!s)
   const spots = state.visitedSpotIds.map(id => pkg.spots.find(s => s.id === id)).filter(s => !!s)
   const [message, setMessage] = useState('')
@@ -31,7 +33,7 @@ export function EndingJournal({ pkg, definition, state, onRestart }: { pkg: Publ
       link.href = url; link.download = `${pkg.id.replace(/[^a-zA-Z0-9_-]/g, '')}-手账.svg`
       document.body.append(link); link.click(); link.remove()
       window.setTimeout(() => URL.revokeObjectURL(url), 1000)
-      setMessage('手账卡已生成，请查看浏览器下载。卡片包含本次选择与发现。')
+      setMessage(`${cardLabel}已生成，请查看浏览器下载。卡片包含本次选择与发现。`)
     } catch { setShowCopy(true); setMessage('卡片暂时无法保存，可以复制下方文字手账。') }
   }
   const share = async () => {
@@ -43,14 +45,14 @@ export function EndingJournal({ pkg, definition, state, onRestart }: { pkg: Publ
     try {
       if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable')
       await navigator.clipboard.writeText(text)
-      setMessage('文字手账已复制，可以粘贴分享给同行的人。')
+      setMessage(`文字${recordLabel}已复制，可以粘贴分享给同行的人。`)
     } catch { setShowCopy(true); setMessage('请选中下方文字手动复制，手账仍可以保存为卡片。') }
   }
   return <section className="tw-journal" aria-labelledby="journal-title">
     <p className="tw-eyebrow">TIMEWALKER · 旅程留痕</p>
     <h1 id="journal-title" ref={titleRef} tabIndex={-1}>{presentation.labels.journal}</h1>
     <p className="tw-intro">{definition.title}，留下了属于你的这一页。</p>
-    <div className="tw-journey-seal"><Sparkles size={24} /><div><small>这趟旅程的称号</small><h2>{journeyTitle(state, presentation)}</h2><p>{spots.length} 处走过的地点 · {state.choices.length} 次选择 · {state.observations.length} 次人工观察</p></div></div>
+    <div className="tw-journey-seal"><Sparkles size={24} /><div><small>这趟旅程的称号</small><h2>{journeyTitle(state, presentation)}</h2><p>{spots.length} {presentation.locationMode === 'indoor' ? '个展区章节' : '处走过的地点'} · {state.choices.length} 次选择 · {state.observations.length} 次人工观察</p></div></div>
     {state.directorUsed && <p className="tw-notice">本次使用了导演跳幕，以下仅记录实际进入的章节和完成的互动。</p>}
     <div className="tw-journal-images">{spots.slice(0, 3).map(s => <figure key={s.id}><img src={resolveMediaUrl(pkg, s.image)} alt={s.name} /><figcaption>{s.name}</figcaption></figure>)}</div>
     <div className="tw-journal-detail">
@@ -68,9 +70,9 @@ export function EndingJournal({ pkg, definition, state, onRestart }: { pkg: Publ
         <div><small>{spot?.name ?? scene?.title} · 手动记录</small><h3>{discoveryLabels[o.discovery.category]}</h3><p>{o.discovery.note || '这一处细节，是我想带走的风景。'}</p></div>
       </article>
     })}</section>}
-    <div className="tw-keepsake-actions"><button className="tw-button tw-primary" onClick={download}><Download size={17} />保存手账卡</button><button className="tw-button" onClick={() => void share()}><Share2 size={17} />分享文字手账</button></div>
+    <div className="tw-keepsake-actions"><button className="tw-button tw-primary" onClick={download}><Download size={17} />{`保存${cardLabel}`}</button><button className="tw-button" onClick={() => void share()}><Share2 size={17} />{`分享文字${recordLabel}`}</button></div>
     {message && <p className="tw-notice" role="status">{message}</p>}
-    {showCopy && <div className="tw-copy-journal"><label htmlFor={copyId}>可复制的文字手账</label><textarea id={copyId} rows={8} readOnly value={journalText(definition, state, presentation)} onFocus={e => e.target.select()} /></div>}
+    {showCopy && <div className="tw-copy-journal"><label htmlFor={copyId}>可复制的文字{recordLabel}</label><textarea id={copyId} rows={8} readOnly value={journalText(definition, state, presentation)} onFocus={e => e.target.select()} /></div>}
     <p className="tw-fineprint">{locationLabel(presentation)} · 文学演绎 · 记录由本次体验事件生成。卡片为 SVG 格式，可用浏览器打开。再次开启会重置本机进度，可以先保存喜欢的这一页。</p>
     <div className="tw-actions"><button className="tw-button" onClick={onRestart}>换个视角，再走一次</button><Link className="tw-button" to="/">返回发现页</Link></div>
   </section>

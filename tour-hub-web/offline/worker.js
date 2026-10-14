@@ -79,7 +79,7 @@ self.addEventListener('message', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url)
   if (event.request.method !== 'GET' || url.origin !== self.location.origin) return
-  const navigation = event.request.mode === 'navigate' && (url.pathname === '/' || url.pathname === `/experience/${manifest.storyId}`)
+  const navigation = event.request.mode === 'navigate' && (url.pathname === '/' || manifest.storyIds.some(id => url.pathname === `/experience/${id}`))
   if (!navigation && (!resources.has(url.pathname) || url.search)) return
   event.respondWith((async () => {
     const name = await findActive()

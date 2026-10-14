@@ -16,7 +16,7 @@ export function HomePage() {
       .catch((e) => setError(e instanceof Error ? e.message : '目录加载失败'))
   }, [])
 
-  const featured = list[0] || null
+  const featured = list.find(item => item.presentation?.locationMode !== 'indoor') || null
   const stories = list.filter(item => item.experience)
 
   return (
@@ -93,7 +93,7 @@ export function HomePage() {
                 {list.map((item) => (
                   <Link
                     key={item.id}
-                    to={`/tour/${item.id}`}
+                    to={item.experience ? `/experience/${item.id}` : `/tour/${item.id}`}
                     className="group rounded-2xl border border-black/[0.06] bg-white overflow-hidden hover:shadow-md transition-shadow"
                   >
                     <div className="aspect-[16/10] bg-[#f3f4f6] overflow-hidden">

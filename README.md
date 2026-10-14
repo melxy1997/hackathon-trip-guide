@@ -2,6 +2,8 @@
 
 换到本地环境继续开发，先读 [本地开发交接](docs/timewalker_hackathon/docs/09-本地开发交接.md)：背景与目标、最新分支、安装/迁移、代码入口、能力边界及下一步任务。2026-10-12 交接时完整成果在 `feature/timewalker-offline-demo`，尚未合并到 `main`。
 
+2026-10-14：最新双样板开发分支为 `feature/timewalker-dual-samples`，阶段提交与后续任务见 [双样板落地与交接](docs/timewalker_hackathon/docs/21-双样板落地与交接.md)。豫园书信与天文馆讯号共用同一引擎，主题可编辑；旧导览可发布，本机地点可起稿故事。
+
 首轮「时空漫游者」已接入：从首页开启《一封穿越四百年的家书》，选择自然/匠心视角、人工确认观察并生成旅行手账。故事使用模拟地点事件，无需地图或模型凭据；家书与独白是文学创作。详见 [首轮实现与验收](docs/timewalker_hackathon/docs/04-首轮实现与验收.md) 和 [开发任务](docs/timewalker_hackathon/docs/03-开发任务拆解.md)。
 
 M2 已接入故事 Builder：在发布后台选择已发布景点、主题、受众、时长与语气，生成候选故事，采用到独立草稿后编辑、审核、预览和发布。模板可在纯静态前端使用；在线模型通过服务端网关调用。详见 [M2 实现与验收](docs/timewalker_hackathon/docs/05-M2实现与验收.md)。
@@ -9,7 +11,7 @@ M2 已接入故事 Builder：在发布后台选择已发布景点、主题、受
 
 游客体验已进一步迭代：照片细节点选与个人感想、分支反馈、顶部进度/声音控制，以及可下载和分享的旅行手账。无需地图或模型凭据即可试玩；详见 [交互体验与可玩性](docs/timewalker_hackathon/docs/06-交互体验与可玩性.md)。
 
-正式构建新增可提前准备的豫园离线故事包，支持断网刷新后走完双分支、观察与手账。详见 [离线演示与验收](docs/timewalker_hackathon/docs/07-离线演示与验收.md) 与 [五分钟答辩讲稿](docs/timewalker_hackathon/docs/08-五分钟答辩讲稿.md)。
+正式构建新增可提前准备的双样板离线故事包，支持断网刷新后走完双分支、观察与手账。详见 [离线演示与验收](docs/timewalker_hackathon/docs/07-离线演示与验收.md) 与 [五分钟答辩讲稿](docs/timewalker_hackathon/docs/08-五分钟答辩讲稿.md)。
 
 景点实地导览：前台高德地图漫游 + 发布后台（定范围 → AI 结合高德地点生成内容 → 发布）。
 
@@ -46,11 +48,12 @@ npm run dev:full      # 前端 5174 + 服务端模型网关 8787
 - `/` 前台  
 - `/tour/:id` 导览  
 - `/experience/yuyuan-timewalker` 沉浸故事；加 `?director=1` 启用演示控制台
+- `/experience/shanghai-planetarium` 深空讯号样例，手动进入展区
 - `/publish` 发布后台  
 
 在 `tour-hub-web` 可运行 `npm test`、`npm run build`、`npm run lint`。故事编排支持来源、旁白、图片、选项与下一章编辑；结构错误和未审核候选稿会阻止发布。发布仍为开发服务器本地写文件，生产鉴权与事务性发布尚未实现。
 
-离线体验需 `npm run build` 后通过 `npm run preview` 或 HTTPS 静态托管打开，在首页/样例侧栏点击「准备离线故事」，显示就绪后刷新并测试断网。开发模式不缓存 HMR；仅保证豫园样例，地图与在线模型仍需联网。`npm run test:offline` 使用已构建产物自行启动测试服务器，需要本机 Playwright/Chromium，配置方式见验收文档。
+离线体验需 `npm run build` 后通过 `npm run preview` 或 HTTPS 静态托管打开，在首页/样例侧栏点击「准备离线故事」，显示就绪后刷新并测试断网。开发模式不缓存 HMR；仅保证豫园与天文馆两个固定样例，地图与在线模型仍需联网。`npm run test:offline` 使用已构建产物自行启动测试服务器，需要本机 Playwright/Chromium，配置方式见验收文档。新增 `test:creator` 检查本机地点起稿/发布、主题透传和媒体打包，`test:dual` 检查天文馆两条分支与移动布局。
 
 ## 环境变量
 

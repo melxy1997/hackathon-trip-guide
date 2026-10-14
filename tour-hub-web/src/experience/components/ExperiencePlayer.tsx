@@ -13,6 +13,7 @@ import { ObservationCard } from './ObservationCard'
 import { discoveryLabels, journeyProgress } from '../journey'
 import { resolvePresentation, locationLabel } from '../presentation'
 import { OfflineDemoPanel } from '../../offline/OfflineDemoPanel'
+import { offlineDemoIds } from '../../offline/demoStories'
 import '../experience.css'
 
 export function ExperiencePlayer({ pkg, preview, director }: { pkg: PublishedAttraction & { experience: ExperienceDefinitionV1 }; preview: boolean; director: boolean }) {
@@ -33,6 +34,7 @@ export function ExperiencePlayer({ pkg, preview, director }: { pkg: PublishedAtt
   const narration = useNarration(block, scene?.id ?? '', token, send, resolveAsset)
   const image = scene?.blocks.find(b => b.type === 'image')?.assetRef ?? spot?.image ?? pkg.coverImage
   const textBlocks = scene?.blocks.filter(b => b.type === 'narration' || b.type === 'caption') ?? []
+  const imageCredit = pkg.spots.find(s => resolveAsset(s.image) === resolveAsset(image))?.imageCredit
   const sceneEvent = { sceneId: scene?.id ?? '', token }
   const interaction = scene?.interaction
   const progress = journeyProgress(definition, state)
@@ -83,20 +85,21 @@ export function ExperiencePlayer({ pkg, preview, director }: { pkg: PublishedAtt
             {showChoice && <p className="tw-choice-echo">沿着你选择的「{recentChoice?.label}」继续探索</p>}
             <div className="tw-narration" aria-live="polite">{textBlocks.map(b => <p key={b.id} className={b.id === narration.playingBlockId ? 'tw-speaking' : state.completedBlockIds.includes(b.id) ? 'tw-read' : b.id === block?.id ? 'tw-reading-current' : ''}>{b.text}</p>)}</div>
             <p className="tw-fineprint">{textBlocks.some(b => b.fictional) ? '本幕包含文学创作 · 人物、讯息与情节为艺术演绎' : '文化讲述 · 来源见下方资料说明'}</p>
+            {imageCredit && <p className="tw-fineprint">{imageCredit}</p>}
             {state.phase === 'playing' && <button className="tw-button tw-primary" onClick={() => send({ type: 'SKIP_SCENE', ...sceneEvent })}>{scene?.mode === 'ending' ? presentation.labels.finish : interaction ? '读完了，继续探索' : presentation.labels.next} <ArrowRight size={17} /></button>}
             {state.phase === 'awaitingInteraction' && interaction?.type === 'single_choice' && <div className="tw-choices" aria-label="选择探索方向" ref={interactionRef} tabIndex={-1}><p>你想带着哪一种目光继续？<small>没有标准答案，下一幕会因你的选择而不同。</small></p>{interaction.options.map(o => <button className="tw-choice" key={o.id} aria-label={o.label} aria-describedby={o.description ? `${scene?.id}-${o.id}-detail` : undefined} onClick={() => send({ type: 'CHOICE_SELECTED', interactionId: interaction.id, optionId: o.id, ...sceneEvent })}><span>{o.label}{o.description && <small id={`${scene?.id}-${o.id}-detail`}>{o.description}</small>}</span><ArrowRight size={16} /></button>)}</div>}
-            {state.phase === 'awaitingInteraction' && interaction?.type === 'photo_or_tap' && <div ref={interactionRef} tabIndex={-1} aria-label="观察探索"><ObservationCard key={token} image={resolveAsset(image)} place={spot?.name ?? scene?.title ?? pkg.name} prompt={interaction.prompt} hints={interaction.hints} onConfirm={discovery => send({ type: 'OBSERVATION_CONFIRMED', interactionId: interaction.id, method: 'manual', ...(discovery ? { discovery } : {}), ...sceneEvent })} /></div>}
+            {state.phase === 'awaitingInteraction' && interaction?.type === 'photo_or_tap' && <div ref={interactionRef} tabIndex={-1} aria-label="观察探索"><ObservationCard key={token} image={resolveAsset(image)} place={spot?.name ?? scene?.title ?? pkg.name} prompt={interaction.prompt} hints={interaction.hints} notePlaceholder={presentation.motif === 'transmission' ? '写一句你想寄给未来的话。' : undefined} onConfirm={discovery => send({ type: 'OBSERVATION_CONFIRMED', interactionId: interaction.id, method: 'manual', ...(discovery ? { discovery } : {}), ...sceneEvent })} /></div>}
             {state.phase === 'error' && <div role="alert"><p>故事暂时无法推进，请重新开启。</p><button className="tw-button" onClick={reset}>重新开启故事</button></div>}
           </>}
           {imageError === image && <p className="tw-fineprint">场景图片暂不可用，文字故事仍可继续。</p>}
         </div>
       </section>
       <aside className="tw-sidebar">
-        {!preview && pkg.id === 'yuyuan-timewalker' && <OfflineDemoPanel />}
+        {!preview && offlineDemoIds.includes(pkg.id) && <OfflineDemoPanel />}
         {narration.message && <p role="status" className="tw-notice">{narration.message}</p>}
         {resumed && <p className="tw-notice">已恢复本机保存的故事进度；声音需再次点按开启。</p>}
         <details className="tw-route" open><summary>{indoor ? '展区章节' : '故事路线'} <span>{indoor ? '手动进入' : '模拟地点'}</span></summary><ol>{pkg.spots.filter(s => progress.spotIds.includes(s.id)).map((s, i) => <li key={s.id} className={spot?.id === s.id ? 'tw-route-active' : ''}><b>{String(i + 1).padStart(2, '0')}</b><div><p>{s.name}</p><small>{state.visitedSpotIds.includes(s.id) ? '已走进故事' : spot?.id === s.id ? '下一站' : '等待探索'}</small></div></li>)}</ol><p className="tw-fineprint">{indoor ? '仅展示故事顺序；不代表展区距离、馆内位置或已验证路线。' : <>静态站点指引无需地图 Key；路线未经现场核验。<Link to={`/tour/${pkg.id}`}>打开原版地图导览</Link></>}</p></details>
-        <details className="tw-sources"><summary>关于故事与资料来源</summary><p>标记为文学创作的人物、情节与自由联想不代表史实。地点和照片沿用所选景点的资料包，授权与史实须由发布者审核。</p>{definition.sources.length ? definition.sources.map(s => <a key={s.id} href={s.url} target="_blank" rel="noreferrer">{s.title} ↗</a>) : <p>此故事未关联史实来源，旁白应作为文学创作阅读。</p>}</details>
+        <details className="tw-sources"><summary>关于故事与资料来源</summary><p>标记为文学创作的人物、情节与自由联想不代表史实。地点和配图来自所选资料包；艺术画面不代表场馆实拍或科学观测，来源、授权与史实须由发布者审核。</p>{definition.sources.length ? definition.sources.map(s => <a key={s.id} href={s.url} target="_blank" rel="noreferrer">{s.title} ↗</a>) : <p>此故事未关联史实来源，旁白应作为文学创作阅读。</p>}</details>
         {diagnostics.length > 0 && <p role="alert" className="tw-notice">{diagnostics.join('；')}</p>}
       </aside>
     </main></>}
