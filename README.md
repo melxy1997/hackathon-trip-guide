@@ -25,9 +25,9 @@
 | 产品模块 | 面向谁 | 创造的价值 | 本分支状态 |
 |---|---|---|---|
 | **Story · 沉浸式故事** | 游客 | 有情节的章节、轻量选择、观察与个人记录 | ✅ 豫园、天文馆双样板可运行 |
-| **Trail · 主题路线打卡** | 游客 | 按顺序探索地点、手动集章、完成纪念卡 | 🛠 **V3 待开发**；第一条为豫园四站路线 |
+| **Trail · 主题路线打卡** | 游客 | 按顺序探索地点、手动集章、完成纪念卡 | ✅ 豫园四站路线、进度恢复与纪念卡已实现 |
 | **Creative Studio · 智能创作** | 创作者 | 故事构想、分幕编译、素材制作、人工编辑与发布 | ✅ Web 链路已实现；真实供应商联调待完成 |
-| **Trail Editor · 运营路线配置** | 客服、目的地运营人员 | 选点、编排顺序、配置推荐、交付可分享路线 | 🛠 **V3 待开发** |
+| **Trail Editor · 运营路线配置** | 客服、目的地运营人员 | 选点、编排顺序、配置推荐、交付可分享路线 | ✅ 编辑、开发态发布与 JSON 导出已实现 |
 
 ### 商业化逻辑：展示可配置能力，不虚构收益
 
@@ -71,28 +71,32 @@
 
 ## 🗺 Trail · 主题路线打卡（V3 新增方向）
 
-> **以下是刚确定的下一阶段交付设计，不是当前已经存在的页面。** 目前仓库还没有 `/trail/:id` 路由、`TrailDefinitionV1` 契约或 Trail 运营编辑器。现有 `/tour/:id` 是经典地图导览，不能当作已实现打卡模式。
+> **V3 首条纵向闭环已交付。** `/trail/:id`、独立契约、运营编辑与实际静态发布均已实现；`/tour/:id` 继续保留经典地图导览。实现与验证见 [26 · Trail 开发交接](docs/timewalker_hackathon/docs/26-Trail实现与开发交接.md)。
 
 首条样板是**豫园四站主题探索**。游客可以直接从首页进入，按「三穗堂 → 大假山 → 玉玲珑 → 点春堂」顺序浏览地点、手动确认到站、收集印章，最终获得一张纪念卡。全程不要求真实 GPS、防作弊、扫码或到店验证。
 
-对于运营人员，目标是在现有后台上增加轻量 Trail Editor：从原有景点包选 3–6 个地点，拖动顺序、编辑说明和一个可选推荐位，生成真正能被其他浏览器读取的静态路线链接。推荐卡会有清楚的编辑/演示/合作属性；只有真实浏览器点击事件，不会展示虚构订单或营收。
+运营人员可从原有景点包选 3–6 个地点，用上下移按钮调整顺序，编辑说明和一个可选推荐位。开发态发布会写入静态文件/索引并重新读取校验，成功后提供可由另一个浏览器打开的链接；静态托管降级为 JSON 导出，不冒充发布。推荐标明编辑/演示/合作属性，本机事件面板记录实际展示与点击，不是跨设备经营报表。
 
 **故事和路线之间只做可选关联**：豫园家书故事结束后可以选择「继续探索四站路线」，路线页也可以跳转回家书故事。它们共享目的地内容，但各自可以独立完成。
 
 | 设计决定 | V3 第一版 |
 |---|---|
 | 内容契约 | 独立 `TrailDefinitionV1` 文件，引用现有 `PublishedAttraction.spots`；不修改故事 V1 |
-| 游客入口 | 规划 `/trail/:id`，本机保存打卡进度 |
-| 运营入口 | 规划 `/publish/trails/new`、`/publish/trails/:id` |
+| 游客入口 | 已实现 `/trail/:id`，本机保存打卡进度 |
+| 运营入口 | 已实现 `/publish/trails/new`、`/publish/trails/:id` |
 | 发布方式 | 开发态静态文件发布或 JSON 导出，不建设生产 CMS |
 | 推荐与埋点 | 1 个可选推荐卡，记录打卡和点击的演示事件 |
 | 暂不建设 | 佣金支付、交易归因、GPS 核销、复杂积分、第二条 Trail |
 
 完整契约、路线联动与验收见 [25 号方案 §4–9](docs/timewalker_hackathon/docs/25-时空漫游者-双模式产品方案与开发规划.md)。
 
+<table><tr><th>四站探索</th><th>集章纪念卡</th></tr><tr><td><img src="docs/screenshots/timewalker-trail-opening.png" alt="豫园主题路线打卡" /></td><td><img src="docs/screenshots/timewalker-trail-finish.png" alt="完成探索与纪念卡" /></td></tr></table>
+
+[查看运营编辑界面](docs/screenshots/timewalker-trail-editor.png)
+
 ## ▶️ 立即体验
 
-当前可体验**两部完整故事 + 创作/发布工作台 + 经典地图导览**，其中故事样板不需要任何 AI 模型或地图密钥。**Trail 入口会在 V3 对应任务交付后开放。**
+当前可体验**两部完整故事 + 豫园四站 Trail + 故事创作/路线运营工作台 + 经典地图导览**。固定故事、Trail 和路线配置不需要 AI 模型或地图密钥。
 
 ```bash
 git clone https://github.com/melxy1997/hackathon-trip-guide.git
@@ -114,7 +118,8 @@ npm run dev:full
 | 深空讯号 | [`/experience/shanghai-planetarium`](http://localhost:5174/experience/shanghai-planetarium) | 科幻故事、展区推进、航行记录 |
 | 创作与发布 | [`/publish`](http://localhost:5174/publish) | Creative Studio、模板 Builder 与人工发布流程 |
 | 经典地图导览 | [`/tour/yuyuan`](http://localhost:5174/tour/yuyuan) | 保留最初的高德地图导览能力 |
-| 豫园路线打卡 | `/trail/yuyuan-four-sights`（规划） | **尚未实现**，开发完成后才可访问 |
+| 豫园路线打卡 | `/trail/yuyuan-four-sights` | 四站集章、刷新恢复、推荐、纪念卡 |
+| 运营路线编辑 | `/publish/trails/new` | 选点、排序、编辑与真实开发态发布 |
 
 在故事 URL 后添加 `?director=1` 可以开启演示控制台；**当前故事地点推进使用模拟事件**，不依赖实际 GPS。天文馆使用手动进入展区的交互，不声称具备室内精准定位。
 
@@ -178,9 +183,9 @@ flowchart TD
 flowchart TB
   BASE["统一目的地数据 PublishedAttraction / spots"]
   STORY["Story · 已实现的体验包与故事引擎"]
-  TRAIL["Trail · V3 规划：独立路线契约和打卡进度"]
+  TRAIL["Trail · 独立路线契约和打卡进度"]
   CS["Creative Studio · 已实现的创作工作台"]
-  TE["Trail Editor · V3 规划：运营路线配置"]
+  TE["Trail Editor · 运营路线配置"]
   API["Node API · 概念/编译/研究/生图"]
   P["Story Player · 双题材"]
   T["Trail Player · 四站打卡"]
@@ -212,7 +217,7 @@ flowchart TB
 | Agent 契约与导入 | `src/experience/agent/` | 共享类型、校验、独立草稿及迁移 |
 | 创作服务 | `server/agent/`、`server/gateway.ts` | 联网研究、模型生成、编译、持久素材 |
 | 离线模块 | `src/offline/` | 两份固定故事的离线准备与完整性检查 |
-| Trail 新增模块 | 建议 `src/trail/`、`public/data/trails/` | **尚未实现**：路线契约、播放器、运营编辑器、事件 |
+| Trail 模块 | `src/trail/`、`public/data/trails/` | 已实现：契约、游客页、运营编辑、推荐和事件 |
 
 ## ⚙️ 开发环境与配置
 
@@ -251,7 +256,7 @@ npm run build
 npm run preview
 ```
 
-在构建后的首页或故事侧栏点击**「准备离线故事」**（天文馆使用讯号主题文案），待资源准备完毕后即可测试断网刷新、章节分支、观察与记录。离线机制基于正式构建和 Service Worker，不在 Vite 热更新开发模式缓存页面；仅支持预设的两份样板。
+在构建后的首页或故事侧栏点击**「准备离线故事」**（天文馆使用讯号主题文案），待资源准备完毕后即可测试断网刷新、章节分支、观察与记录。离线机制基于正式构建和 Service Worker，不在 Vite 热更新开发模式缓存页面；仅支持预设的两份故事样板；Trail 暂不纳入固定离线包。
 
 ### 代码检查与测试
 
@@ -260,6 +265,7 @@ npm test           # Node 单元测试（契约、Agent 候选、编排、审核
 npm run lint       # oxlint
 npm run build      # TypeScript + Vite
 
+npm run test:trail        # Trail 游客/运营/跨浏览器真实发布
 npm run test:studio       # Creative Studio
 npm run test:builder      # Builder 与编辑器
 npm run test:dual         # 双样板与主题隔离
@@ -278,6 +284,9 @@ npm run test:offline      # 正式构建后的离线回归
 ```text
 tour-hub-web/public/data/
 ├── catalog.json
+├── trails/                       # 独立路线与 catalog
+│   ├── catalog.json
+│   └── yuyuan-four-sights.json
 └── attractions/
     ├── yuyuan.json                 # 经典地图导览
     ├── yuyuan-timewalker.json      # 园林家书故事
@@ -300,24 +309,24 @@ tour-hub-web/public/experience-assets/
 | Creative Studio 双构想 → 节拍 → 编译 | ✅ 接口与 UI 已实现 | 真实模型作品仍需团队凭据联调 |
 | Tavily 搜索/提取、Seedream 逐章生图 | ✅ 接入代码与替身自动化 | **不等于已完成真实供应商调用** |
 | 成果导入导出 / 固定双样板离线 | ✅ 已实现 | 不等于生产 CMS 或持久 Agent Job |
-| 豫园四站 Trail 游客端 | 🛠 V3 P0 待开发 | 手动打卡、印章、刷新恢复、纪念卡 |
-| Trail 运营编辑与跨浏览器发布 | 🛠 V3 P0 待开发 | 运营配置必须能产生实际游客可读的路线文件 |
-| 推荐卡、点击事件、故事与路线联动 | 🛠 V3 P1 待开发 | 演示推荐，不能证明营收 |
+| 豫园四站 Trail 游客端 | ✅ 已实现 | 手动打卡、印章、刷新恢复、纪念卡 |
+| Trail 运营编辑与跨浏览器发布 | ✅ 已实现并验证 | 运营配置必须能产生实际游客可读的路线文件 |
+| 推荐卡、点击事件、故事与路线联动 | ✅ 已实现 | 演示推荐，不能证明营收 |
 | Deep Agents、自主工具调用、云端 TTS | 📐 后续增强 | 当前无需为新增 Trail 先引入这些依赖 |
 | 交易支付 / 商户结算 / GPS 核销 | — 不属于本轮 | 商业机会仅阐释未来验证路径 |
 
-最近一轮阶段文档记录为 **117 项 Node 测试、build、lint 通过及五套相关 Chromium 测试通过**；这是既有交接中的测试记录，不是此次 README 更新重新运行的结果。真实 DeepSeek、Tavily、Seedream 调用也应单独保留成功记录，不能用替身测试代替。
+本轮 V3 **125 项 Node 测试、build、lint 及八套 Chromium 验收全部通过**，新增 Trail 冒烟覆盖真实临时发布与全新浏览器访问；详细结果见 [26](docs/timewalker_hackathon/docs/26-Trail实现与开发交接.md)。真实 DeepSeek、Tavily、Seedream 调用也应单独保留成功记录，不能用替身测试代替。
 
 ## 🧭 V3 后续开发路线
 
-以 [25 · V3 详细方案](docs/timewalker_hackathon/docs/25-时空漫游者-双模式产品方案与开发规划.md) 和 [团队开工分工](docs/timewalker_hackathon/docs/团队开工速览与任务分工.md) 为新需求依据。下方是建议的五个可验收切片；完成 Trail P0 之前，不要把它当成现有功能宣传。
+以 [25 · V3 详细方案](docs/timewalker_hackathon/docs/25-时空漫游者-双模式产品方案与开发规划.md) 和 [团队开工分工](docs/timewalker_hackathon/docs/团队开工速览与任务分工.md) 为新需求依据。D1–D4 的 Web 闭环已交付；当前继续 D5 的真实成果、声音、真机与演示收口。具体状态见 03 和 26。
 
 | 切片 | 实现内容 | 验收标志 |
 |---|---|---|
-| D1 · Trail 契约 | `TrailDefinitionV1`、校验器、豫园四站 JSON、路由空壳 | 静态路线引用原有地点，非法引用被拒绝 |
-| D2 · 游客打卡 | 路线卡、手动打卡、印章、进度恢复、纪念卡 | 无模型/地图 Key 也能完整跑通 |
-| D3 · 运营交付 | 选站排序、文案编辑、JSON 导出或开发态发布 | 另一浏览器通过分享链接读到已发布修改 |
-| D4 · 模式联动 | 可选推荐卡、真实浏览器点击事件、故事⇄路线入口 | 打卡不被强制消费、无虚构收入统计 |
+| 已交付 D1 · Trail 契约 | `TrailDefinitionV1`、校验器、豫园四站 JSON、路由空壳 | 静态路线引用原有地点，非法引用被拒绝 |
+| 已交付 D2 · 游客打卡 | 路线卡、手动打卡、印章、进度恢复、纪念卡 | 无模型/地图 Key 也能完整跑通 |
+| 已交付 D3 · 运营交付 | 选站排序、文案编辑、JSON 导出或开发态发布 | 另一浏览器通过分享链接读到已发布修改 |
+| 已交付 D4 · 模式联动 | 可选推荐卡、真实浏览器点击事件、故事⇄路线入口 | 打卡不被强制消费、无虚构收入统计 |
 | D5 · 演示收口 | 真实 AI 彩排、双故事 + 一条 Trail 回归、真机与五分钟演示 | Web 现场连续演示，有固定样板兜底 |
 
 **任务分工建议**：A 负责 Trail 数据与发布；B 负责游客打卡及联动；C 使用已有 `npm run agent:rehearse` 与供应商适配产生真实 AI 作品；D 负责体验内容、界面与答辩。共享 `App.tsx` / `HomePage.tsx` 由集成人统一协调。
@@ -326,15 +335,16 @@ tour-hub-web/public/experience-assets/
 
 ## 📚 文档索引
 
-> **先判断文档类型再阅读。** V3 新方向以 **25 号产品方案**和**团队开工速览**为准。03 号任务板是此前故事/Agent 技术线的任务清单，Trail 的优先级应以 25 为准；01、02、18 和大部分开发日志属于历史背景，不能把其中“待开发”直接当成最新任务。
+> **先判断文档类型再阅读。** 25 管 V3 目标，26 记录实际交付，03 管当前剩余任务，09 管接手环境，08 管三体验答辩。01、02、18 和历史日志中的“待开发”不等于当前缺口。
 
 ### ① 产品定位、V3 规划与答辩
 
 | 文档 | 内容与适用范围 |
 |---|---|
+| **[26 · Trail 实现与交接](docs/timewalker_hackathon/docs/26-Trail实现与开发交接.md)** | 实际交付、真实静态发布、测试与剩余范围 |
 | **[25 · 双模式产品方案与后续开发规划](docs/timewalker_hackathon/docs/25-时空漫游者-双模式产品方案与开发规划.md)** | **V3 当前主方案**：Story + Trail、运营推荐、数据契约、开发切片、验收与答辩 |
 | **[团队开工速览与任务分工](docs/timewalker_hackathon/docs/团队开工速览与任务分工.md)** | **V3 分工入口**：四条工作线、五日冲刺、共享代码所有权 |
-| [08 · 五分钟答辩讲稿（双故事版）](docs/timewalker_hackathon/docs/08-五分钟答辩讲稿.md) | 已有双样板展示稿；**需按 V3 Trail 场景更新后才是最终答辩稿** |
+| [08 · 五分钟答辩操作稿](docs/timewalker_hackathon/docs/08-五分钟答辩讲稿.md) | 双故事、Trail、运营发布、Studio 与降级 |
 | [02 · 最初答辩产品说明](docs/timewalker_hackathon/docs/02-答辩产品说明.md) | 历史：故事模式早期立意与演示素材 |
 | [20 · 双样板轻量化实施方案](docs/timewalker_3_scope/20-双样板创作优先实施方案.md) | 阶段方案：从单一豫园扩展为两种叙事题材 |
 
@@ -343,7 +353,7 @@ tour-hub-web/public/experience-assets/
 | 文档 | 内容与适用范围 |
 |---|---|
 | [文档导航与当前实现状态](docs/timewalker_hackathon/docs/README.md) | 既有能力、历史验证轮次、文档用途；新增 Trail 以 25 号方案为准 |
-| [03 · 原故事/Agent 开发任务板](docs/timewalker_hackathon/docs/03-开发任务拆解.md) | 既有 AI 创作、声音、测试等任务；**尚不包含 V3 Trail 新需求** |
+| [03 · 当前 V3 任务板](docs/timewalker_hackathon/docs/03-开发任务拆解.md) | 已交付切片及真实联调、声音/真机等剩余任务 |
 | [09 · 本地开发交接](docs/timewalker_hackathon/docs/09-本地开发交接.md) | 环境准备、基线分支、关键代码、模型凭据和数据迁移 |
 | [07 · 离线演示与验收](docs/timewalker_hackathon/docs/07-离线演示与验收.md) | 已实现的两个固定故事离线准备、缓存与回归；不覆盖新增 Trail |
 | [21 · 双样板落地与交接](docs/timewalker_hackathon/docs/21-双样板落地与交接.md) | 双主题、室内展区、发布媒体与浏览器验收的阶段记录 |

@@ -27,3 +27,25 @@
 ## 回归中修正的 Studio 导入时序
 
 旧脚本在重载后直接设置隐藏文件框，可能赶在 Studio 恢复完成前触发导入；该请求会被 ready 守卫忽略。文件框现与导入按钮一样在恢复/请求期间禁用；浏览器测试改为实际点击按钮并通过 filechooser 选择文件，保留全部导入/保留旧候选/携带媒体/发布断言。Studio 复验通过，无固定延时或跳过断言。
+
+## 最终验证与提交
+
+本轮 **125/125 Node 测试、TypeScript/Vite build、oxlint 无警告通过**。八套 Chromium 验收全部完成且退出码为 0：`test:trail`、`test:studio`、`test:creator`、`test:builder`、`test:dual`、`test:smoke`、`test:playability`、`test:offline`。Studio 修正后复验通过；最终构建上的离线复验完成豫园五轮、天文馆两分支、失败回滚、版本更新、缓存清理与下载。
+
+| 提交 | 实际交付 |
+|---|---|
+| `2e857fb` | Trail 契约、四站样板、游客流程与首页入口 |
+| `44b6a97` | 运营编辑、真实静态发布、跨浏览器读取、推荐事件与故事联动 |
+| `935fd99` | Studio 文件导入就绪状态与真实文件选择回归 |
+
+截图：[游客路线](../../screenshots/timewalker-trail-opening.png)、[集章完成](../../screenshots/timewalker-trail-finish.png)、[运营配置](../../screenshots/timewalker-trail-editor.png)。它们来自实际 Chromium 运行界面；运营发布测试用临时静态目录，不覆盖固定样板。
+
+## 接手与剩余工作
+
+- 直接试玩：`/trail/yuyuan-four-sights`；配置入口：`/publish` 的运营路线管理，或 `/publish/trails/new`。
+- 本地开发启动 `npm run dev:full` 后可发布。发布回读成功再分享 URL；生产静态托管仅导出 JSON，需将数据/索引纳入部署后才能真正分享。
+- 继续任务以 [03](03-开发任务拆解.md) 为准：真实供应商作品、预生成声音、真机、五分钟彩排。Deep Agents 继续后置；无新增 AI 依赖和计费调用。
+- 事件只在本浏览器，不是跨设备报表；手动确认不是 GPS/核销；没有支付、佣金和真实合作成果。
+- 固定离线包仍只含两份故事，Trail 本轮不保证离线；首页断网时不请求 Trail 目录，保持原故事离线流程。
+
+本轮保留成员 `c015247`、`1eb7d2d` 的 V3 产品与导航结构，只同步实际交付状态。没有合并 main 或发布公网站点。
