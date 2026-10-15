@@ -2,6 +2,8 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import type { CatalogItem } from '../lib/tourPackage'
+import { loadTrailCatalog } from '../trail/trailCatalog'
+import type { TrailCatalogItem } from '../trail/trailSchema'
 import { loadCatalog } from '../lib/catalog'
 import { resolvePresentation, presentationPalette, locationLabel } from '../experience/presentation'
 import { OfflineDemoPanel } from '../offline/OfflineDemoPanel'
@@ -10,6 +12,9 @@ import { offlineDemoIds } from '../offline/demoStories'
 export function HomePage() {
   const [list, setList] = useState<CatalogItem[]>([])
   const [error, setError] = useState('')
+  const [trails, setTrails] = useState<TrailCatalogItem[]>([])
+  const [trailError, setTrailError] = useState('')
+  useEffect(() => { loadTrailCatalog().then(setTrails).catch(() => setTrailError('主题路线暂不可用，仍可体验上方故事。')) }, [])
 
   useEffect(() => {
     loadCatalog()
@@ -60,6 +65,7 @@ export function HomePage() {
                 </div>
               </Link>
             )})}
+            <section aria-label="主题路线打卡"><h2 className="mb-3 text-xl font-medium">换一种方式 · 主题路线</h2><p className="mb-4 text-sm text-gray-500">按自己的节奏探索地点，收集一枚枚风景印章。</p>{trailError && <p className="text-sm text-gray-500">{trailError}</p>}{trails.map(trail => <Link key={trail.id} to={`/trail/${trail.id}`} className="mb-3 block rounded-2xl border border-emerald-900/15 bg-[#eaf0e7] p-6 text-[#193d32]"><p className="text-xs tracking-widest">TIMEWALKER · TRAIL</p><h3 className="my-3 font-serif text-2xl">{trail.title}</h3><p className="text-sm leading-relaxed">{trail.description}</p><p className="mt-4 text-xs">{trail.checkpointCount} 站 · {trail.estimatedMinutes ? `参考 ${trail.estimatedMinutes} 分钟 · ` : ''}手动打卡 · 集章纪念卡</p><span className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-medium">展开探索路线 <ArrowRight size={16} /></span></Link>)}</section>
             {stories.some(item => offlineDemoIds.includes(item.id)) && <OfflineDemoPanel />}
             {featured && (
               <Link

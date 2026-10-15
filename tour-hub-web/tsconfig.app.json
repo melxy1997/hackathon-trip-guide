@@ -23,5 +23,5 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
-  "exclude": ["src/experience/__tests__"]
+  "exclude": ["src/experience/__tests__", "src/trail/__tests__"]
 }

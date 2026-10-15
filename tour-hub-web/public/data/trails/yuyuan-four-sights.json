@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "yuyuan-four-sights",
+  "baseAttractionId": "yuyuan",
+  "title": "园林里的四重风景",
+  "description": "把脚步交给亭台与山石。从三穗堂出发，依次发现四重园林风景，亲手收集属于这趟探索的印章。",
+  "coverImage": "/spots/san-sui-tang.jpg",
+  "estimatedMinutes": 40,
+  "relatedExperienceId": "yuyuan-timewalker",
+  "publishedAt": 1792022400000,
+  "checkpoints": [
+    {
+      "id": "hall",
+      "spotId": "san-sui-tang",
+      "heading": "第一重 · 亭台迎客",
+      "instruction": "从三穗堂开始，抬头留意屋檐的线条。准备好后，亲手留下第一枚印章。",
+      "stampLabel": "亭台初见"
+    },
+    {
+      "id": "rockery",
+      "spotId": "da-jia-shan",
+      "heading": "第二重 · 山间寻趣",
+      "instruction": "在大假山前找一处最喜欢的轮廓。不必猜标准答案，让自己的目光决定停留。",
+      "stampLabel": "山间寻趣"
+    },
+    {
+      "id": "jade",
+      "spotId": "yu-ling-long",
+      "heading": "第三重 · 奇石留影",
+      "instruction": "在玉玲珑旁观察孔洞与光影。把这一刻记在心里，再收下一枚印章。",
+      "stampLabel": "奇石记忆"
+    },
+    {
+      "id": "spring",
+      "spotId": "dian-chun-tang",
+      "heading": "第四重 · 一园收心",
+      "instruction": "走到点春堂，回想这趟探索里最想带走的一处风景。最后一枚印章属于你。",
+      "stampLabel": "一园收心"
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "story-invitation",
+      "afterCheckpointId": "rockery",
+      "title": "换一种目光，走进园林家书",
+      "description": "演示推荐：用一封虚构家书重新认识眼前的园林。可自由选择，不影响集章完成。",
+      "label": "demo_promotion",
+      "href": "/experience/yuyuan-timewalker"
+    }
+  ]
+}

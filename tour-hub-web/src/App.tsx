@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { TrailPage } from './pages/TrailPage'
 import { HomePage } from './pages/HomePage'
 import { PublishEditorPage } from './pages/PublishEditorPage'
 import { PublishListPage } from './pages/PublishListPage'
@@ -10,6 +11,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/trail/:id" element={<TrailPage />} />
         <Route path="/tour/:id" element={<TourPage />} />
         <Route path="/experience/:id" element={<ExperiencePage />} />
         <Route path="/publish" element={<PublishListPage />} />

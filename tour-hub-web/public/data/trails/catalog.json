@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": 1792022400000,
+  "items": [
+    {
+      "id": "yuyuan-four-sights",
+      "baseAttractionId": "yuyuan",
+      "title": "园林里的四重风景",
+      "description": "把脚步交给亭台与山石。从三穗堂出发，依次发现四重园林风景，亲手收集属于这趟探索的印章。",
+      "coverImage": "/spots/san-sui-tang.jpg",
+      "estimatedMinutes": 40,
+      "publishedAt": 1792022400000,
+      "checkpointCount": 4
+    }
+  ]
+}
