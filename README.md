@@ -8,21 +8,32 @@
 
 以真实目的地为舞台，让旅行者走进一段有情节、有选择、有记忆的沉浸式故事。
 
-**沉浸式故事体验 · 轻量交互叙事 · AI 辅助创作 · 可执行体验包**
+**沉浸式故事 Story · 主题路线 Trail · AI 创作与运营工作台**
 
-[立即体验](#-立即体验) · [创作工作台](#-从灵感到可执行体验) · [快速启动](#-快速开始) · [技术架构](#-技术架构)
+[双模式产品](#-从一个景点导览走向一套旅行体验引擎) · [故事样板](#-两段故事同一套引擎) · [路线规划](#-trail-主题路线打卡v3-新增方向) · [立即体验](#-立即体验) · [开发路线](#-v3-后续开发路线) · [文档索引](#-文档索引)
 
 </div>
 
 ---
 
-## ✨ 不只是导览，而是亲历一段故事
+## ✨ 从一个景点导览，走向一套旅行体验引擎
 
-传统景点导览回答的是「这里有什么、背后有什么知识」。**时空漫游者（Timewalker）** 希望进一步回答：「当你身处这里，会经历怎样一个故事？」
+传统景点导览告诉游客「这里有什么」，普通攻略告诉游客「可以去哪里」。**时空漫游者（Timewalker）** 更进一步：把真实目的地组织成值得体验的故事，以及可以亲自完成的主题探索路线。
 
-我们把景点、展区与文化场景变成叙事舞台：故事伴随场景推进，游客通过少量选择改变讲述视角，观察画面并留下自己的发现，最终收获一份由本次体验生成的个人旅行记录。
+**Trip Experience Engine（智能旅行体验引擎）** 是这背后的统一内容生产与运行底座。我们希望为游客提供两种互补、可以独立使用的体验，并让客服和目的地运营人员通过 Web 工作台制作、配置和分发这些体验。
 
-它既是面向游客的沉浸式故事产品，也是 **Trip Experience Engine（智能旅行体验引擎）** 的首个应用。我们希望创作者可以复用同一引擎，制作历史、人文、科学、幻想等不同题材的体验，而不是为每一个景点单独编写一套应用。
+| 产品模块 | 面向谁 | 创造的价值 | 本分支状态 |
+|---|---|---|---|
+| **Story · 沉浸式故事** | 游客 | 有情节的章节、轻量选择、观察与个人记录 | ✅ 豫园、天文馆双样板可运行 |
+| **Trail · 主题路线打卡** | 游客 | 按顺序探索地点、手动集章、完成纪念卡 | 🛠 **V3 待开发**；第一条为豫园四站路线 |
+| **Creative Studio · 智能创作** | 创作者 | 故事构想、分幕编译、素材制作、人工编辑与发布 | ✅ Web 链路已实现；真实供应商联调待完成 |
+| **Trail Editor · 运营路线配置** | 客服、目的地运营人员 | 选点、编排顺序、配置推荐、交付可分享路线 | 🛠 **V3 待开发** |
+
+### 商业化逻辑：展示可配置能力，不虚构收益
+
+我们希望形成「**故事产生探索动机 → 路线组织线下体验 → 推荐内容获得适当展示和点击机会**」的链路。真实成交、佣金与线下客流增长依赖未来的商户合作和实际运营，**不属于本次 Hackathon Web 演示可以证明的事实**。本阶段展示的是可编辑、可发布、可操作、可记录的体验流程；没有合作商户时仅展示明确标注的演示推荐。
+
+> **当前统一方案**：[25 · 双模式产品方案与后续开发规划](docs/timewalker_hackathon/docs/25-时空漫游者-双模式产品方案与开发规划.md)；团队分工参阅 [开工速览](docs/timewalker_hackathon/docs/团队开工速览与任务分工.md)。过去的单故事方案和 Agent 平台设计作为历史参考保留。
 
 ## 🎬 两段故事，同一套引擎
 
@@ -58,9 +69,30 @@
   </tr>
 </table>
 
+## 🗺 Trail · 主题路线打卡（V3 新增方向）
+
+> **以下是刚确定的下一阶段交付设计，不是当前已经存在的页面。** 目前仓库还没有 `/trail/:id` 路由、`TrailDefinitionV1` 契约或 Trail 运营编辑器。现有 `/tour/:id` 是经典地图导览，不能当作已实现打卡模式。
+
+首条样板是**豫园四站主题探索**。游客可以直接从首页进入，按「三穗堂 → 大假山 → 玉玲珑 → 点春堂」顺序浏览地点、手动确认到站、收集印章，最终获得一张纪念卡。全程不要求真实 GPS、防作弊、扫码或到店验证。
+
+对于运营人员，目标是在现有后台上增加轻量 Trail Editor：从原有景点包选 3–6 个地点，拖动顺序、编辑说明和一个可选推荐位，生成真正能被其他浏览器读取的静态路线链接。推荐卡会有清楚的编辑/演示/合作属性；只有真实浏览器点击事件，不会展示虚构订单或营收。
+
+**故事和路线之间只做可选关联**：豫园家书故事结束后可以选择「继续探索四站路线」，路线页也可以跳转回家书故事。它们共享目的地内容，但各自可以独立完成。
+
+| 设计决定 | V3 第一版 |
+|---|---|
+| 内容契约 | 独立 `TrailDefinitionV1` 文件，引用现有 `PublishedAttraction.spots`；不修改故事 V1 |
+| 游客入口 | 规划 `/trail/:id`，本机保存打卡进度 |
+| 运营入口 | 规划 `/publish/trails/new`、`/publish/trails/:id` |
+| 发布方式 | 开发态静态文件发布或 JSON 导出，不建设生产 CMS |
+| 推荐与埋点 | 1 个可选推荐卡，记录打卡和点击的演示事件 |
+| 暂不建设 | 佣金支付、交易归因、GPS 核销、复杂积分、第二条 Trail |
+
+完整契约、路线联动与验收见 [25 号方案 §4–9](docs/timewalker_hackathon/docs/25-时空漫游者-双模式产品方案与开发规划.md)。
+
 ## ▶️ 立即体验
 
-首次运行只想体验故事，**不需要任何 AI 模型或地图密钥**。
+当前可体验**两部完整故事 + 创作/发布工作台 + 经典地图导览**，其中故事样板不需要任何 AI 模型或地图密钥。**Trail 入口会在 V3 对应任务交付后开放。**
 
 ```bash
 git clone https://github.com/melxy1997/hackathon-trip-guide.git
@@ -82,6 +114,7 @@ npm run dev:full
 | 深空讯号 | [`/experience/shanghai-planetarium`](http://localhost:5174/experience/shanghai-planetarium) | 科幻故事、展区推进、航行记录 |
 | 创作与发布 | [`/publish`](http://localhost:5174/publish) | Creative Studio、模板 Builder 与人工发布流程 |
 | 经典地图导览 | [`/tour/yuyuan`](http://localhost:5174/tour/yuyuan) | 保留最初的高德地图导览能力 |
+| 豫园路线打卡 | `/trail/yuyuan-four-sights`（规划） | **尚未实现**，开发完成后才可访问 |
 
 在故事 URL 后添加 `?director=1` 可以开启演示控制台；**当前故事地点推进使用模拟事件**，不依赖实际 GPS。天文馆使用手动进入展区的交互，不声称具备室内精准定位。
 
@@ -99,7 +132,7 @@ npm run dev:full
 
 ## 🎨 从灵感到可执行体验
 
-游客侧是「时空漫游者」，创作者侧是 **Trip Experience Engine / Creative Studio**。
+游客侧是「时空漫游者」，创作者侧是 **Trip Experience Engine / Creative Studio**。V3 将在同一个后台增加运营人员使用的 Trail Editor；目前该路线编辑器尚未开发。
 
 现有发布后台支持三种互补的创作方式：
 
@@ -139,56 +172,47 @@ flowchart TD
 
 ## 🏗 技术架构
 
+**现有实现**采用 React / TypeScript 前端、Node.js API 网关、独立声明式体验包、故事状态机和素材/发布链。**V3 增量**只新增 Trail 契约、打卡进度与运营配置，不拆分第二套应用，也不让简单路线编辑依赖 AI Agent。
+
 ```mermaid
 flowchart TB
-    subgraph Author["创作者 · React / TypeScript"]
-      CS["Creative Studio / 模板 Builder"]
-      ED["故事关系图与可视化编辑器"]
-    end
-    subgraph Backend["Node.js API · 现有实现"]
-      API["模型网关"]
-      CON["故事构想生成"]
-      CMP["节拍 → V1 候选编译"]
-    end
-    subgraph Content["声明式体验包"]
-      PKG["Attraction Package + ExperienceDefinitionV1"]
-      PRE["Presentation / 视觉主题"]
-      ASSET["图片 / 音频 / 资源清单"]
-    end
-    subgraph Visitor["游客端 · React"]
-      PLAYER["ExperiencePlayer"]
-      ENGINE["Story Engine / 状态机"]
-      RECORD["个人手账 / 航行记录"]
-      OFF["双样板离线缓存"]
-    end
-    CS --> API
-    API --> CON --> CMP
-    CMP --> ED
-    ED --> PKG
-    PKG --> PLAYER
-    PRE --> PLAYER
-    ASSET --> PLAYER
-    PLAYER <--> ENGINE
-    ENGINE --> RECORD
-    OFF --> PLAYER
+  BASE["统一目的地数据 PublishedAttraction / spots"]
+  STORY["Story · 已实现的体验包与故事引擎"]
+  TRAIL["Trail · V3 规划：独立路线契约和打卡进度"]
+  CS["Creative Studio · 已实现的创作工作台"]
+  TE["Trail Editor · V3 规划：运营路线配置"]
+  API["Node API · 概念/编译/研究/生图"]
+  P["Story Player · 双题材"]
+  T["Trail Player · 四站打卡"]
+  C["推荐卡与浏览器事件 · V3 规划"]
+  BASE --> STORY
+  BASE --> TRAIL
+  CS --> API --> STORY
+  TE -.-> TRAIL
+  STORY --> P
+  TRAIL -.-> T
+  T -.-> C
+  P -.->|"可选跳转"| T
+  T -.->|"可选跳转"| P
 ```
+
+**实线代表已存在的主要链路，虚线代表计划新增或关联的能力。** 故事与打卡共享地点内容，但不共享状态机。
 
 **主要技术栈**：React 19、TypeScript 6、Vite 8、Tailwind CSS 4、React Router 7、`@xyflow/react`（故事关系图）、Node.js 24（本机模型网关）、高德地图 JS API（经典导览）。
 
-| 层次 | 关键文件 | 职责 |
+| 层次 | 关键文件（相对 `tour-hub-web/`） | 职责 |
 |---|---|---|
-| 内容契约 | `src/experience/experienceSchema.ts` | `ExperienceDefinitionV1`、场景、动作、条件与校验 |
+| 地点数据 | `src/lib/tourPackage.ts` | `PublishedAttraction`、`spots` 与媒体引用 |
+| 内容契约 | `src/experience/experienceSchema.ts` | `ExperienceDefinitionV1`、动作与校验 |
 | 叙事引擎 | `src/experience/storyEngine.ts` | 纯状态转移、分支、观察、章节推进 |
-| 主题系统 | `src/experience/presentation.ts` | 主题令牌、开场、交互、结局文案 |
-| 游客播放器 | `src/experience/components/ExperiencePlayer.tsx` | 画面、讲述、互动与进度 |
-| 内容编辑 | `src/experience/components/StoryEditor.tsx` | 图形化关系、人工修改与审核 |
-| 创作工作台 | `src/experience/components/CreativeStudio.tsx` | 双构想选择、节拍展示、候选采纳 |
-| Agent 契约与导入 | `src/experience/agent/` | 创作中间结构、校验、独立草稿 |
-| 服务端编译 | `server/agent/` | 生成概念、编译候选、模型结果校验 |
-| 模型网关 | `server/gateway.ts` | `/api/agent/*`、`/api/builder/draft` 等接口 |
+| 主题系统 | `src/experience/presentation.ts` | 视觉令牌、开场、交互、结局文案 |
+| 游客播放器 | `src/experience/components/ExperiencePlayer.tsx` | 故事画面、讲述、互动与进度 |
+| 内容编辑 | `src/experience/components/StoryEditor.tsx` | 章节关系图、人工修改与审核 |
+| 创作工作台 | `src/experience/components/CreativeStudio.tsx` | 双构想、节拍、候选采纳与媒体创作 |
+| Agent 契约与导入 | `src/experience/agent/` | 共享类型、校验、独立草稿及迁移 |
+| 创作服务 | `server/agent/`、`server/gateway.ts` | 联网研究、模型生成、编译、持久素材 |
 | 离线模块 | `src/offline/` | 两份固定故事的离线准备与完整性检查 |
-
-以上路径均相对于 `tour-hub-web/`。
+| Trail 新增模块 | 建议 `src/trail/`、`public/data/trails/` | **尚未实现**：路线契约、播放器、运营编辑器、事件 |
 
 ## ⚙️ 开发环境与配置
 
@@ -266,46 +290,101 @@ tour-hub-web/public/experience-assets/
 
 编辑器支持章节内容、地图/展区绑定、选择分支、故事出口和展示主题配置。新建故事先进入独立草稿，修改内容会重置审核状态；经人工确认后可发布。开发模式下可写入本地展示数据；其他环境支持下载导出的内容包。**这不是已经实现正式多用户鉴权与远程内容管理的生产级 CMS。**
 
-## 🚀 当前实现与下一阶段
+## 🚀 现有成果与 V3 交付范围
 
-| 能力 | 当前状态 |
+| 模块 | 状态 | 说明 |
+|---|---|---|
+| 豫园家书、上海天文馆深空讯号 | ✅ 可演示 | 两个手工编写的跨题材故事样板 |
+| 通用故事状态机 / 双主题 / 观察与记录 | ✅ 已实现 | 分支选择、手动观察、个人记录、刷新恢复 |
+| 图形化编辑器 / 待审草稿 / 本地发布 | ✅ 已实现 | 使用已有内容和媒体打包链 |
+| Creative Studio 双构想 → 节拍 → 编译 | ✅ 接口与 UI 已实现 | 真实模型作品仍需团队凭据联调 |
+| Tavily 搜索/提取、Seedream 逐章生图 | ✅ 接入代码与替身自动化 | **不等于已完成真实供应商调用** |
+| 成果导入导出 / 固定双样板离线 | ✅ 已实现 | 不等于生产 CMS 或持久 Agent Job |
+| 豫园四站 Trail 游客端 | 🛠 V3 P0 待开发 | 手动打卡、印章、刷新恢复、纪念卡 |
+| Trail 运营编辑与跨浏览器发布 | 🛠 V3 P0 待开发 | 运营配置必须能产生实际游客可读的路线文件 |
+| 推荐卡、点击事件、故事与路线联动 | 🛠 V3 P1 待开发 | 演示推荐，不能证明营收 |
+| Deep Agents、自主工具调用、云端 TTS | 📐 后续增强 | 当前无需为新增 Trail 先引入这些依赖 |
+| 交易支付 / 商户结算 / GPS 核销 | — 不属于本轮 | 商业机会仅阐释未来验证路径 |
+
+最近一轮阶段文档记录为 **117 项 Node 测试、build、lint 通过及五套相关 Chromium 测试通过**；这是既有交接中的测试记录，不是此次 README 更新重新运行的结果。真实 DeepSeek、Tavily、Seedream 调用也应单独保留成功记录，不能用替身测试代替。
+
+## 🧭 V3 后续开发路线
+
+以 [25 · V3 详细方案](docs/timewalker_hackathon/docs/25-时空漫游者-双模式产品方案与开发规划.md) 和 [团队开工分工](docs/timewalker_hackathon/docs/团队开工速览与任务分工.md) 为新需求依据。下方是建议的五个可验收切片；完成 Trail P0 之前，不要把它当成现有功能宣传。
+
+| 切片 | 实现内容 | 验收标志 |
+|---|---|---|
+| D1 · Trail 契约 | `TrailDefinitionV1`、校验器、豫园四站 JSON、路由空壳 | 静态路线引用原有地点，非法引用被拒绝 |
+| D2 · 游客打卡 | 路线卡、手动打卡、印章、进度恢复、纪念卡 | 无模型/地图 Key 也能完整跑通 |
+| D3 · 运营交付 | 选站排序、文案编辑、JSON 导出或开发态发布 | 另一浏览器通过分享链接读到已发布修改 |
+| D4 · 模式联动 | 可选推荐卡、真实浏览器点击事件、故事⇄路线入口 | 打卡不被强制消费、无虚构收入统计 |
+| D5 · 演示收口 | 真实 AI 彩排、双故事 + 一条 Trail 回归、真机与五分钟演示 | Web 现场连续演示，有固定样板兜底 |
+
+**任务分工建议**：A 负责 Trail 数据与发布；B 负责游客打卡及联动；C 使用已有 `npm run agent:rehearse` 与供应商适配产生真实 AI 作品；D 负责体验内容、界面与答辩。共享 `App.tsx` / `HomePage.tsx` 由集成人统一协调。
+
+**取舍**：优先交付一个真实可访问的运营路线 URL 与完整游客体验，不因构建商业报表、第二条 Trail、复杂任务编排或 Deep Agents 迁移延迟 P0。
+
+## 📚 文档索引
+
+> **先判断文档类型再阅读。** V3 新方向以 **25 号产品方案**和**团队开工速览**为准。03 号任务板是此前故事/Agent 技术线的任务清单，Trail 的优先级应以 25 为准；01、02、18 和大部分开发日志属于历史背景，不能把其中“待开发”直接当成最新任务。
+
+### ① 产品定位、V3 规划与答辩
+
+| 文档 | 内容与适用范围 |
 |---|---|
-| 豫园、上海天文馆双样板 | ✅ 已有可运行预制体验 |
-| 共用 V1 故事引擎、选择与观察 | ✅ 已实现 |
-| 双主题、室内手动展区与故事记录 | ✅ 已实现 |
-| 编辑器、故事图、审核与本地发布 | ✅ 已实现 |
-| 双样板正式构建离线缓存 | ✅ 已实现 |
-| Creative Studio 双概念 → 节拍 → 候选导入 | ✅ 前后端已实现，自动化使用替身模型验证 |
-| 真实 DeepSeek 创作质量 | 🧪 待使用团队真实凭据联调 |
-| Deep Agents 自主研究与任务编排 | 📐 设计方向，尚未集成到应用 |
-| Tavily 搜索与结果正文提取 | ✅ 已接入 Studio 与创作上下文；真实凭据联调待完成 |
-| Studio 恢复、成果导入导出、网关彩排命令 | ✅ 已实现，刷新/换浏览器可继续使用已完成候选 |
-| Seedream 逐章插画与持久素材 | ✅ 已接入候选/导出/发布链；真实凭据联调待完成 |
-| 云端 TTS | 📐 已有调研与独立接入资料，尚未接进应用 |
-| 真实 GPS / 室内定位、正式 CMS 服务 | — 不属于当前演示版能力 |
+| **[25 · 双模式产品方案与后续开发规划](docs/timewalker_hackathon/docs/25-时空漫游者-双模式产品方案与开发规划.md)** | **V3 当前主方案**：Story + Trail、运营推荐、数据契约、开发切片、验收与答辩 |
+| **[团队开工速览与任务分工](docs/timewalker_hackathon/docs/团队开工速览与任务分工.md)** | **V3 分工入口**：四条工作线、五日冲刺、共享代码所有权 |
+| [08 · 五分钟答辩讲稿（双故事版）](docs/timewalker_hackathon/docs/08-五分钟答辩讲稿.md) | 已有双样板展示稿；**需按 V3 Trail 场景更新后才是最终答辩稿** |
+| [02 · 最初答辩产品说明](docs/timewalker_hackathon/docs/02-答辩产品说明.md) | 历史：故事模式早期立意与演示素材 |
+| [20 · 双样板轻量化实施方案](docs/timewalker_3_scope/20-双样板创作优先实施方案.md) | 阶段方案：从单一豫园扩展为两种叙事题材 |
 
-现阶段优先事项是**验证真实模型能为两个题材生成不同的故事构想并成功编译**，按需结合已接入的研究资料，之后再逐步接入自动素材生产和更完整的创作智能体。项目没有把重型任务调度、严格空间导航或复杂游戏验证作为第一版的必要条件。
+### ② 当前状态、待办与开发接手
 
-## 📚 进一步阅读
-
-新成员先读 [文档导航与当前状态](docs/timewalker_hackathon/docs/README.md)，再按 [当前任务板](docs/timewalker_hackathon/docs/03-开发任务拆解.md) 接续开发；产品演示使用 [双样板五分钟讲稿](docs/timewalker_hackathon/docs/08-五分钟答辩讲稿.md)。01/02/18 和阶段日志用于追溯，不直接用作当前待办。
-
-| 文档 | 适合了解 |
+| 文档 | 内容与适用范围 |
 |---|---|
-| [文档导航与当前状态](docs/timewalker_hackathon/docs/README.md) | 唯一状态入口、阅读顺序、证据轮次 |
-| [03 · 当前任务板](docs/timewalker_hackathon/docs/03-开发任务拆解.md) | 待办、优先级、分工与验收 |
-| [22 · Agent 阶段分工记录](docs/timewalker_hackathon/docs/22-现状调研与后续开发分工.md) | 历史分工与已完成增量 |
-| [23 · Agent 研究与演示成果交接](docs/timewalker_hackathon/docs/23-Agent研究与演示成果交接.md) | 联网研究、成果恢复/导入导出、真实网关彩排 |
-| [24 · 生成素材闭环与开发待办](docs/timewalker_hackathon/docs/24-生成素材闭环与开发待办.md) | 逐章生图、持久素材、携带新增媒体与后续任务 |
-| [21 · 双样板开发交接](docs/timewalker_hackathon/docs/21-双样板落地与交接.md) | 双主题落地、离线、媒体、兼容性 |
-| [18 · Builder Agent 原始设计](docs/timewalker_hackathon/docs/18-Builder-Agent-设计.md) | Agent 平台方案与架构背景，部分范围已调整 |
-| [Builder Agent V2 实施设计](docs/timewalker_4_builder/docs/18-Builder-Agent-设计-V2.0-可实施版.md) | Deep Agents、Tools、编译与素材生产的下一阶段参考 |
-| [真实服务接入手册](docs/timewalker_2_intergration/docs/19-Builder-Agent-真实依赖与实施手册.md) | 搜索、地图、生图、语音外部服务的选择与探针 |
-| [本地开发交接](docs/timewalker_hackathon/docs/09-本地开发交接.md) | 迁移、运行环境和原有代码约定 |
+| [文档导航与当前实现状态](docs/timewalker_hackathon/docs/README.md) | 既有能力、历史验证轮次、文档用途；新增 Trail 以 25 号方案为准 |
+| [03 · 原故事/Agent 开发任务板](docs/timewalker_hackathon/docs/03-开发任务拆解.md) | 既有 AI 创作、声音、测试等任务；**尚不包含 V3 Trail 新需求** |
+| [09 · 本地开发交接](docs/timewalker_hackathon/docs/09-本地开发交接.md) | 环境准备、基线分支、关键代码、模型凭据和数据迁移 |
+| [07 · 离线演示与验收](docs/timewalker_hackathon/docs/07-离线演示与验收.md) | 已实现的两个固定故事离线准备、缓存与回归；不覆盖新增 Trail |
+| [21 · 双样板落地与交接](docs/timewalker_hackathon/docs/21-双样板落地与交接.md) | 双主题、室内展区、发布媒体与浏览器验收的阶段记录 |
+
+### ③ Agent 架构、外部依赖与技术决策
+
+| 文档 | 内容与适用范围 |
+|---|---|
+| [18 · Builder Agent 原始设计](docs/timewalker_hackathon/docs/18-Builder-Agent-设计.md) | 历史：完整 Agent 编排设想，部分任务已落地、部分已降级 |
+| [Builder Agent V2 · 可实施架构](docs/timewalker_4_builder/docs/18-Builder-Agent-设计-V2.0-可实施版.md) | 参考：Deep Agents、子 Agent、Tools 与创作编译；**不代表框架已在仓库集成** |
+| [19 · 外部服务依赖与接入手册](docs/timewalker_2_intergration/docs/19-Builder-Agent-真实依赖与实施手册.md) | Tavily、地图、Seedream、语音服务和真实调用探针 |
+| [01 · 原始技术设计](docs/timewalker_hackathon/docs/01-技术设计.md) | 历史：最初体验包设计、状态机与架构思想 |
+| [docs/design.md](docs/design.md) | 最初 AI 地图导览模块设计 |
+
+### ④ 实现记录、联调与历史进展
+
+| 文档 | 内容与适用范围 |
+|---|---|
+| [22 · Agent 现状调研与阶段分工](docs/timewalker_hackathon/docs/22-现状调研与后续开发分工.md) | 原 Agent 技术线的切片历史，不是 V3 Trail 排期 |
+| [23 · Agent 联网研究与演示成果交接](docs/timewalker_hackathon/docs/23-Agent研究与演示成果交接.md) | Tavily 研究、Studio 恢复、成果迁移、`agent:rehearse` |
+| [24 · 生成素材闭环与开发待办](docs/timewalker_hackathon/docs/24-生成素材闭环与开发待办.md) | Seedream 适配、持久图片、候选素材导入及阶段测试 |
+| [04 · 首轮实现与验收](docs/timewalker_hackathon/docs/04-首轮实现与验收.md) | 早期故事播放与状态机落地 |
+| [05 · M2 实现与验收](docs/timewalker_hackathon/docs/05-M2实现与验收.md) | 原始 Builder、模型网关、模板生成与审核 |
+| [06 · 游客互动体验](docs/timewalker_hackathon/docs/06-交互体验与可玩性.md) | 早期选择、观察、个人记录迭代 |
+| [10–17 · 专题开发日志](docs/timewalker_hackathon/docs/10-开发日志-可配置观察提示.md) | 观察提示、视觉声音、故事图、编辑安全及发布引导的阶段记录；从第 10 篇顺序浏览 |
+
+### ⑤ 可直接使用的代码、样例与截图
+
+| 资源 | 用途 |
+|---|---|
+| [豫园故事包](tour-hub-web/public/data/attractions/yuyuan-timewalker.json) / [天文馆故事包](tour-hub-web/public/data/attractions/shanghai-planetarium.json) | **当前可执行**双主题故事数据 |
+| [经典豫园地点包](tour-hub-web/public/data/attractions/yuyuan.json) | V3 Trail 复用的五个地点，首条路线选择其中四个 |
+| [豫园与天文馆 Creative Brief](docs/timewalker_3_scope/creative-briefs/) | 现有双故事的创作参数样例 |
+| [Agent 研究/生图接入脚本](docs/timewalker_2_intergration/scripts/smoke-providers.mjs) | 外部服务的独立冒烟脚本，需有效密钥 |
+| [项目截图](docs/screenshots/) | 首页、豫园、天文馆、编辑器、个人记录与离线准备 |
+
+**维护约定**：新范围与优先级变动先更新 25 和开工速览；开发任务完成后同步更新 [文档导航](docs/timewalker_hackathon/docs/README.md) 与对应任务板，避免用历史文档中的“下一步”指挥当前开发。每次交接区分已实现、自动化替身验证、真实服务验证与现场演示结果。
 
 ## 关于这个项目
 
-时空漫游者是一个仍在快速迭代的旅行体验原型，源自最初的 AI 景点导览探索，逐步发展为**以沉浸式叙事为核心、以可执行体验包为载体、以 AI 辅助创作为扩展方向**的 Trip Experience Engine。
+时空漫游者是一个仍在快速迭代的旅行体验原型，源自最初的 AI 景点导览探索，逐步发展为**故事吸引游客、主题路线帮助探索、创作与运营工作台生产和分发体验内容**的 Trip Experience Engine。Trail 是 V3 新增方向，目前尚未交付；既有两份故事依然是现阶段的可演示核心。
 
 两份样板含文学或科幻艺术创作；天文馆故事中的讯号与配图不代表真实科研资料，豫园家书与人物独白不代表已证实的历史事件。当前样板采用模拟地点事件，尚非经实地定位验证的导航产品。
 
