@@ -151,7 +151,9 @@ try {
   await studio.getByRole('heading', { name: fixture.candidate.experience.title }).waitFor()
   assert.equal(await cards.nth(1).isChecked(), true)
   const modelCallsBeforeImport = conceptCalls + compileCalls
-  await studio.getByLabel('创作成果文件').setInputFiles({ name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{broken') })
+  const brokenChooser = page.waitForEvent('filechooser')
+  await studio.getByRole('button', { name: '导入创作成果', exact: true }).click()
+  await (await brokenChooser).setFiles({ name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{broken') })
   await studio.getByRole('alert').waitFor()
   assert.equal(await studio.getByRole('heading', { name: fixture.candidate.experience.title }).count(), 1, 'invalid import retains previous candidate')
   await page.evaluate(() => localStorage.removeItem('timewalker:studio:v1'))
@@ -159,7 +161,9 @@ try {
   await studio.getByRole('button', { name: '导入创作成果' }).waitFor()
   assetUnavailable = true
   const readsBeforeImport = assetReads
-  await studio.getByLabel('创作成果文件').setInputFiles({ name: 'studio.json', mimeType: 'application/json', buffer: Buffer.from(exported) })
+  const importChooser = page.waitForEvent('filechooser')
+  await studio.getByRole('button', { name: '导入创作成果', exact: true }).click()
+  await (await importChooser).setFiles({ name: 'studio.json', mimeType: 'application/json', buffer: Buffer.from(exported) })
   await studio.getByText('已导入已完成的创作成果；没有重新调用模型，采用后仍进入独立待审草稿。', { exact: true }).waitFor()
   await studio.getByRole('heading', { name: fixture.candidate.experience.title }).waitFor()
   assert.equal(conceptCalls + compileCalls, modelCallsBeforeImport, 'restore/import does not silently call providers')

@@ -184,7 +184,7 @@ export function CreativeStudio({ catalog }: { catalog: CatalogItem[] }) {
     <div className="mt-3 flex flex-wrap items-center gap-3">
       <button type="button" className="min-h-11 rounded-lg border px-3 text-sm disabled:opacity-40" disabled={!!busy || !ready || !selectedId} onClick={exportSession}>{busy === 'export' ? '正在打包成果…' : '导出创作成果'}</button>
       <button type="button" className="min-h-11 rounded-lg border px-3 text-sm disabled:opacity-40" disabled={!!busy || !ready} onClick={() => fileInput.current?.click()}>导入创作成果</button>
-      <input ref={fileInput} type="file" accept="application/json,.json" className="sr-only" aria-label="创作成果文件" onChange={event => { importSession(event.target.files?.[0]); event.target.value = '' }} />
+      <input ref={fileInput} disabled={!!busy || !ready} type="file" accept="application/json,.json" className="sr-only" aria-label="创作成果文件" onChange={event => { importSession(event.target.files?.[0]); event.target.value = '' }} />
       <span className="text-xs text-gray-500" role="status">{ready ? storageNote : '正在恢复创作进度…'}</span>
     </div>
     {notice && <p className="mt-3 text-sm text-indigo-800" role="status">{notice}</p>}
