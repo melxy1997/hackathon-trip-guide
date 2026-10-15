@@ -315,11 +315,11 @@ tour-hub-web/public/experience-assets/
 | Deep Agents、自主工具调用、云端 TTS | 📐 后续增强 | 当前无需为新增 Trail 先引入这些依赖 |
 | 交易支付 / 商户结算 / GPS 核销 | — 不属于本轮 | 商业机会仅阐释未来验证路径 |
 
-最近运营续接切片 **127 项 Node、build/lint、扩展 Trail Chromium 通过**，见 [27](docs/timewalker_hackathon/docs/27-运营续接与体验收口.md)。此前 V3 **125 项 Node 测试、build、lint 及八套 Chromium 验收全部通过**，新增 Trail 冒烟覆盖真实临时发布与全新浏览器访问；详细结果见 [26](docs/timewalker_hackathon/docs/26-Trail实现与开发交接.md)。真实 DeepSeek、Tavily、Seedream 调用也应单独保留成功记录，不能用替身测试代替。
+最近运营/体验收口 **128 项 Node、build/lint、Trail/Studio/Creator/Offline 四套 Chromium 通过**，见 [27](docs/timewalker_hackathon/docs/27-运营续接与体验收口.md)。此前 V3 **125 项 Node 测试、build、lint 及八套 Chromium 验收全部通过**，新增 Trail 冒烟覆盖真实临时发布与全新浏览器访问；详细结果见 [26](docs/timewalker_hackathon/docs/26-Trail实现与开发交接.md)。真实 DeepSeek、Tavily、Seedream 调用也应单独保留成功记录，不能用替身测试代替。
 
 ## 🧭 V3 后续开发路线
 
-以 [25 · V3 详细方案](docs/timewalker_hackathon/docs/25-时空漫游者-双模式产品方案与开发规划.md) 和 [团队开工分工](docs/timewalker_hackathon/docs/团队开工速览与任务分工.md) 为新需求依据。D1–D4 的 Web 闭环已交付；当前继续 D5 的真实成果、声音、真机与演示收口。具体状态见 03 和 26。
+以 [25 · V3 详细方案](docs/timewalker_hackathon/docs/25-时空漫游者-双模式产品方案与开发规划.md) 和 [团队开工分工](docs/timewalker_hackathon/docs/团队开工速览与任务分工.md) 为新需求依据。D1–D4 的 Web 闭环已交付；当前继续 D5 的真实成果、声音、真机与演示收口。具体任务、依赖、建议分工与逐项验收见 [03](docs/timewalker_hackathon/docs/03-开发任务拆解.md)，实现见 26/27。
 
 | 切片 | 实现内容 | 验收标志 |
 |---|---|---|

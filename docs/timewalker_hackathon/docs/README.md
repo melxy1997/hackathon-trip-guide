@@ -52,7 +52,7 @@ V3 初轮实现见 [26-Trail实现与开发交接](26-Trail实现与开发交接
 
 | 轮次 | 已记录结果 |
 |---|---|
-| 运营续接，27 号切片一 | 127/127 Node、build/lint、扩展 Trail Chromium 通过；未重跑其他浏览器套件 |
+| 运营续接与体验收口，至 `424d8c2` | 128/128 Node、build/lint、Trail/Studio/Creator/Offline 四套 Chromium 通过；其他四套本轮未重跑 |
 | V3 Trail，代码至 `935fd99` | 125/125 Node、build/lint、Trail 与原有七套共八套 Chromium 通过；含最终构建真实 Worker 离线复验 |
 | 素材闭环，代码至 `d918461` | 117/117 Node 测试、build、lint 无警告；Studio、Creator、Builder、Dual、Offline 五套 Chromium 通过 |
 | 前一轮研究/成果交接，至 `e0c449d` | 112/112 Node 测试、build、lint；全部七套 Chromium 通过，包含 Smoke、Playability |
