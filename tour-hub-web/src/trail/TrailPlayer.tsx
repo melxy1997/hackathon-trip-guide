@@ -36,10 +36,13 @@ export function TrailPlayer({ trail, pkg, preview = false }: { trail: TrailDefin
   const [message, setMessage] = useState('')
   const [storageFailed, setStorageFailed] = useState(false)
   const [resetConfirm, setResetConfirm] = useState(false)
+  const [expandedDescription, setExpandedDescription] = useState(false)
   const started = useRef(false)
   const focusTarget = useRef<HTMLElement>(null)
   const progress = session.completedCheckpointIds.length
   const complete = progress === trail.checkpoints.length
+  const descriptionChars = Array.from(trail.description)
+  const longDescription = descriptionChars.length > 180
   const persist = useCallback((key: string, value: unknown) => {
     if (preview) return
     try { localStorage.setItem(key, JSON.stringify(value)) } catch { setStorageFailed(true) }
@@ -71,7 +74,7 @@ export function TrailPlayer({ trail, pkg, preview = false }: { trail: TrailDefin
   return <div className="tr-page"><header className="tr-header"><Link to={preview ? `/publish/trails/${trail.id}` : '/'}><ArrowLeft size={17} />{preview ? '返回路线编辑' : '时空漫游者'}</Link><span>主题路线 · 手动打卡</span></header>
     <main className="tr-main">
       {preview && <p className="tr-notice">本机草稿预览 · 尚未发布，不写入游客进度</p>}
-      <section className="tr-hero"><TrailImage key={trail.coverImage ?? pkg.coverImage} src={resolveMediaUrl(pkg, trail.coverImage ?? pkg.coverImage)} alt={`${trail.title}路线封面`} /><div><small>TIMEWALKER · TRAIL</small><h1>{trail.title}</h1><p>{trail.description}</p><span>{trail.checkpoints.length} 站{trail.estimatedMinutes ? ` · 参考 ${trail.estimatedMinutes} 分钟` : ''} · 自由停留</span></div></section>
+      <section className="tr-hero"><TrailImage key={trail.coverImage ?? pkg.coverImage} src={resolveMediaUrl(pkg, trail.coverImage ?? pkg.coverImage)} alt={`${trail.title}路线封面`} /><div className="tr-hero-copy"><small>TIMEWALKER · TRAIL</small><h1>{trail.title}</h1><p id={`trail-intro-${trail.id}`} className="tr-description">{longDescription && !expandedDescription ? `${descriptionChars.slice(0, 180).join('')}…` : trail.description}</p>{longDescription && <button className="tr-description-toggle" aria-expanded={expandedDescription} aria-controls={`trail-intro-${trail.id}`} onClick={() => setExpandedDescription(!expandedDescription)}>{expandedDescription ? '收起路线介绍' : '展开完整路线介绍'}</button>}<span>{trail.checkpoints.length} 站{trail.estimatedMinutes ? ` · 参考 ${trail.estimatedMinutes} 分钟` : ''} · 自由停留</span></div></section>
       <div className="tr-progress" aria-label="路线进度"><div><Stamp size={23} /><strong>已收集 {progress} / {trail.checkpoints.length} 枚印章</strong></div><progress aria-label="已完成站点" value={progress} max={trail.checkpoints.length} /><p>按顺序探索，亲手确认。无需 GPS；不代表实地到站核验。</p></div>
       {storageFailed && <p className="tr-notice" role="alert">浏览器存储不可用，本次仍可完成；刷新后可能无法恢复，请先保存纪念卡。</p>}
       {message && <p className="tr-notice" role="status">{message}</p>}
@@ -84,7 +87,7 @@ export function TrailPlayer({ trail, pkg, preview = false }: { trail: TrailDefin
           {done && <p className="tr-stamp-text">✦ {cp.stampLabel}</p>}
         </article>{trail.recommendations?.filter(rec => rec.afterCheckpointId === cp.id && done).map(rec => <Recommendation key={`${session.sessionId}:${rec.id}`} recommendation={rec} onEvent={record} />)}</li>
       })}</ol>
-      {complete && <section className="tr-finish" aria-label="探索完成" ref={focusTarget} tabIndex={-1}><small>探索过的风景，成为你的记忆</small><h2>这一路的风景，已收进你的纪念卡</h2><div className="tr-seals">{trail.checkpoints.map(cp => <span key={cp.id}>✦<br />{cp.stampLabel}</span>)}</div><p>由本次 {progress} 次手动打卡生成，不是到店或消费凭证。</p><button className="tr-button tr-primary" onClick={download}><Download size={18} />保存探索纪念卡</button></section>}
+      {complete && <section className="tr-finish" aria-label="探索完成" ref={focusTarget} tabIndex={-1}><small>探索过的风景，成为你的记忆</small><h2>这一路的风景，已收进你的纪念卡</h2><div className="tr-seals">{trail.checkpoints.map(cp => <span className="tr-seal" key={cp.id}><b aria-hidden="true">✦</b><span>{cp.stampLabel}</span></span>)}</div><p>由本次 {progress} 次手动打卡生成，不是到店或消费凭证。</p><button className="tr-button tr-primary" onClick={download}><Download size={18} />保存探索纪念卡</button></section>}
       <div className="tr-actions">{!!progress && <button className="tr-button" onClick={undo}>撤销上一次打卡</button>}{!!progress && <button className="tr-button" onClick={() => setResetConfirm(true)}>重新开始探索</button>}{trail.relatedExperienceId && <Link className="tr-button" to={`/experience/${trail.relatedExperienceId}`}>换一种方式 · 体验相关故事</Link>}</div>
       {resetConfirm && <div className="tr-notice" role="group" aria-label="重新开始确认"><p>重新开始会清除本条路线的印章进度。可以先保存纪念卡。</p><button className="tr-button" onClick={() => setResetConfirm(false)}>保留当前进度</button><button className="tr-button" onClick={restart}>确认重新开始</button></div>}
       <details className="tr-events"><summary>查看本机演示事件（{events.length}）</summary><p>仅当前浏览器，最多保留 200 条；不代表跨设备流量、订单或收益。</p><ol>{events.slice(-30).map((event, index) => <li key={`${event.at}:${index}`}>{event.type}{event.targetId ? ` · ${event.targetId}` : ''} · {new Date(event.at).toLocaleTimeString()}</li>)}</ol></details>

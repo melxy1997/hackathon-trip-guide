@@ -118,3 +118,14 @@ test('publication status compares normalized editable content, not timestamps or
   assert.equal(sameTrailContent(reordered, trail), false)
   assert.equal(sameTrailContent({ ...trail, title: '' }, trail), false)
 })
+
+test('souvenir wraps the complete Unicode title and strips invalid XML characters', () => {
+  const trail = fixture()
+  trail.title = `${'漫'.repeat(80)}🌏✨👨‍👩‍👧‍👦`
+  trail.checkpoints[0].stampLabel = '探索\u0001 < & \uD800'
+  const svg = trailCardSvg(trail, confirmCheckpoint(freshTrailSession(trail), trail, trail.checkpoints[0].id))
+  assert.equal([...svg.matchAll(/<tspan[^>]*>(.*?)<\/tspan>/gu)].map(match => match[1]).join(''), trail.title)
+  assert.ok(!svg.includes('\u0001') && !svg.includes('\uD800'))
+  assert.match(svg, /&lt; &amp; �/)
+  assert.ok(Number(svg.match(/height="(\d+)"/)?.[1]) > 920)
+})

@@ -9,6 +9,7 @@ export function TrailManager() {
   const navigate = useNavigate()
   const importInput = useRef<HTMLInputElement>(null)
   const operation = useRef(false)
+  const active = useRef(true)
   const [published, setPublished] = useState<TrailCatalogItem[]>([])
   const [snapshots, setSnapshots] = useState<Record<string, TrailDefinitionV1>>({})
   const [checked, setChecked] = useState(false)
@@ -18,6 +19,7 @@ export function TrailManager() {
   const [busy, setBusy] = useState(false)
   const [removing, setRemoving] = useState('')
   useEffect(() => {
+    active.current = true
     let cancelled = false
     void (async () => {
       try {
@@ -28,7 +30,7 @@ export function TrailManager() {
         if (!cancelled) setSnapshots(Object.fromEntries(results.flatMap(result => result.status === 'fulfilled' ? [[result.value.trail.id, result.value.trail]] : [])))
       } catch { if (!cancelled) setError('已发布路线目录暂不可用；发布状态未核实，仍可编辑本机草稿。') }
     })()
-    return () => { cancelled = true }
+    return () => { cancelled = true; active.current = false }
   }, [])
   const importFile = async (file: File) => {
     if (operation.current) return
@@ -39,6 +41,7 @@ export function TrailManager() {
       try { raw = JSON.parse(await file.text()) } catch { throw new Error('文件不是有效的路线 JSON；原有草稿未更改。') }
       const candidate = assertTrail(raw)
       const pkg = await loadPublishedAttraction(candidate.baseAttractionId).catch(() => { throw new Error(`基础景点 ${candidate.baseAttractionId} 不存在或无法读取。请先迁移对应的景点包，再导入路线。`) })
+      if (!active.current) return
       const draft = importTrailDraft(candidate, pkg)
       navigate(`/publish/trails/${draft.id}`)
     } catch (e) { setError(e instanceof Error ? e.message : '导入失败，原有路线未更改。') }
@@ -49,6 +52,7 @@ export function TrailManager() {
     operation.current = true; setBusy(true); setError('')
     try {
       const { trail, pkg } = await loadTrail(id)
+      if (!active.current) return
       const draft = importTrailDraft({ ...trail, title: `${trail.title.slice(0, 95)} · 副本` }, pkg)
       navigate(`/publish/trails/${draft.id}`)
     } catch (e) { setError(e instanceof Error ? e.message : '复制失败；原有路线未更改。') }

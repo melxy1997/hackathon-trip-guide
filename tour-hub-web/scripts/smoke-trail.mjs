@@ -210,13 +210,85 @@ try {
   await manager.getByText('没有匹配的路线，试试其他标题或 ID。', { exact: true }).waitFor()
   await manager.getByRole('searchbox', { name: '查找路线', exact: true }).fill('')
   await manager.screenshot({ path: `${output}/trail-manager-390.png` })
+  // Leaving the manager while import reads a package must not navigate back or create a ghost draft.
+  let releasePackage
+  const packageGate = new Promise(resolve => { releasePackage = resolve })
+  await editor.route('**/data/attractions/yuyuan.json', async route => { await packageGate; await route.continue() })
+  const delayedRequest = editor.waitForRequest('**/data/attractions/yuyuan.json')
+  const beforeLeaving = await editor.evaluate(() => Object.keys(localStorage).filter(key => key.startsWith('timewalker:trail-draft:')).length)
+  await importFile(exportedJson)
+  await delayedRequest
+  await editor.getByRole('link', { name: '前台', exact: true }).click()
+  await editor.waitForURL(base + '/')
+  const completedRequest = editor.waitForResponse('**/data/attractions/yuyuan.json')
+  releasePackage()
+  await (await completedRequest).finished()
+  await editor.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)))
+  assert.equal(new URL(editor.url()).pathname, '/')
+  assert.equal(await editor.evaluate(() => Object.keys(localStorage).filter(key => key.startsWith('timewalker:trail-draft:')).length), beforeLeaving)
+  await editor.unroute('**/data/attractions/yuyuan.json')
+  await editor.goto(`${base}/publish`)
+  assert.equal(await editor.evaluate(() => Object.keys(localStorage).filter(key => key.startsWith('timewalker:trail-draft:')).length), beforeLeaving)
   // Catalog failure must not turn a saved draft into a claim that it is unpublished.
   await editor.route('**/data/trails/catalog.json', route => route.fulfill({ status: 503, body: 'unavailable' }))
   await editor.reload()
   await manager.getByRole('listitem', { name: `路线 ${copyId}`, exact: true }).getByText('本机草稿 · 发布状态未核实', { exact: true }).waitFor()
 
   assert.ok(await editor.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
+  // Long-copy fixture is written by the real publisher into the same disposable directory.
+  const longTrail = {
+    ...saved, id: `long-${crypto.randomUUID()}`, title: `${'漫'.repeat(96)}🌏✨`,
+    description: '园林中的每一处风景都值得慢慢发现。'.repeat(100).slice(0, 1000),
+    coverImage: '/spots/missing-trail-cover.jpg',
+    checkpoints: saved.checkpoints.map(cp => ({ ...cp, heading: 'W'.repeat(100), instruction: '探索'.repeat(300), stampLabel: '漫'.repeat(20) })),
+    recommendations: saved.recommendations.map(rec => ({ ...rec, title: 'R'.repeat(100), description: 'D'.repeat(600) })),
+  }
+  const longResponse = await operator.request.post(`${publicationBase}/__trip_guide/trails/export`, { data: { trail: longTrail } })
+  assert.equal(longResponse.ok(), true)
+  for (const width of [320, 390]) {
+    const context = await browser.newContext({ viewport: { width, height: 844 }, reducedMotion: 'reduce', acceptDownloads: true })
+    await attachPublication(context)
+    const page = await context.newPage()
+    page.on('pageerror', error => errors.push(error.message))
+    await page.goto(`${base}/trail/${longTrail.id}`)
+    await page.getByRole('heading', { name: longTrail.title, exact: true }).waitFor()
+    const toggle = page.getByRole('button', { name: '展开完整路线介绍', exact: true })
+    assert.equal(await toggle.getAttribute('aria-expanded'), 'false')
+    await toggle.click()
+    assert.equal(await page.locator('.tr-description').innerText(), longTrail.description)
+    assert.equal(await page.getByRole('button', { name: '收起路线介绍', exact: true }).getAttribute('aria-expanded'), 'true')
+    assert.equal(await page.evaluate(() => {
+      const hero = document.querySelector('.tr-hero').getBoundingClientRect()
+      return [...document.querySelectorAll('.tr-hero h1,.tr-description')].every(element => {
+        const rect = element.getBoundingClientRect()
+        return rect.top >= hero.top && rect.bottom <= hero.bottom && rect.left >= hero.left && rect.right <= hero.right
+      }) && document.documentElement.scrollWidth <= innerWidth
+    }), true, 'entire expanded copy stays inside a flexible hero, without horizontal overflow')
+    await page.getByRole('button', { name: '收起路线介绍', exact: true }).click()
+    await page.screenshot({ path: `${output}/trail-long-copy-${width}.png`, fullPage: true })
+    for (let index = 0; index < 4; index++) await page.getByRole('button', { name: /完成打卡/ }).click()
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
+    assert.equal(await page.locator('.tr-seal').evaluateAll(seals => seals.every(seal => seal.scrollHeight <= seal.clientHeight && seal.scrollWidth <= seal.clientWidth)), true, '20-character stamp labels remain inside seals')
+    const cardPromise = page.waitForEvent('download')
+    await page.getByRole('button', { name: '保存探索纪念卡', exact: true }).click()
+    const card = await readFile(await (await cardPromise).path(), 'utf8')
+    assert.equal(await page.evaluate(({ card, title }) => {
+      const parsed = new DOMParser().parseFromString(card, 'image/svg+xml')
+      if (parsed.querySelector('parsererror')) return false
+      const svg = document.importNode(parsed.documentElement, true)
+      svg.style.position = 'fixed'; svg.style.left = '-10000px'
+      document.body.append(svg)
+      const result = [...svg.querySelectorAll('tspan')].map(span => span.textContent).join('') === title
+        && [...svg.querySelectorAll('text')].every(text => {
+          const box = text.getBBox()
+          return box.x >= 24 && box.x + box.width <= 696 && box.y >= 24 && box.y + box.height <= svg.viewBox.baseVal.height - 24
+        })
+      svg.remove()
+      return result
+    }, { card, title: longTrail.title }), true, 'download preserves the complete title and keeps SVG text inside the card')
+    await context.close()
+  }
   await visitor.close(); await operator.close()
   assert.deepEqual(errors, [])
-  console.log('PASS Trail stamps/recovery/card, operator edit/preview/real static publication, clean second-browser access, recommendation click, Story links, static export fallback, publication status, JSON handoff, duplication, draft-only removal and 320/390px')
+  console.log('PASS Trail stamps/recovery/card, operator edit/preview/real static publication, clean second-browser access, recommendation click, Story links, static export fallback, publication status, JSON handoff, duplication, draft-only removal, long-copy layout/card and 320/390px')
 } finally { await browser.close(); await publication.close(); await rm(publicationRoot, { recursive: true, force: true }) }
