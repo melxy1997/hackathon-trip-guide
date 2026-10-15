@@ -25,6 +25,28 @@ export function saveTrailDraft(trail: TrailDefinitionV1): boolean {
 export function listTrailDrafts(): TrailDefinitionV1[] {
   try { return Object.keys(localStorage).filter(key => key.startsWith(PREFIX)).flatMap(key => { const draft = getTrailDraft(key.slice(PREFIX.length)); return draft ? [draft] : [] }) } catch { return [] }
 }
+export function removeTrailDraft(id: string): boolean {
+  try { trailId(id); localStorage.removeItem(`${PREFIX}${id}`); return true } catch { return false }
+}
+/** Compare editable content, ignoring publication time and optional empty recommendation lists. */
+export function sameTrailContent(draft: TrailDefinitionV1, published: TrailDefinitionV1): boolean {
+  const content = (trail: TrailDefinitionV1) => {
+    const { publishedAt: _publishedAt, recommendations = [], ...rest } = assertTrail(trail)
+    return JSON.stringify({ ...rest, recommendations })
+  }
+  try { return content(draft) === content(published) } catch { return false }
+}
+/** Imports and copies always get a new identity; never overwrite the source or an existing draft. */
+export function importTrailDraft(raw: unknown, pkg: PublishedAttraction): TrailDefinitionV1 {
+  const source = assertTrail(raw, pkg)
+  const { publishedAt: _publishedAt, ...content } = source
+  const trail = { ...content, id: `trail-${crypto.randomUUID()}` }
+  try {
+    if (localStorage.getItem(`${PREFIX}${trail.id}`) !== null) throw new Error('新草稿 ID 已存在，请重新导入。')
+    if (!saveTrailDraft(trail)) throw new Error('本机存储不足或不可用；未导入，请保留原 JSON 文件。')
+  } catch (error) { throw new Error(error instanceof Error ? error.message : '浏览器无法保存草稿；原有路线未更改。') }
+  return trail
+}
 export function newTrail(pkg: PublishedAttraction, id = `trail-${crypto.randomUUID()}`): TrailDefinitionV1 {
   return { schemaVersion: 1, id, baseAttractionId: pkg.id, title: `${pkg.name} · 我的主题探索`, description: '按自己的节奏走过目的地，收集一枚枚风景印章。', coverImage: pkg.coverImage, estimatedMinutes: 40,
     checkpoints: pkg.spots.slice(0, 4).map((spot, index) => ({ id: `stop-${index + 1}`, spotId: spot.id, heading: `${index + 1}. ${spot.name}`, instruction: `在${spot.name}留意一处喜欢的细节，再亲手确认完成探索。`, stampLabel: spot.name.slice(0, 20) })) }

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { assertTrail, trailFingerprint, trailHref } from '../trailSchema.ts'
 import { confirmCheckpoint, freshTrailSession, restoreTrailSession, trailCardSvg, undoCheckpoint } from '../trailSession.ts'
-import { getTrailDraft, saveTrailDraft } from '../trailDrafts.ts'
+import { getTrailDraft, importTrailDraft, removeTrailDraft, sameTrailContent, saveTrailDraft } from '../trailDrafts.ts'
 import type { PublishedAttraction } from '../../lib/tourPackage.ts'
 const pkg = JSON.parse(readFileSync(new URL('../../../public/data/attractions/yuyuan.json', import.meta.url), 'utf8')) as PublishedAttraction
 const fixture = () => assertTrail(JSON.parse(readFileSync(new URL('../../../public/data/trails/yuyuan-four-sights.json', import.meta.url), 'utf8')), pkg)
@@ -70,4 +70,51 @@ test('partial operator drafts survive refresh while malformed storage is ignored
     entries.set(`timewalker:trail-draft:v1:${draft.id}`, '{corrupt')
     assert.equal(getTrailDraft(draft.id), null)
   } finally { Reflect.deleteProperty(globalThis, 'localStorage') }
+})
+
+test('trail handoff imports create independent identities and reject invalid references without writes', () => {
+  const entries = new Map<string, string>()
+  const original = fixture()
+  const sourceJson = JSON.stringify(original)
+  entries.set(`timewalker:trail-draft:v1:${original.id}`, sourceJson)
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
+    getItem: (key: string) => entries.get(key) ?? null,
+    setItem: (key: string, value: string) => entries.set(key, value),
+    removeItem: (key: string) => entries.delete(key),
+  } })
+  try {
+    const imported = importTrailDraft({ ...original, publishedAt: 1234 }, pkg)
+    assert.notEqual(imported.id, original.id)
+    assert.equal(imported.publishedAt, undefined)
+    assert.deepEqual(imported.checkpoints, original.checkpoints)
+    assert.deepEqual(getTrailDraft(imported.id), imported)
+    assert.equal(entries.get(`timewalker:trail-draft:v1:${original.id}`), sourceJson)
+    assert.equal(JSON.stringify(original), sourceJson)
+    const size = entries.size
+    const invalid = structuredClone(original); invalid.checkpoints[0].spotId = 'invented'
+    assert.throws(() => importTrailDraft(invalid, pkg), /未知地点/)
+    assert.throws(() => importTrailDraft({ ...original, baseAttractionId: 'unknown' }, pkg), /基础景点/)
+    assert.equal(entries.size, size)
+    entries.set(`timewalker:trail:v1:${original.id}`, 'visitor-progress')
+    entries.set(`timewalker:trail-events:v1:${original.id}`, 'visitor-events')
+    assert.equal(removeTrailDraft(original.id), true)
+    assert.equal(getTrailDraft(original.id), null)
+    assert.equal(entries.get(`timewalker:trail:v1:${original.id}`), 'visitor-progress')
+    assert.equal(entries.get(`timewalker:trail-events:v1:${original.id}`), 'visitor-events')
+    assert.deepEqual(getTrailDraft(imported.id), imported)
+    Object.defineProperty(globalThis, 'localStorage', { configurable: true, get() { throw new Error('storage disabled') } })
+    assert.throws(() => importTrailDraft(original, pkg), /storage disabled/)
+    assert.equal(removeTrailDraft(imported.id), false)
+  } finally { Reflect.deleteProperty(globalThis, 'localStorage') }
+})
+
+test('publication status compares normalized editable content, not timestamps or property order', () => {
+  const trail = fixture()
+  const differentOrder = { publishedAt: 800, ...structuredClone(trail), recommendations: trail.recommendations?.map(rec => ({ ...rec, title: `  ${rec.title}  ` })) }
+  assert.equal(sameTrailContent(trail, differentOrder), true)
+  assert.equal(sameTrailContent({ ...trail, recommendations: undefined }, { ...trail, recommendations: [] }), true)
+  assert.equal(sameTrailContent({ ...trail, title: 'Changed' }, trail), false)
+  const reordered = { ...trail, checkpoints: [...trail.checkpoints].reverse() }
+  assert.equal(sameTrailContent(reordered, trail), false)
+  assert.equal(sameTrailContent({ ...trail, title: '' }, trail), false)
 })

@@ -92,7 +92,7 @@
 
 <table><tr><th>四站探索</th><th>集章纪念卡</th></tr><tr><td><img src="docs/screenshots/timewalker-trail-opening.png" alt="豫园主题路线打卡" /></td><td><img src="docs/screenshots/timewalker-trail-finish.png" alt="完成探索与纪念卡" /></td></tr></table>
 
-[查看运营编辑界面](docs/screenshots/timewalker-trail-editor.png)
+[查看运营编辑界面](docs/screenshots/timewalker-trail-editor.png)；路线查找、独立导入/复制与草稿状态续接见 [27](docs/timewalker_hackathon/docs/27-运营续接与体验收口.md)。
 
 ## ▶️ 立即体验
 
@@ -137,7 +137,7 @@ npm run dev:full
 
 ## 🎨 从灵感到可执行体验
 
-游客侧是「时空漫游者」，创作者侧是 **Trip Experience Engine / Creative Studio**。V3 将在同一个后台增加运营人员使用的 Trail Editor；目前该路线编辑器尚未开发。
+游客侧是「时空漫游者」，创作者侧是 **Trip Experience Engine / Creative Studio**。V3 已在同一个后台提供运营人员使用的 Trail Editor，支持路线编排、预览、发布，以及独立 JSON 导入与复制。
 
 现有发布后台支持三种互补的创作方式：
 
@@ -315,7 +315,7 @@ tour-hub-web/public/experience-assets/
 | Deep Agents、自主工具调用、云端 TTS | 📐 后续增强 | 当前无需为新增 Trail 先引入这些依赖 |
 | 交易支付 / 商户结算 / GPS 核销 | — 不属于本轮 | 商业机会仅阐释未来验证路径 |
 
-本轮 V3 **125 项 Node 测试、build、lint 及八套 Chromium 验收全部通过**，新增 Trail 冒烟覆盖真实临时发布与全新浏览器访问；详细结果见 [26](docs/timewalker_hackathon/docs/26-Trail实现与开发交接.md)。真实 DeepSeek、Tavily、Seedream 调用也应单独保留成功记录，不能用替身测试代替。
+最近运营续接切片 **127 项 Node、build/lint、扩展 Trail Chromium 通过**，见 [27](docs/timewalker_hackathon/docs/27-运营续接与体验收口.md)。此前 V3 **125 项 Node 测试、build、lint 及八套 Chromium 验收全部通过**，新增 Trail 冒烟覆盖真实临时发布与全新浏览器访问；详细结果见 [26](docs/timewalker_hackathon/docs/26-Trail实现与开发交接.md)。真实 DeepSeek、Tavily、Seedream 调用也应单独保留成功记录，不能用替身测试代替。
 
 ## 🧭 V3 后续开发路线
 
@@ -341,6 +341,7 @@ tour-hub-web/public/experience-assets/
 
 | 文档 | 内容与适用范围 |
 |---|---|
+| **[27 · 运营续接与体验收口](docs/timewalker_hackathon/docs/27-运营续接与体验收口.md)** | 路线迁移、发布状态、查找/复制/草稿管理与最新验证 |
 | **[26 · Trail 实现与交接](docs/timewalker_hackathon/docs/26-Trail实现与开发交接.md)** | 实际交付、真实静态发布、测试与剩余范围 |
 | **[25 · 双模式产品方案与后续开发规划](docs/timewalker_hackathon/docs/25-时空漫游者-双模式产品方案与开发规划.md)** | **V3 当前主方案**：Story + Trail、运营推荐、数据契约、开发切片、验收与答辩 |
 | **[团队开工速览与任务分工](docs/timewalker_hackathon/docs/团队开工速览与任务分工.md)** | **V3 分工入口**：四条工作线、五日冲刺、共享代码所有权 |
@@ -394,7 +395,7 @@ tour-hub-web/public/experience-assets/
 
 ## 关于这个项目
 
-时空漫游者是一个仍在快速迭代的旅行体验原型，源自最初的 AI 景点导览探索，逐步发展为**故事吸引游客、主题路线帮助探索、创作与运营工作台生产和分发体验内容**的 Trip Experience Engine。Trail 是 V3 新增方向，目前尚未交付；既有两份故事依然是现阶段的可演示核心。
+时空漫游者是一个仍在快速迭代的旅行体验原型，源自最初的 AI 景点导览探索，逐步发展为**故事吸引游客、主题路线帮助探索、创作与运营工作台生产和分发体验内容**的 Trip Experience Engine。V3 已交付豫园四站 Trail、路线编辑与开发态真实静态发布；两份故事仍是产品的差异化核心。
 
 两份样板含文学或科幻艺术创作；天文馆故事中的讯号与配图不代表真实科研资料，豫园家书与人物独白不代表已证实的历史事件。当前样板采用模拟地点事件，尚非经实地定位验证的导航产品。
 
