@@ -84,6 +84,7 @@ export function publishedToDraft(pkg: PublishedAttraction): DraftAttraction {
     createdAt: pkg.publishedAt || now,
     updatedAt: now,
     ...(experience ? { experience } : {}),
+    ...(pkg.relatedTrailId ? { relatedTrailId: pkg.relatedTrailId } : {}),
     ...(pkg.presentation ? { presentation: structuredClone(pkg.presentation) } : {}),
   }
 }
@@ -126,7 +127,7 @@ export function createDraft(input: {
 }
 
 function contentChanged(before: DraftAttraction, after: DraftAttraction): boolean {
-  const content = (d: DraftAttraction) => [d.name, d.description, d.start, d.zoom, d.spots, d.coverImage, d.experience, d.presentation]
+  const content = (d: DraftAttraction) => [d.name, d.description, d.start, d.zoom, d.spots, d.coverImage, d.experience, d.presentation, d.relatedTrailId]
   return JSON.stringify(content(before)) !== JSON.stringify(content(after))
 }
 
@@ -289,6 +290,7 @@ export async function toPublishedPackage(
     assets: media.assets,
     ...(routes && Object.keys(routes).length > 0 ? { routes } : {}),
     ...(media.experience ? { experience: media.experience } : {}),
+    ...(draft.relatedTrailId ? { relatedTrailId: draft.relatedTrailId } : {}),
     ...(draft.presentation ? { presentation: structuredClone(draft.presentation) } : {}),
   }
   return assertPublishedAttraction(pkg)

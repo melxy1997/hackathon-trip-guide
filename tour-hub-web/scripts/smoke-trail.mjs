@@ -1,11 +1,32 @@
 import assert from 'node:assert/strict'
-import { mkdir, readFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises'
+import { join } from 'node:path'
+import { tmpdir } from 'node:os'
+import { createServer } from 'vite'
+import { trailExportPlugin } from '../vite-plugin-trail-export.ts'
 const { chromium } = await import(process.env.TIMEWALKER_PLAYWRIGHT_MODULE || 'playwright')
 const base = process.env.TIMEWALKER_BASE_URL || 'http://127.0.0.1:5174'
 const output = process.env.TIMEWALKER_TEST_OUTPUT || '/tmp/timewalker-trail'
 await mkdir(output, { recursive: true })
 const browser = await chromium.launch({ headless: true, executablePath: process.env.TIMEWALKER_CHROMIUM, args: ['--no-sandbox'] })
 const errors = []
+const publicationRoot = await mkdtemp(join(tmpdir(), 'timewalker-trail-browser-'))
+await mkdir(join(publicationRoot, 'public'), { recursive: true })
+await cp(new URL('../public/data/', import.meta.url), join(publicationRoot, 'public/data'), { recursive: true })
+const publication = await createServer({ root: publicationRoot, configFile: false, plugins: [trailExportPlugin()], server: { host: '127.0.0.1', port: 0 } })
+await publication.listen()
+const publicationBase = `http://127.0.0.1:${publication.httpServer.address().port}`
+const attachPublication = async context => {
+  await context.route('**/data/trails/*.json', async route => {
+    const response = await route.fetch({ url: `${publicationBase}${new URL(route.request().url()).pathname}` })
+    await route.fulfill({ response })
+  })
+  await context.route('**/__trip_guide/trails/export', async route => {
+    const headers = { ...route.request().headers(), origin: publicationBase }; delete headers.host
+    const response = await route.fetch({ url: `${publicationBase}/__trip_guide/trails/export`, headers })
+    await route.fulfill({ response })
+  })
+}
 try {
   for (const width of [390, 320]) {
     const context = await browser.newContext({ viewport: { width, height: 844 }, reducedMotion: 'reduce', acceptDownloads: true })
@@ -54,6 +75,72 @@ try {
     await page.getByRole('heading', { name: '路线暂时无法打开' }).waitFor()
     await context.close()
   }
+  const operator = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce', acceptDownloads: true })
+  await attachPublication(operator)
+  const editor = await operator.newPage()
+  editor.on('pageerror', error => errors.push(error.message))
+  await editor.goto(`${base}/publish`)
+  await editor.getByRole('link', { name: '新建探索路线', exact: true }).click()
+  await editor.getByRole('heading', { name: '编排你的探索路线', exact: true }).waitFor()
+  const trailId = new URL(editor.url()).pathname.split('/').at(-1)
+  assert.notEqual(trailId, 'new')
+  await editor.getByRole('textbox', { name: '路线标题', exact: true }).fill('客服配置的四重风景')
+  await editor.getByRole('button', { name: '下移第 1 站', exact: true }).click()
+  assert.match(await editor.getByRole('group', { name: '编辑站点 1', exact: true }).innerText(), /大假山/)
+  await editor.getByRole('combobox', { name: '关联故事（可选）', exact: true }).selectOption('yuyuan-timewalker')
+  await editor.getByRole('checkbox', { name: '启用一个推荐位', exact: true }).check()
+  await editor.getByRole('textbox', { name: '推荐链接（可选，HTTPS 或本站详情）', exact: true }).fill('javascript:bad')
+  assert.equal(await editor.getByRole('button', { name: '发布演示路线', exact: true }).isDisabled(), true)
+  await editor.getByRole('textbox', { name: '推荐链接（可选，HTTPS 或本站详情）', exact: true }).fill('/experience/yuyuan-timewalker')
+  await editor.getByRole('button', { name: '预览本机路线', exact: true }).click()
+  await editor.getByText('本机草稿预览 · 尚未发布，不写入游客进度', { exact: true }).waitFor()
+  await editor.getByRole('button', { name: /完成打卡/ }).click()
+  assert.equal(await editor.evaluate(id => localStorage.getItem(`timewalker:trail:v1:${id}`), trailId), null)
+  await editor.getByRole('button', { name: '收起草稿预览', exact: true }).click()
+  await editor.reload()
+  await editor.getByRole('textbox', { name: '路线标题', exact: true }).waitFor()
+  assert.equal(await editor.getByRole('textbox', { name: '路线标题', exact: true }).inputValue(), '客服配置的四重风景')
+  assert.equal(await editor.getByRole('link', { name: '打开已发布游客路线' }).count(), 0)
+  await editor.getByRole('button', { name: '发布演示路线', exact: true }).click()
+  await editor.getByRole('link', { name: '打开已发布游客路线', exact: true }).waitFor()
+  const shareUrl = await editor.getByRole('textbox', { name: '可分享的游客链接', exact: true }).inputValue()
+  assert.equal(new URL(shareUrl).pathname, `/trail/${trailId}`)
+  await editor.screenshot({ path: `${output}/trail-operator-390.png`, fullPage: true })
+  const saved = JSON.parse(await readFile(join(publicationRoot, `public/data/trails/${trailId}.json`), 'utf8'))
+  assert.equal(saved.checkpoints[0].spotId, 'da-jia-shan')
+  const visitor = await browser.newContext({ viewport: { width: 320, height: 844 }, reducedMotion: 'reduce' })
+  await attachPublication(visitor)
+  const page = await visitor.newPage()
+  page.on('pageerror', error => errors.push(error.message))
+  await page.goto(shareUrl)
+  await page.getByRole('heading', { name: '客服配置的四重风景', exact: true }).waitFor()
+  assert.equal(await page.evaluate(() => Object.keys(localStorage).some(key => key.startsWith('timewalker:trail-draft:'))), false, 'visitor does not share operator drafts')
+  for (let index = 0; index < 4; index++) await page.getByRole('button', { name: /完成打卡/ }).click()
+  const recommendation = page.getByRole('complementary', { name: '可选推荐' })
+  await recommendation.getByRole('link', { name: '了解这项推荐' }).click()
+  await page.waitForURL('**/experience/yuyuan-timewalker')
+  const events = await page.evaluate(id => JSON.parse(localStorage.getItem(`timewalker:trail-events:v1:${id}`)), trailId)
+  assert.equal(events.filter(event => event.type === 'promotion_click').length, 1)
+  assert.equal(events.filter(event => event.type === 'checkpoint_confirm').length, 4)
+  await page.goto(`${base}/experience/yuyuan-timewalker?director=1`)
+  await page.locator('.tw-experience').waitFor()
+  await page.getByRole('button', { name: '开启时空漫游', exact: true }).click()
+  await page.getByRole('button', { name: '终幕：一园一念', exact: true }).click()
+  await page.getByRole('button', { name: '读完家书，收下手账', exact: true }).click()
+  assert.equal(await page.locator('a[href="/trail/yuyuan-four-sights"]').count(), 1)
+  await page.goto(`${base}/experience/shanghai-planetarium`)
+  await page.locator('.tw-experience').waitFor()
+  assert.equal(await page.locator('a[href="/trail/yuyuan-four-sights"]').count(), 0)
+  await editor.route('**/__trip_guide/trails/export', route => route.fulfill({ status: 200, contentType: 'text/html', body: '<html>static fallback</html>' }))
+  await editor.getByRole('textbox', { name: '路线标题', exact: true }).fill('静态部署本机更改')
+  await editor.getByRole('button', { name: '发布演示路线', exact: true }).click()
+  await editor.getByRole('alert').filter({ hasText: '没有开发态发布服务' }).waitFor()
+  assert.equal(await editor.getByRole('link', { name: '打开已发布游客路线' }).count(), 0)
+  const exported = editor.waitForEvent('download')
+  await editor.getByRole('button', { name: '导出路线 JSON', exact: true }).click()
+  assert.equal(JSON.parse(await readFile(await (await exported).path(), 'utf8')).title, '静态部署本机更改')
+  assert.ok(await editor.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
+  await visitor.close(); await operator.close()
   assert.deepEqual(errors, [])
-  console.log('PASS Trail ordered stamps, refresh, undo/reset, recommendation view, SVG download, 320/390px, missing images and missing route; no model/map calls')
-} finally { await browser.close() }
+  console.log('PASS Trail stamps/recovery/card, operator edit/preview/real static publication, clean second-browser access, recommendation click, Story links, static export fallback and 320/390px')
+} finally { await browser.close(); await publication.close(); await rm(publicationRoot, { recursive: true, force: true }) }

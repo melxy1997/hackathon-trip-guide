@@ -32,6 +32,7 @@ export interface PublishedSpot {
 }
 
 export interface PublishedAttraction {
+  relatedTrailId?: string
   presentation?: ExperiencePresentation
   schemaVersion: typeof PACKAGE_SCHEMA_VERSION
   id: string
@@ -92,6 +93,7 @@ export function assertPublishedAttraction(raw: unknown): PublishedAttraction {
   if (p.schemaVersion !== PACKAGE_SCHEMA_VERSION) {
     throw new Error(`发布包 schemaVersion 不支持：${String(p.schemaVersion)}`)
   }
+  if (p.relatedTrailId !== undefined && (typeof p.relatedTrailId !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(p.relatedTrailId))) throw new Error('关联路线 ID 无效')
   if (!p.id || !p.name) throw new Error('发布包缺少 id/name')
   if (!p.start || typeof p.start.lng !== 'number' || typeof p.start.lat !== 'number') {
     throw new Error('发布包缺少合法 start')

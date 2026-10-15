@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { TrailEditorPage } from './pages/TrailEditorPage'
 import { TrailPage } from './pages/TrailPage'
 import { HomePage } from './pages/HomePage'
 import { PublishEditorPage } from './pages/PublishEditorPage'
@@ -15,6 +16,8 @@ export default function App() {
         <Route path="/tour/:id" element={<TourPage />} />
         <Route path="/experience/:id" element={<ExperiencePage />} />
         <Route path="/publish" element={<PublishListPage />} />
+        <Route path="/publish/trails/new" element={<TrailEditorPage />} />
+        <Route path="/publish/trails/:id" element={<TrailEditorPage />} />
         <Route path="/publish/:id" element={<PublishEditorPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

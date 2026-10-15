@@ -73,6 +73,7 @@ export function EndingJournal({ pkg, definition, state, onRestart }: { pkg: Publ
     {message && <p className="tw-notice" role="status">{message}</p>}
     {showCopy && <div className="tw-copy-journal"><label htmlFor={copyId}>{copy.copyLabel}</label><textarea id={copyId} rows={8} readOnly value={journalText(definition, state, presentation)} onFocus={e => e.target.select()} /></div>}
     <p className="tw-fineprint">{locationLabel(presentation)} · {copy.fineprint}</p>
+    {pkg.relatedTrailId && <aside className="tw-notice"><p>故事之后，还可以按自己的节奏继续探索。</p><Link className="tw-button" to={`/trail/${pkg.relatedTrailId}`}>沿着故事中的地点继续探索 →</Link></aside>}
     <div className="tw-actions"><button className="tw-button" onClick={onRestart}>{copy.restart}</button><Link className="tw-button" to="/">{copy.home}</Link></div>
   </section>
 }

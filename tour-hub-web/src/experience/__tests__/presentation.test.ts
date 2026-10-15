@@ -75,3 +75,17 @@ test('cosmos journal uses the selected role and portable theme without garden co
   assert.match(svg, /&lt;我的讯号&gt;/)
   assert.doesNotMatch(svg, /<script|foreignObject|<image|我的时空手账|旅程留痕|我想记住的一刻|走过的章节/)
 })
+
+
+test('explicit Story to Trail association survives draft and publication outside Story V1', async () => {
+  const { pkg } = fixture()
+  const linked = { ...pkg, relatedTrailId: 'yuyuan-four-sights' }
+  const draft = publishedToDraft(linked)
+  assert.equal(draft.relatedTrailId, linked.relatedTrailId)
+  draft.coverImage = 'data:image/png;base64,YQ=='
+  draft.spots = draft.spots.map(spot => ({ ...spot, image: draft.coverImage }))
+  for (const scene of draft.experience!.scenes) for (const block of scene.blocks) if (block.type === 'image') block.assetRef = draft.coverImage
+  const published = await toPublishedPackage(draft)
+  assert.equal(published.relatedTrailId, linked.relatedTrailId)
+  assert.throws(() => assertPublishedAttraction({ ...published, relatedTrailId: '../outside' }), /关联路线/)
+})

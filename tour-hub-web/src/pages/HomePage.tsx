@@ -13,8 +13,11 @@ export function HomePage() {
   const [list, setList] = useState<CatalogItem[]>([])
   const [error, setError] = useState('')
   const [trails, setTrails] = useState<TrailCatalogItem[]>([])
-  const [trailError, setTrailError] = useState('')
-  useEffect(() => { loadTrailCatalog().then(setTrails).catch(() => setTrailError('主题路线暂不可用，仍可体验上方故事。')) }, [])
+  const [trailError, setTrailError] = useState(() => navigator.onLine ? '' : '当前已离线，联网后可打开路线打卡。')
+  useEffect(() => {
+    if (!navigator.onLine) return
+    loadTrailCatalog().then(setTrails).catch(() => setTrailError('主题路线暂不可用，仍可体验上方故事。'))
+  }, [])
 
   useEffect(() => {
     loadCatalog()

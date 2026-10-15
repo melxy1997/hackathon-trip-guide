@@ -3,7 +3,8 @@ import { assertTrail, trailId, type TrailCatalogItem } from './trailSchema.ts'
 
 export async function loadTrail(id: string) {
   trailId(id)
-  const response = await fetch(`/data/trails/${id}.json`, { cache: 'no-cache' })
+  let response: Response
+  try { response = await fetch(`/data/trails/${id}.json`, { cache: 'no-cache' }) } catch { throw new Error('路线需联网打开，请检查网络后重试。') }
   if (!response.ok) throw new Error('路线尚未发布或无法加载。')
   const trail = assertTrail(await response.json())
   const pkg = await loadPublishedAttraction(trail.baseAttractionId)

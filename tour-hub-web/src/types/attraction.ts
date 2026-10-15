@@ -11,6 +11,7 @@ export type Spot = PublishedSpot & {
 
 /** 发布端草稿（不进入展示端契约） */
 export interface DraftAttraction {
+  relatedTrailId?: string
   presentation?: ExperiencePresentation
   id: string
   name: string

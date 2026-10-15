@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { assertTrail, trailFingerprint, trailHref } from '../trailSchema.ts'
 import { confirmCheckpoint, freshTrailSession, restoreTrailSession, trailCardSvg, undoCheckpoint } from '../trailSession.ts'
+import { getTrailDraft, saveTrailDraft } from '../trailDrafts.ts'
 import type { PublishedAttraction } from '../../lib/tourPackage.ts'
 const pkg = JSON.parse(readFileSync(new URL('../../../public/data/attractions/yuyuan.json', import.meta.url), 'utf8')) as PublishedAttraction
 const fixture = () => assertTrail(JSON.parse(readFileSync(new URL('../../../public/data/trails/yuyuan-four-sights.json', import.meta.url), 'utf8')), pkg)
@@ -56,4 +57,17 @@ test('souvenir SVG uses actual stamps, escapes user content and references no ne
   assert.match(svg, /A &lt; B &amp; &quot;/)
   assert.match(svg, /亭台初见/)
   assert.doesNotMatch(svg, /山间寻趣|https?:\/\/(?!www.w3.org)/)
+})
+
+
+test('partial operator drafts survive refresh while malformed storage is ignored', () => {
+  const entries = new Map<string, string>()
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (key: string) => entries.get(key) ?? null, setItem: (key: string, value: string) => entries.set(key, value) } })
+  try {
+    const draft = fixture(); draft.title = ''; draft.checkpoints = draft.checkpoints.slice(0, 2)
+    assert.equal(saveTrailDraft(draft), true)
+    assert.deepEqual(getTrailDraft(draft.id), draft)
+    entries.set(`timewalker:trail-draft:v1:${draft.id}`, '{corrupt')
+    assert.equal(getTrailDraft(draft.id), null)
+  } finally { Reflect.deleteProperty(globalThis, 'localStorage') }
 })
