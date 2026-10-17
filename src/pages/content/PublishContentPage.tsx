@@ -16,6 +16,7 @@ export function PublishContentPage() {
   /** 从阶段二点某个节点的「已编辑 / 未编辑」跳进来时，直接定位到那个节点 */
   const wantedSpotId = searchParams.get('spot')
   const [draft, setDraft] = useState<DraftAttraction | null>(null)
+  const [saveError, setSaveError] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -46,13 +47,26 @@ export function PublishContentPage() {
   }
 
   const persist = (next: DraftAttraction) => {
-    const saved = saveDraft(next)
-    setDraft(saved)
-    return saved
+    setDraft(next)
+    void saveDraft(next)
+      .then((saved) => {
+        setDraft(saved)
+        setSaveError('')
+      })
+      .catch((e) => setSaveError(e instanceof Error ? e.message : '草稿保存失败'))
+    return next
   }
   const initialSpotId =
     draft.spots.find((s) => s.id === wantedSpotId)?.id ?? draft.spots[0]?.id ?? null
   const page = { draft, persist, initialSpotId }
+
+  if (saveError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f7f8fa] px-6 text-center text-sm text-red-600">
+        {saveError}
+      </div>
+    )
+  }
 
   if (draft.mode === 'story') return <ContentStoryPage key={draft.id} {...page} />
   return <ContentCheckinPage key={draft.id} {...page} />

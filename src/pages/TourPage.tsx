@@ -34,13 +34,6 @@ function buildSystemPrompt(name: string) {
   return `你是${name}的AI导游。只能回答与该景点历史、建筑、文化相关的问题。回答要简洁、口语化，控制在150字以内。如果问题无关，请礼貌拒绝。`
 }
 
-const MOCK_ANSWERS: Record<string, string> = {
-  豫园: '豫园始建于明代嘉靖、万历年间，是上海著名的江南古典园林，至今已有四百余年历史。',
-  门票: '豫园需购票入园，可在官方渠道或现场购买，建议提前查询当日开放时间。',
-  建筑: '豫园以亭台楼阁、假山池沼见长，玉玲珑、大假山、九曲桥都是标志性景观。',
-  历史: '豫园原为四川布政使潘允端为父亲安度晚年所建，后历经战火与修复，成为上海城市名片。',
-}
-
 function findChineseVoice(voices: SpeechSynthesisVoice[]) {
   return (
     voices.find((v) => v.lang.startsWith('zh') && v.localService) ||
@@ -534,13 +527,7 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
       })
       setAnswer(text)
     } catch {
-      const q = question.trim()
-      const hit = Object.keys(MOCK_ANSWERS).find((k) => q.includes(k))
-      setAnswer(
-        hit
-          ? MOCK_ANSWERS[hit]
-          : `当前未接入 API，我先用本地知识回答：${attraction?.name || '这里'}值得慢慢逛。`,
-      )
+      setAnswer('AI 服务暂不可用，请稍后重试。')
     } finally {
       setAsking(false)
     }

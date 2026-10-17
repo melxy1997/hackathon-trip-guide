@@ -76,21 +76,21 @@ export function PublishPreviewPage() {
   const exit = () => navigate(from === 'content' ? `/publish/${id}/content` : `/publish/${id}`)
 
   const onPublish = async () => {
-    if (!draft) return
+    if (!draft || blocked) {
+      if (blocked) setToast(blocked)
+      return
+    }
     setBusy(true)
     try {
       setToast('正在打包图片…')
       const result = await publishDraft(draft.id, { zoom: draft.zoom, start: draft.start })
-      if (result) {
-        setDraft(result.draft)
-        const n = Object.keys(result.pkg.assets || {}).length
-        setPublished(true)
-        setToast(
-          result.mode === 'config'
-            ? `已发布（${n} 张图），前台可立即查看`
-            : `写入 public/spots 失败，已改为下载文件（含 ${n} 张图）`,
-        )
+      if (!result) {
+        setToast('没有可发布的内容')
+        return
       }
+      setDraft(result.draft)
+      setPublished(true)
+      setToast(`已发布（${result.imageCount} 张图），前台可立即查看`)
     } catch (e) {
       setToast(e instanceof Error ? e.message : '导出失败')
     } finally {

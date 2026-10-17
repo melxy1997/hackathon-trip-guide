@@ -99,6 +99,7 @@ export function PublishListPage() {
   const navigate = useNavigate()
   const [rows, setRows] = useState<ListRow[]>([])
   const [trashed, setTrashed] = useState<TrashedSpot[]>([])
+  const [trashError, setTrashError] = useState('')
   const [error, setError] = useState('')
   const [toast, setToast] = useState('')
   const [pendingDelete, setPendingDelete] = useState('')
@@ -106,46 +107,67 @@ export function PublishListPage() {
   const [tick, setTick] = useState(0)
 
   const reload = useCallback(() => {
-    const drafts = listLocalDrafts()
-    void listTrashedSpots().then(setTrashed)
-    loadCatalog()
-      .then((catalog) => {
-        setError('')
-        return buildRows(catalog, drafts)
+    void listTrashedSpots()
+      .then((trash) => {
+        setTrashed(trash)
+        setTrashError('')
       })
-      .catch(() => {
-        // catalog 缺失时仍展示本地草稿
-        setError('目录加载失败，只列出本地草稿')
-        return buildRows([], drafts)
+      .catch((e) => {
+        setTrashed([])
+        setTrashError(e instanceof Error ? e.message : '回收站加载失败')
       })
+    void listLocalDrafts()
+      .then((drafts) =>
+        loadCatalog()
+          .then((catalog) => {
+            setError('')
+            return buildRows(catalog, drafts)
+          })
+          .catch(() => {
+            setError('目录加载失败，只列出草稿')
+            return buildRows([], drafts)
+          }),
+      )
       .then(setRows)
+      .catch((e) => {
+        setError(e instanceof Error ? e.message : '草稿加载失败')
+        setRows([])
+      })
   }, [])
 
   useEffect(() => {
     reload()
   }, [reload, tick])
 
-  const onCreate = () => {
-    const item = createDraft({
-      name: '',
-      description: '',
-    })
-    navigate(`/publish/${item.id}`)
+  const onCreate = async () => {
+    try {
+      const item = await createDraft({
+        name: '',
+        description: '',
+      })
+      navigate(`/publish/${item.id}`)
+    } catch (e) {
+      setToast(e instanceof Error ? e.message : '新建草稿失败')
+    }
   }
 
   const onDelete = async (row: ListRow) => {
     setPendingDelete('')
     if (row.localOnly) {
-      deleteDraft(row.id)
-      setToast('已删除本地草稿')
-      setTick((t) => t + 1)
+      try {
+        await deleteDraft(row.id)
+        setToast('已删除草稿')
+        setTick((t) => t + 1)
+      } catch (e) {
+        setToast(e instanceof Error ? e.message : '删除草稿失败')
+      }
       return
     }
     setBusy(row.id)
     try {
       const result = await trashSpotViaServer(row.id)
-      deleteDraft(row.id)
-      setToast(`已移入 .trash\\spots（${result.trashed.join('、')}），可在页面底部恢复`)
+      await deleteDraft(row.id)
+      setToast(`已移入回收站（${result.trashed.join('、')}），可在页面底部恢复`)
       setTick((t) => t + 1)
     } catch (e) {
       setToast(e instanceof Error ? e.message : '删除失败')
@@ -261,7 +283,7 @@ export function PublishListPage() {
                       <button
                         type="button"
                         className="rounded-lg p-2 text-[#9ca3af] hover:bg-black/[0.04] hover:text-red-600 disabled:opacity-40"
-                        title={row.localOnly ? '删除本地草稿' : '移入 .trash\\spots（可恢复）'}
+                        title={row.localOnly ? '删除草稿' : '移入回收站（可恢复）'}
                         disabled={busy === row.id}
                         onClick={() => setPendingDelete(row.id)}
                       >
@@ -274,6 +296,10 @@ export function PublishListPage() {
             })}
           </div>
         )}
+
+        {trashError ? (
+          <div className="rounded-2xl border border-amber-100 bg-white px-6 py-4 text-sm text-amber-700">{trashError}</div>
+        ) : null}
 
         {trashed.length > 0 && (
           <div className="space-y-3">
