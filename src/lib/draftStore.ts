@@ -95,13 +95,23 @@ export function publishedToDraft(pkg: PublishedAttraction): DraftAttraction {
   }
 }
 
-/** 编辑器用：服务端草稿优先，否则从 public/spots 发布包载入 */
+async function createDraftOnServer(item: DraftAttraction): Promise<DraftAttraction> {
+  const data = await readApiJson<{ ok: true; item: DraftAttraction }>(
+    await fetch(draftsApiUrl(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    }),
+  )
+  return normalizeDraft(data.item)
+}
+
+/** 编辑器用：服务端草稿优先，否则从已发布包创建一份可编辑草稿。 */
 export async function ensureEditableDraft(id: string): Promise<DraftAttraction | null> {
   const stored = await getDraft(id)
   if (stored) return stored
   try {
-    const pkg = await loadPublishedAttraction(id)
-    return saveDraft(publishedToDraft(pkg))
+    return await createDraftOnServer(publishedToDraft(await loadPublishedAttraction(id)))
   } catch {
     return null
   }
@@ -126,14 +136,7 @@ export async function createDraft(input: {
     createdAt: now,
     updatedAt: now,
   }
-  const data = await readApiJson<{ ok: true; item: DraftAttraction }>(
-    await fetch(draftsApiUrl(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item),
-    }),
-  )
-  return normalizeDraft(data.item)
+  return createDraftOnServer(item)
 }
 
 export async function saveDraft(next: DraftAttraction): Promise<DraftAttraction> {
