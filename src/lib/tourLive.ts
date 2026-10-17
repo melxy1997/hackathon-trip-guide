@@ -1,3 +1,4 @@
+/* global window, requestAnimationFrame, cancelAnimationFrame, SpeechSynthesis, SpeechSynthesisUtterance, SpeechSynthesisVoice */
 import { estimateSpeechMs } from './autoTour'
 import type { LngLat } from './tourPackage'
 

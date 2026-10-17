@@ -1,10 +1,12 @@
-﻿import {
+﻿/* global localStorage, window, FileReader, document */
+import {
   CONTRACT_SCHEMA_VERSION,
   resolveMediaUrl,
   toCatalogItem,
   type AttractionCatalog,
   type LngLat,
   type PublishedAttraction,
+  type PublishedSpot,
 } from './tourPackage'
 import { exportPackageViaServer, type MediaFile } from './exportTarget'
 import { loadPublishedAttraction } from './catalog'
@@ -311,6 +313,15 @@ function viewField(view: LngLat | undefined): Pick<PublishedAttraction, 'view'> 
   return view ? { view } : {}
 }
 
+/** searchHint 只给发布端检索，不进展示契约 */
+function toPublishedSpots(spots: Spot[]): PublishedSpot[] {
+  return spots.map((spot) => {
+    const published = { ...spot }
+    delete published.searchHint
+    return published
+  })
+}
+
 /** 草稿 → 展示端契约发布包（图片为 /spots/... 路径引用，二进制由 media 落盘） */
 export async function toPublishedPackage(draft: DraftAttraction): Promise<{
   pkg: PublishedAttraction
@@ -327,7 +338,7 @@ export async function toPublishedPackage(draft: DraftAttraction): Promise<{
       description: draft.description,
       start: draft.start,
       zoom: draft.zoom || DEFAULT_MAP_ZOOM,
-      spots: prepared.spots.map(({ searchHint: _hint, ...rest }) => rest),
+      spots: toPublishedSpots(prepared.spots),
       coverImage: prepared.coverImage,
       publishedAt: Date.now(),
       ...viewField(draft.view),
@@ -352,7 +363,7 @@ export async function toSelfContainedPackage(draft: DraftAttraction): Promise<Pu
     description: draft.description,
     start: draft.start,
     zoom: draft.zoom || DEFAULT_MAP_ZOOM,
-    spots: prepared.spots.map(({ searchHint: _hint, ...rest }) => rest),
+    spots: toPublishedSpots(prepared.spots),
     coverImage: prepared.coverImage,
     publishedAt: Date.now(),
     assets,

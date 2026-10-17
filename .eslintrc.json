@@ -1,0 +1,11 @@
+{
+  "env": {
+    "browser": true,
+    "es2022": true
+  },
+  "globals": {
+    "SpeechSynthesis": "readonly",
+    "SpeechSynthesisUtterance": "readonly",
+    "SpeechSynthesisVoice": "readonly"
+  }
+}
