@@ -1,3 +1,4 @@
+/* global FileReader */
 import type { DraftAttraction } from '../types/attraction'
 
 function readImageFile(file: File): Promise<string> {

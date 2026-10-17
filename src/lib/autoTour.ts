@@ -1,3 +1,4 @@
+/* global window */
 export type PlaybackMode = 'manual' | 'auto'
 
 /** presentation 对齐：口播估时 ≈ 4 字/秒，作 speech 失败时的 Auto 兜底 */

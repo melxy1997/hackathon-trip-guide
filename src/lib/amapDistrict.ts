@@ -1,3 +1,4 @@
+/* global sessionStorage */
 import AMapLoader from '@amap/amap-jsapi-loader'
 
 export type DistrictNode = {

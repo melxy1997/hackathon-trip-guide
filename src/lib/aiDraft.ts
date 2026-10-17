@@ -569,7 +569,7 @@ ${input.description || '（还没写）'}
 【故事的全部节点（按顺序，供你判断这一段在故事的哪一环）】
 ${input.nodes.map((n, i) => `${i + 1}. ${n.name}${i === index ? ' ← 就是这一段' : ''}`).join('\n')}
 
-【这一段的节点】${name}　${toLine}
+【这一段的节点】${name} ${toLine}
 【上一站刚讲完】${previous ? previous : '（这一站就是入口，前面没有别的站）'}
 
 请只输出这一个节点的 JSON。`

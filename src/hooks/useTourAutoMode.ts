@@ -1,3 +1,4 @@
+/* global window, KeyboardEvent, HTMLInputElement, HTMLTextAreaElement */
 import { useCallback, useEffect, useState } from 'react'
 import { readAutoFromURL, syncAutoURL, type PlaybackMode } from '../lib/autoTour'
 

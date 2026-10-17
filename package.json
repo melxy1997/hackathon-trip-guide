@@ -13,6 +13,7 @@
   "scripts": {
     "dev": "vite --port 5173",
     "build": "tsc -b && vite build",
+    "start": "npm run build && node libs/app.js",
     "lint": "oxlint",
     "preview": "vite preview"
   },
