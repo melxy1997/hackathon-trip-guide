@@ -1,8 +1,15 @@
 {
-  "name": "trip-guide",
+  "name": "timewalker",
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "description": "Hackathon demo",
+  "main": "libs/app.js",
+  "AppID": "100064283",
+  "config": {
+    "env": "fws",
+    "port": 18085
+  },
   "scripts": {
     "dev": "vite --port 5173",
     "build": "tsc -b && vite build",
