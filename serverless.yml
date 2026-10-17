@@ -1,0 +1,24 @@
+service:
+  appid: 100064277
+
+provider:
+  assets:
+    root: dist
+    defer: true
+    ares:
+      autoDeploy: true
+
+functions:
+  app:
+    path: '*'
+    handler: 'functions/app'
+
+package:
+  rootDir: .
+  build: npm run build
+  include:
+    - dist
+    - functions
+  exclude:
+    - src
+    - public
