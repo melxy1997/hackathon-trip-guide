@@ -169,9 +169,9 @@ export function PublishEditorPage() {
   }, [id, navigate])
 
   const persist = (next: DraftAttraction) => {
-    const saved = saveDraft(next)
-    setDraft(saved)
-    return saved
+    setDraft(next)
+    void saveDraft(next).catch((e) => setToast(e instanceof Error ? e.message : '草稿保存失败'))
+    return next
   }
 
   const updateDraft = (patch: Partial<DraftAttraction>) => {

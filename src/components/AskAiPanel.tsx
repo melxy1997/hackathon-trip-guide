@@ -31,13 +31,6 @@ function buildSystemPrompt(name: string, clue?: AskClue) {
   return `${base}游客正在按故事线游览：全程 ${clue.total} 个节点，已走过 ${clue.visited} 个，现在站在 ${here}。${next}问到"我该怎么走""下一步去哪"时，就照上面写明的去向给一句建议并说个理由，不要编造不存在的节点或出口；历史、建筑、文化也可以聊。跟这次游览和该景点无关的问题礼貌拒绝。`
 }
 
-const MOCK_ANSWERS: Record<string, string> = {
-  豫园: '豫园始建于明代嘉靖、万历年间，是上海著名的江南古典园林，至今已有四百余年历史。',
-  门票: '豫园需购票入园，可在官方渠道或现场购买，建议提前查询当日开放时间。',
-  建筑: '豫园以亭台楼阁、假山池沼见长，玉玲珑、大假山、九曲桥都是标志性景观。',
-  历史: '豫园原为四川布政使潘允端为父亲安度晚年所建，后历经战火与修复，成为上海城市名片。',
-}
-
 /** 右上角「问线索」按钮 + 展开的线索卡（故事页专用；打卡页是 TourPage 里那份「问 AI」，两处提示词各管各的） */
 export function AskAiPanel({ name, clue }: { name: string; clue?: AskClue }) {
   const [open, setOpen] = useState(false)
@@ -59,14 +52,10 @@ export function AskAiPanel({ name, clue }: { name: string; clue?: AskClue }) {
       })
       setAnswer(text)
     } catch {
-      const q = question.trim()
-      const hit = Object.keys(MOCK_ANSWERS).find((k) => q.includes(k))
       setAnswer(
-        hit
-          ? MOCK_ANSWERS[hit]
-          : clue && clue.choices.length > 0
-            ? `当前未接入 API，按线索看：从这里可以往${clue.choices.join('、')}走。`
-            : `当前未接入 API，我先用本地知识回答：${name || '这里'}值得慢慢逛。`,
+        clue && clue.choices.length > 0
+          ? `AI 服务暂不可用。按当前线索，你可以从这里前往：${clue.choices.join('、')}。`
+          : 'AI 服务暂不可用，请稍后重试。',
       )
     } finally {
       setAsking(false)

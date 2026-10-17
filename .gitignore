@@ -26,5 +26,8 @@ dist-ssr
 # Environment variables
 .env
 
+# Local mutable Node data (without DATA_DIR)
+.timewalker-drafts
+
 # Local trash for deleted spots (dev-server recovery area, not source)
 .trash

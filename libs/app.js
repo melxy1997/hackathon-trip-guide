@@ -7,8 +7,12 @@ import { fileURLToPath } from 'node:url'
 const require = createRequire(import.meta.url)
 const packageConfig = require('../package.json')
 const { proxyAiChat, runtimeConfigScript } = require('./runtime-config.cjs')
+const { createSpotApi } = require('./spots-store.cjs')
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist')
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+const root = path.join(repoRoot, 'dist')
+const spotApi = createSpotApi(repoRoot)
+console.warn(`[timewalker] DATA_DIR=${spotApi.storageRoot}; management endpoints are public and allow content changes.`)
 const port = Number(process.env.PORT || packageConfig.config?.port || 18085)
 const MAX_REQUEST_BODY_BYTES = 128 * 1024
 
@@ -126,12 +130,17 @@ const server = http.createServer(async (req, res) => {
     await handleAiChat(req, res)
     return
   }
+  if (url.pathname.startsWith('/__trip_guide/')) {
+    if (await spotApi.handle(req, res)) return
+    send(res, 404, 'not found', 'text/plain; charset=utf-8')
+    return
+  }
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     send(res, 405, 'method not allowed', 'text/plain; charset=utf-8')
     return
   }
 
-  const file = resolveFile(url.pathname)
+  const file = spotApi.resolvePublicFile(url.pathname) || resolveFile(url.pathname)
   if (file?.endsWith(`${path.sep}index.html`) || url.pathname === '/' || url.pathname === '/index.html') {
     send(res, 200, indexHtml(), contentTypes['.html'])
     return
