@@ -17,6 +17,7 @@ package:
   include:
     - dist
     - functions
+    - libs/runtime-config.cjs
   exclude:
     - src
     - public
