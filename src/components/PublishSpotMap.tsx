@@ -2,6 +2,7 @@
 import AMapLoader from '@amap/amap-jsapi-loader'
 import type { Spot } from '../types/attraction'
 import { extractWalkingPath } from '../lib/amapWalking'
+import { getAmapKey } from '../lib/runtimeConfig'
 import type { LngLat } from '../lib/tourPackage'
 
 export type PublishMapApi = {
@@ -221,7 +222,7 @@ export function PublishSpotMap({
   /** 首次真正需要步行规划时，才按需加载 AMap.Walking 插件 */
   const ensureWalking = async (): Promise<AnyWalking | null> => {
     if (walkingRef.current) return walkingRef.current
-    const key = import.meta.env.VITE_AMAP_KEY
+    const key = getAmapKey()
     if (!key) return null
     try {
       const AMapLib = (await AMapLoader.load({
@@ -352,9 +353,9 @@ export function PublishSpotMap({
   }
 
   useEffect(() => {
-    const key = import.meta.env.VITE_AMAP_KEY
+    const key = getAmapKey()
     if (!key) {
-      onErrorRef.current?.('缺少 VITE_AMAP_KEY')
+      onErrorRef.current?.('缺少 AMAP_KEY')
       return
     }
 

@@ -16,6 +16,7 @@ import { TourProgressBar } from '../components/TourProgressBar'
 import { useTourAutoMode } from '../hooks/useTourAutoMode'
 import { estimateSpeechMs, type TourPhase } from '../lib/autoTour'
 import { loadPublishedAttraction } from '../lib/catalog'
+import { requestAiChat } from '../lib/aiClient'
 import { resolveMediaUrl, type LngLat, type PublishedAttraction, type PublishedSpot } from '../lib/tourPackage'
 
 type TourNode = PublishedSpot
@@ -523,32 +524,15 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
     if (!question.trim()) return
     setAsking(true)
     setAnswer('')
-    const baseUrl = import.meta.env.VITE_DEEPSEEK_BASE_URL
-    const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY
-    const model = import.meta.env.VITE_DEEPSEEK_MODEL || 'deepseek-v4.1-flash'
-
     try {
-      if (!baseUrl || !apiKey) throw new Error('missing env')
-      const res = await fetch(`${baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: buildSystemPrompt(attraction?.name || '景点') },
-            { role: 'user', content: question.trim() },
-          ],
-          stream: false,
-          max_tokens: 512,
-        }),
+      const text = await requestAiChat({
+        messages: [
+          { role: 'system', content: buildSystemPrompt(attraction?.name || '景点') },
+          { role: 'user', content: question.trim() },
+        ],
+        maxTokens: 512,
       })
-      if (!res.ok) throw new Error(`status ${res.status}`)
-      const data = await res.json()
-      const text = data.choices?.[0]?.message?.content?.trim()
-      setAnswer(text || 'AI 没有返回内容')
+      setAnswer(text)
     } catch {
       const q = question.trim()
       const hit = Object.keys(MOCK_ANSWERS).find((k) => q.includes(k))
