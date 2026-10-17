@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Hackathon demo",
   "main": "libs/app.js",
-  "AppID": "100064283",
+  "AppID": "100064285",
   "config": {
     "env": "fws",
     "port": 18085
