@@ -101,4 +101,4 @@ async function proxyAiChat(body) {
   }
 }
 
-module.exports = { getRuntimeConfig, runtimeConfigScript, proxyAiChat }
+module.exports = { getRuntimeConfig, runtimeConfigScript, proxyAiChat, getAiConfig, readServerEnv: env }
