@@ -6,9 +6,15 @@ import { fileURLToPath } from 'node:url'
 
 const require = createRequire(import.meta.url)
 const packageConfig = require('../package.json')
+const { proxyAiChat, runtimeConfigScript } = require('./runtime-config.cjs')
+const { createSpotApi } = require('./spots-store.cjs')
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist')
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+const root = path.join(repoRoot, 'dist')
+const spotApi = createSpotApi(repoRoot)
+console.warn(`[timewalker] DATA_DIR=${spotApi.storageRoot}; management endpoints are public and allow content changes.`)
 const port = Number(process.env.PORT || packageConfig.config?.port || 18085)
+const MAX_REQUEST_BODY_BYTES = 128 * 1024
 
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -24,14 +30,43 @@ const contentTypes = {
   '.ico': 'image/x-icon',
 }
 
-function send(res, status, body, type) {
+function send(res, status, body, type, headers = {}) {
   const buf = Buffer.isBuffer(body) ? body : Buffer.from(body)
   res.writeHead(status, {
     'Content-Type': type || 'application/octet-stream',
     'Content-Length': buf.length,
     'Cache-Control': 'no-store',
+    ...headers,
   })
   res.end(buf)
+}
+
+function sendJson(res, status, body) {
+  send(res, status, JSON.stringify(body), 'application/json; charset=utf-8')
+}
+
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = []
+    let size = 0
+    req.on('data', (chunk) => {
+      size += chunk.length
+      if (size > MAX_REQUEST_BODY_BYTES) {
+        reject(new Error('请求体过大'))
+        req.destroy()
+        return
+      }
+      chunks.push(chunk)
+    })
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')))
+      } catch {
+        reject(new Error('请求体必须是 JSON'))
+      }
+    })
+    req.on('error', reject)
+  })
 }
 
 function resolveFile(urlPath) {
@@ -57,12 +92,47 @@ function indexHtml() {
       "SERVERLESS_INJECT_PUBLIC_PATH = '/'",
     )
     .replace(/\.\/assets\//g, '/assets/')
+    .replace('./runtime-config.js', '/runtime-config.js')
 }
 
-const server = http.createServer((req, res) => {
+async function handleAiChat(req, res) {
+  if (req.method !== 'POST') {
+    send(res, 405, 'method not allowed', 'text/plain; charset=utf-8', { Allow: 'POST' })
+    return
+  }
+  try {
+    const result = await proxyAiChat(await readJsonBody(req))
+    if (result.text !== undefined) {
+      send(res, result.status, result.text, 'application/json; charset=utf-8')
+    } else {
+      sendJson(res, result.status, result.body)
+    }
+  } catch (error) {
+    sendJson(res, 400, { error: error.message || '请求无效' })
+  }
+}
+
+const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', 'http://localhost')
   if (url.pathname === '/slbhealthcheck.html' || url.pathname === '/vi/health') {
     send(res, 200, 'ok', 'text/plain; charset=utf-8')
+    return
+  }
+  if (url.pathname === '/runtime-config.js') {
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      send(res, 405, 'method not allowed', 'text/plain; charset=utf-8', { Allow: 'GET, HEAD' })
+      return
+    }
+    send(res, 200, req.method === 'HEAD' ? '' : runtimeConfigScript(), 'text/javascript; charset=utf-8')
+    return
+  }
+  if (url.pathname === '/api/ai/chat') {
+    await handleAiChat(req, res)
+    return
+  }
+  if (url.pathname.startsWith('/__trip_guide/')) {
+    if (await spotApi.handle(req, res)) return
+    send(res, 404, 'not found', 'text/plain; charset=utf-8')
     return
   }
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -70,7 +140,7 @@ const server = http.createServer((req, res) => {
     return
   }
 
-  const file = resolveFile(url.pathname)
+  const file = spotApi.resolvePublicFile(url.pathname) || resolveFile(url.pathname)
   if (file?.endsWith(`${path.sep}index.html`) || url.pathname === '/' || url.pathname === '/index.html') {
     send(res, 200, indexHtml(), contentTypes['.html'])
     return

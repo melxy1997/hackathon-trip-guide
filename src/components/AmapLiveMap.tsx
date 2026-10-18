@@ -1,6 +1,7 @@
 ﻿import { useCallback, useEffect, useRef } from 'react'
 import AMapLoader from '@amap/amap-jsapi-loader'
 import { extractWalkingPath } from '../lib/amapWalking'
+import { getAmapKey } from '../lib/runtimeConfig'
 import visitorImage from '../assets/visitor.png'
 import type { LngLat, PublishedSpot } from '../lib/tourPackage'
 
@@ -171,9 +172,9 @@ export function AmapLiveMap({
   }, [center])
 
   useEffect(() => {
-    const key = import.meta.env.VITE_AMAP_KEY
+    const key = getAmapKey()
     if (!key) {
-      onErrorRef.current('缺少 VITE_AMAP_KEY')
+      onErrorRef.current('缺少 AMAP_KEY')
       return
     }
 

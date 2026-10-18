@@ -38,7 +38,7 @@ function base(
     id,
     name: name || '未命名景点',
     description: description || '暂无简介',
-    coverImage,
+    coverImage: coverImage || '/spots/map-intro.jpg',
   }
 }
 

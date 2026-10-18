@@ -1,5 +1,6 @@
 /* global sessionStorage */
 import AMapLoader from '@amap/amap-jsapi-loader'
+import { getAmapKey } from './runtimeConfig'
 
 export type DistrictNode = {
   name: string
@@ -70,9 +71,9 @@ export function loadCityDistricts(): Promise<DistrictNode[]> {
   if (cached) return Promise.resolve(cached)
   if (districtsPromise) return districtsPromise
 
-  const key = import.meta.env.VITE_AMAP_KEY
+  const key = getAmapKey()
   if (!key) {
-    return Promise.reject(new Error('缺少 VITE_AMAP_KEY'))
+    return Promise.reject(new Error('缺少 AMAP_KEY'))
   }
 
   districtsPromise = AMapLoader.load({

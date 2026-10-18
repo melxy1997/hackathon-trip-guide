@@ -1,6 +1,7 @@
 ﻿import AMapLoader from '@amap/amap-jsapi-loader'
 import type { LngLat } from './tourPackage'
 import type { DraftAttraction, Spot } from '../types/attraction'
+import { getAmapKey } from './runtimeConfig'
 
 export type AmapPoi = {
   name: string
@@ -85,8 +86,8 @@ let placeSearchPromise: Promise<PlaceSearch> | null = null
 
 function getPlaceSearch(): Promise<PlaceSearch> {
   if (placeSearchPromise) return placeSearchPromise
-  const key = import.meta.env.VITE_AMAP_KEY
-  if (!key) return Promise.reject(new Error('缺少 VITE_AMAP_KEY'))
+  const key = getAmapKey()
+  if (!key) return Promise.reject(new Error('缺少 AMAP_KEY'))
 
   placeSearchPromise = AMapLoader.load({
     key,

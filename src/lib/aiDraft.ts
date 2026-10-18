@@ -1,4 +1,5 @@
 import type { Slide } from './tourPackage'
+import { requestAiChat } from './aiClient'
 
 /**
  * 打卡模式的上下文：景点简介与逐个节点的讲解是**两段独立的请求**，
@@ -349,39 +350,17 @@ async function callModel(
   user: string,
   key?: string,
 ): Promise<{ parsed: Record<string, unknown>; truncated: boolean }> {
-  const baseUrl = import.meta.env.VITE_DEEPSEEK_BASE_URL
-  const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY
-  const model = import.meta.env.VITE_DEEPSEEK_MODEL || 'deepseek-chat'
-
-  if (!baseUrl || !apiKey) throw new Error('未配置 VITE_DEEPSEEK_BASE_URL / VITE_DEEPSEEK_API_KEY')
-
-  const res = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: user },
-      ],
-      stream: false,
-      temperature: 0.7,
-      max_tokens: 8192,
-    }),
+  const text = await requestAiChat({
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
+    maxTokens: 8192,
+    temperature: 0.7,
   })
-  if (!res.ok) throw new Error(`AI HTTP ${res.status}`)
-  const data = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string }; finish_reason?: string }>
-  }
-  const choice = data.choices?.[0]
-  const content = choice?.message?.content?.trim()
-  if (!content) throw new Error('AI 无内容')
-  const truncated = choice?.finish_reason === 'length'
+  const truncated = false
   try {
-    return { parsed: extractJson(content, key), truncated }
+    return { parsed: extractJson(text, key), truncated }
   } catch (e) {
     throw truncated
       ? new Error('AI 输出被截断（max_tokens 不足），未取到完整 JSON')
