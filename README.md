@@ -1,5 +1,7 @@
 # 时空漫游者 Web
 
+当前 `fix/draft` Builder 创作闭环、演示操作与后续任务见 [开发交接](docs/builder-agent/README.md)：已有地点→研究→双概念→逐站编剧→独立草稿→真实预览/发布。
+
 ```bash
 cp .env.example .env
 npm install

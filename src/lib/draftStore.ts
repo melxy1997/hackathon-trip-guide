@@ -107,14 +107,22 @@ async function createDraftOnServer(item: DraftAttraction): Promise<DraftAttracti
 }
 
 /** 编辑器用：服务端草稿优先，否则从已发布包创建一份可编辑草稿。 */
-export async function ensureEditableDraft(id: string): Promise<DraftAttraction | null> {
-  const stored = await getDraft(id)
-  if (stored) return stored
-  try {
-    return await createDraftOnServer(publishedToDraft(await loadPublishedAttraction(id)))
-  } catch {
-    return null
-  }
+const pendingEditableDrafts = new Map<string, Promise<DraftAttraction | null>>()
+export function ensureEditableDraft(id: string): Promise<DraftAttraction | null> {
+  const pending = pendingEditableDrafts.get(id)
+  if (pending) return pending
+  const request = (async () => {
+    const stored = await getDraft(id)
+    if (stored) return stored
+    try {
+      return await createDraftOnServer(publishedToDraft(await loadPublishedAttraction(id)))
+    } catch {
+      // Another tab may have created it while the published package was loading.
+      return await getDraft(id).catch(() => null)
+    }
+  })().finally(() => { pendingEditableDrafts.delete(id) })
+  pendingEditableDrafts.set(id, request)
+  return request
 }
 
 export async function createDraft(input: {

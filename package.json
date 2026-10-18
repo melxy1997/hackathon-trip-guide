@@ -18,7 +18,8 @@
     "preview": "vite preview",
     "build:agent": "tsc -p tsconfig.agent.json",
     "test": "npm run build:agent && node --test server/agent/__tests__/*.test.mjs",
-    "agent:probe": "npm run build:agent && node scripts/probe-model-tools.mjs"
+    "agent:probe": "npm run build:agent && node scripts/probe-model-tools.mjs",
+    "test:builder": "npm run build:agent && node scripts/smoke-builder.mjs"
   },
   "dependencies": {
     "@amap/amap-jsapi-loader": "^1.0.1",

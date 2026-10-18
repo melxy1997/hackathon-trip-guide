@@ -97,8 +97,9 @@ export function createBuilderApi(options: Options) {
           const input = z.strictObject({ conceptId: idSchema }).parse(await body(req))
           if (!job.concepts?.some(concept => concept.conceptId === input.conceptId) || !job.research || active.has(job.id) || active.size >= 2) { send(res, 409, { error: '概念不可用或任务仍在执行，请稍后再试' }); return true }
           job.selectedConceptId = input.conceptId; job.version++; job.error = undefined; job.candidateHash = undefined
-          // Each new compile has a fresh bounded budget; previous versions remain on disk.
-          job.budget = { ...job.budget, calls: 0, searches: 0, extracts: 0 }; store.save(job); start(job, true)
+          // Initial compilation shares the research budget; explicit new versions receive a fresh budget.
+          if (job.version > 1) job.budget = { ...job.budget, calls: 0, searches: 0, extracts: 0 }
+          store.save(job); start(job, true)
           send(res, 202, { ok: true, job }); return true
         }
         if (req.method === 'POST' && action === 'adopt') {

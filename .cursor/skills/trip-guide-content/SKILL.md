@@ -4,27 +4,29 @@ description: >-
   Produces 时空漫游者 (trip-guide) published attraction packages (catalog.json and
   {id}.json) with spots, slides, narration, coordinates, and optional
   assets. Use when generating or editing 时空漫游者 漫游内容, 发布包, PublishedAttraction,
-  catalog, or when an external AI should output content for tour-hub-web/public/spots.
+  catalog, or when an external AI should output content for public/spots.
 ---
 
 # 时空漫游者内容生产
 
-为「时空漫游者」应用（`tour-hub-web`，包名 `trip-guide`）生产可直接投放的漫游 JSON。应用读取：
+为「时空漫游者」仓库根目录应用（包名 `timewalker`）生产可直接投放的漫游 JSON。应用读取：
 
 ```
-tour-hub-web/public/spots/catalog.json
-tour-hub-web/public/spots/{id}.json
+public/spots/catalog.json
+public/spots/{id}.json
 ```
 
-运行时类型在 `tour-hub-web/src/lib/tourPackage.ts`。
+运行时类型在 `src/lib/tourPackage.ts`。
 
-## 工作流
+## Builder 工作流（fix/draft）
 
-1. 向用户确认景点名称、城市、节点数量（默认 4–6）
-2. 生成 `PublishedAttraction`（`schemaVersion: 1`）
-3. 写入 `tour-hub-web/public/spots/{id}.json`
-4. 更新 `catalog.json`：按 `id` upsert 目录项（封面用可直接展示的 URL 或 data URL）
-5. 坐标未知时：写合理 `searchHint` 式地名到节点名/副标题，并把 `lng/lat` 标为待校准占位（景区中心附近小偏移）；提醒用户在 `/publish/:id` 地图阶段微调
+当前实现入口见 `docs/builder-agent/README.md`，规划见 `docs/builder-agent/00-增量开发设计.md`。快速产出可编辑、可预览作品为首要目标。
+
+1. 读取已保存的服务端 DraftAttraction 地点快照，沿用名称、地点 ID、经纬度和图片；地点不完整则进入现有地图编辑器确认，不编造占位坐标。
+2. 按用户命题研究、提出两个不同概念，让作者选一个；已有信息足够就直接推进，不额外确认已提供的参数。
+3. 将结构和逐站内容交给 `server/agent/compiler.ts`，映射到本分支 StoryGraph / Slide。不要使用旧分支的 ExperienceDefinitionV1。
+4. 输出 Job 候选，作者采纳后由受控接口创建新 ID 草稿；Agent 不直接写 `public/spots`、发布目录或原稿。
+5. 在现有 `/publish/:newId/preview` 用真实游客页查看，由作者点击已有发布按钮。下文发布包字段仅作格式参考，不是 Agent 直接覆盖成品的指令。
 
 ## 文件约定
 
@@ -93,7 +95,7 @@ tour-hub-web/public/spots/{id}.json
 - 中文；史实谨慎，不确定处用「相传」「据说」
 - 漫游顺序：入口 → 主景 → 收束
 - 不要编造精确开放时间/门票价格
-- 演示期不要用 AI 乱造假实景图；无图时用 `/spots/map-intro.jpg` 占位并注明需人工上传
+- 本轮优先复用已有照片；剧情插画可用于表现故事，不把插画说成真实现场照片。自动配图在后续服务切片中接入。
 
 ## 校验清单
 
