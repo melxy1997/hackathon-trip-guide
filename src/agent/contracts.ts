@@ -38,3 +38,13 @@ export type StoryConcept = z.infer<typeof conceptSchema>
 export type ResearchNotes = z.infer<typeof researchSchema>
 export type StoryPlan = z.infer<typeof planSchema>
 export type NarrativeDraft = z.infer<typeof narrativeSchema>
+
+export interface BuilderJob {
+  id: string; version: number; sourceDraftId: string; sourceUpdatedAt: number; sourceFingerprint: string
+  brief: CreativeBrief; status: 'queued' | 'running' | 'awaiting-selection' | 'completed' | 'failed' | 'cancelled'
+  stage: string; progress: number; createdAt: number; updatedAt: number; model: string
+  research?: ResearchNotes; concepts?: StoryConcept[]; selectedConceptId?: string; candidateHash?: string
+  error?: string; adoptedDraftId?: string; adoptedVersion?: number
+  budget: { calls: number; searches: number; extracts: number; maxCalls: number; maxSearches: number }
+  events: Array<{ at: number; tool: string; status: string; durationMs: number }>
+}

@@ -1,4 +1,4 @@
-﻿/* global window, FileReader */
+/* global window, FileReader */
 import {
   CONTRACT_SCHEMA_VERSION,
   resolveMediaUrl,
@@ -158,6 +158,8 @@ export async function saveDraft(next: DraftAttraction): Promise<DraftAttraction>
     if (pendingSaves.get(next.id) === request) pendingSaves.delete(next.id)
   }
 }
+
+export async function waitForDraftSave(id: string): Promise<void> { await pendingSaves.get(id) }
 
 export async function deleteDraft(id: string): Promise<boolean> {
   const res = await fetch(draftsApiUrl(id), { method: 'DELETE' })
