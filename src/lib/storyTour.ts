@@ -1,4 +1,4 @@
-import type { StoryChoice, StoryGraph } from './tourPackage'
+import type { StoryChoice, StoryGraph } from './tourPackage.ts'
 
 /** 只要求「有一批有 id/name 的节点 + 可选 story」，草稿与发布包都能套 */
 export interface StoryCarrier {

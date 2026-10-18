@@ -2,11 +2,27 @@ import { createRequire } from 'node:module'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
+import path from 'node:path'
+import { createBuilderApi } from './server/agent/api.ts'
 import { exportToDisplayPlugin } from './vite-plugin-export-to-display.ts'
 
 const require = createRequire(import.meta.url)
 const { proxyAiChat } = require('./libs/runtime-config.cjs') as {
   proxyAiChat: (body: unknown) => Promise<{ status: number; text?: string; body?: unknown }>
+}
+
+function builderPlugin(): Plugin {
+  return {
+    name: 'builder-agent',
+    configureServer(server) {
+      const { createSpotApi } = require('./libs/spots-store.cjs')
+      const { getAiConfig, readServerEnv } = require('./libs/runtime-config.cjs')
+      const drafts = createSpotApi(server.config.root)
+      const api = createBuilderApi({ storageRoot: drafts.storageRoot, privateRoot: process.env.DATA_DIR ? undefined : path.join(server.config.root, '.agent-jobs'), drafts, getConfig: getAiConfig, readEnv: readServerEnv })
+      server.httpServer?.once('close', () => api.close())
+      server.middlewares.use(async (req, res, next) => { if (!await api.handle(req, res)) next() })
+    },
+  }
 }
 
 function runtimeConfigPlugin(): Plugin {
@@ -51,6 +67,6 @@ function runtimeConfigPlugin(): Plugin {
 export default defineConfig({
   // 相对路径产物：静态托管把站点挂在 /site/<id>/ 这类前缀下时，绝对 /assets 会跑出站点
   base: './',
-  plugins: [react(), tailwindcss(), exportToDisplayPlugin(), runtimeConfigPlugin()],
+  plugins: [react(), tailwindcss(), exportToDisplayPlugin(), runtimeConfigPlugin(), builderPlugin()],
   server: { port: 5173 },
 })

@@ -1,3 +1,4 @@
+import { BuilderEntry } from '../../agent/BuilderEntry'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Sparkles } from 'lucide-react'
@@ -215,6 +216,7 @@ export function ContentCheckinPage({ draft, persist, initialSpotId }: ContentPag
         </div>
       </header>
 
+      <BuilderEntry draftId={draft.id} disabled={busy} />
       <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="mx-auto w-full max-w-[1200px] px-5 py-6 sm:px-8 grid gap-6 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)] lg:items-start">
           <aside className="space-y-1 tw-ui-surface p-3 lg:sticky lg:top-6">

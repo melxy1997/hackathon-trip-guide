@@ -3,16 +3,18 @@ import http from 'node:http'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
+import { createBuilderApi } from '../.generated/agent/server/agent/api.js'
 
 const require = createRequire(import.meta.url)
 const packageConfig = require('../package.json')
-const { proxyAiChat, runtimeConfigScript } = require('./runtime-config.cjs')
+const { proxyAiChat, runtimeConfigScript, getAiConfig, readServerEnv } = require('./runtime-config.cjs')
 const { createSpotApi } = require('./spots-store.cjs')
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const root = path.join(repoRoot, 'dist')
 const spotApi = createSpotApi(repoRoot)
 console.warn(`[timewalker] DATA_DIR=${spotApi.storageRoot}; management endpoints are public and allow content changes.`)
+const builderApi = createBuilderApi({ storageRoot: spotApi.storageRoot, privateRoot: process.env.DATA_DIR ? undefined : path.join(repoRoot, '.agent-jobs'), drafts: spotApi, getConfig: getAiConfig, readEnv: readServerEnv })
 const port = Number(process.env.PORT || packageConfig.config?.port || 18085)
 const MAX_REQUEST_BODY_BYTES = 128 * 1024
 
@@ -130,6 +132,7 @@ const server = http.createServer(async (req, res) => {
     await handleAiChat(req, res)
     return
   }
+  if (await builderApi.handle(req, res)) return
   if (url.pathname.startsWith('/__trip_guide/')) {
     if (await spotApi.handle(req, res)) return
     send(res, 404, 'not found', 'text/plain; charset=utf-8')

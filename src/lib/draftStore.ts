@@ -1,4 +1,4 @@
-﻿/* global window, FileReader */
+/* global window, FileReader */
 import {
   CONTRACT_SCHEMA_VERSION,
   resolveMediaUrl,
@@ -16,6 +16,7 @@ import type { DraftAttraction, Spot } from '../types/attraction'
 export const DEFAULT_MAP_ZOOM = 18.5
 
 const pendingSaves = new Map<string, Promise<unknown>>()
+const pendingEditableDrafts = new Map<string, Promise<DraftAttraction | null>>()
 
 function draftsApiUrl(id?: string): string {
   return managementUrl(`/__trip_guide/drafts${id ? `/${encodeURIComponent(id)}` : ''}`)
@@ -113,14 +114,24 @@ async function createDraftOnServer(item: DraftAttraction): Promise<DraftAttracti
 }
 
 /** 编辑器用：服务端草稿优先，否则从已发布包创建一份可编辑草稿。 */
-export async function ensureEditableDraft(id: string): Promise<DraftAttraction | null> {
-  const stored = await getDraft(id)
-  if (stored) return stored
-  try {
-    return await createDraftOnServer(publishedToDraft(await loadPublishedAttraction(id)))
-  } catch {
-    return null
-  }
+export function ensureEditableDraft(id: string): Promise<DraftAttraction | null> {
+  const pending = pendingEditableDrafts.get(id)
+  if (pending) return pending
+
+  const request = (async () => {
+    const stored = await getDraft(id)
+    if (stored) return stored
+    try {
+      return await createDraftOnServer(publishedToDraft(await loadPublishedAttraction(id)))
+    } catch {
+      // 另一个标签页可能在加载发布包期间已经创建了同一草稿。
+      return getDraft(id).catch(() => null)
+    }
+  })().finally(() => {
+    pendingEditableDrafts.delete(id)
+  })
+  pendingEditableDrafts.set(id, request)
+  return request
 }
 
 export async function createDraft(input: {
@@ -166,6 +177,11 @@ export async function saveDraft(next: DraftAttraction): Promise<DraftAttraction>
   } finally {
     if (pendingSaves.get(next.id) === request) pendingSaves.delete(next.id)
   }
+}
+
+/** 等待当前草稿的串行保存队列完成，供后续流程在必要时同步落盘。 */
+export async function waitForDraftSave(id: string): Promise<void> {
+  await pendingSaves.get(id)
 }
 
 export async function deleteDraft(id: string): Promise<boolean> {

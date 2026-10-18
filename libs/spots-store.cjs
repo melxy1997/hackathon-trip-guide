@@ -399,7 +399,12 @@ function createSpotApi(projectRoot) {
     return file
   }
 
-  return { handle, resolvePublicFile, storageRoot }
+  return { handle, resolvePublicFile, storageRoot, readDraft,
+    createDraft(draft) {
+      if (!resolveSpotId(draft?.id) || readDraft(draft.id)) throw new Error('新草稿 ID 已存在或无效')
+      return saveDraft(draft)
+    },
+  }
 }
 
 module.exports = { createSpotApi }

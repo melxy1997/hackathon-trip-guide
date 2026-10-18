@@ -33,6 +33,8 @@ module.exports = async function app(ctx) {
     return runtimeConfigScript()
   }
 
+  if (ctx.path.startsWith('/api/builder/')) return json(ctx, 503, { error: 'Builder 需要 Node 常驻服务与持久目录；此 Serverless 站点暂不支持。' })
+
   if (ctx.path === '/api/ai/chat') {
     if (ctx.method !== 'POST') {
       ctx.status = 405
