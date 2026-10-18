@@ -1,4 +1,4 @@
-﻿/* global localStorage, window, FileReader, document */
+﻿/* global window, FileReader */
 import {
   CONTRACT_SCHEMA_VERSION,
   resolveMediaUrl,
@@ -9,11 +9,21 @@ import {
   type PublishedSpot,
 } from './tourPackage'
 import { exportPackageViaServer, type MediaFile } from './exportTarget'
+import { managementUrl, readApiJson } from './managementApi'
 import { loadPublishedAttraction } from './catalog'
 import type { DraftAttraction, Spot } from '../types/attraction'
 
-const STORAGE_KEY = 'trip-guide:drafts:v1'
 export const DEFAULT_MAP_ZOOM = 18.5
+
+const pendingSaves = new Map<string, Promise<unknown>>()
+
+function draftsApiUrl(id?: string): string {
+  return managementUrl(`/__trip_guide/drafts${id ? `/${encodeURIComponent(id)}` : ''}`)
+}
+
+async function readDraftApiJson<T>(res: Response, method = 'GET', url = res.url): Promise<T> {
+  return readApiJson<T>(res, { method, url, failureMessage: '草稿请求失败' })
+}
 
 function startFromFirstSpot(spots: Spot[], fallback?: LngLat): LngLat {
   const first = spots[0]
@@ -46,32 +56,23 @@ function normalizeDraft(raw: DraftAttraction): DraftAttraction {
   }
 }
 
-function readAll(): DraftAttraction[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as DraftAttraction[]
-    return Array.isArray(parsed) ? parsed.map(normalizeDraft) : []
-  } catch {
-    return []
-  }
+/** 仅未发布/编辑中的草稿（与 public/spots 分离） */
+export async function listLocalDrafts(): Promise<DraftAttraction[]> {
+  const url = draftsApiUrl()
+  const data = await readDraftApiJson<{ ok: true; items: DraftAttraction[] }>(
+    await fetch(url, { cache: 'no-cache' }),
+    'GET',
+    url,
+  )
+  return Array.isArray(data.items) ? data.items.map(normalizeDraft).sort((a, b) => b.updatedAt - a.updatedAt) : []
 }
 
-function writeAll(list: DraftAttraction[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
-  } catch {
-    /* 浏览器禁用存储（沙箱、隐私模式）时草稿只留内存，不阻断当前会话 */
-  }
-}
-
-/** 仅本地未发布/编辑中的草稿（与 public/spots 分离） */
-export function listLocalDrafts(): DraftAttraction[] {
-  return readAll().sort((a, b) => b.updatedAt - a.updatedAt)
-}
-
-export function getDraft(id: string): DraftAttraction | null {
-  return readAll().find((a) => a.id === id) || null
+export async function getDraft(id: string): Promise<DraftAttraction | null> {
+  const url = draftsApiUrl(id)
+  const res = await fetch(url, { cache: 'no-cache' })
+  if (res.status === 404) return null
+  const data = await readDraftApiJson<{ ok: true; item: DraftAttraction }>(res, 'GET', url)
+  return normalizeDraft(data.item)
 }
 
 export function publishedToDraft(pkg: PublishedAttraction): DraftAttraction {
@@ -97,23 +98,36 @@ export function publishedToDraft(pkg: PublishedAttraction): DraftAttraction {
   }
 }
 
-/** 编辑器用：本地草稿优先，否则从 public/spots 发布包载入 */
+async function createDraftOnServer(item: DraftAttraction): Promise<DraftAttraction> {
+  const url = draftsApiUrl()
+  const data = await readDraftApiJson<{ ok: true; item: DraftAttraction }>(
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    }),
+    'POST',
+    url,
+  )
+  return normalizeDraft(data.item)
+}
+
+/** 编辑器用：服务端草稿优先，否则从已发布包创建一份可编辑草稿。 */
 export async function ensureEditableDraft(id: string): Promise<DraftAttraction | null> {
-  const local = getDraft(id)
-  if (local) return local
+  const stored = await getDraft(id)
+  if (stored) return stored
   try {
-    const pkg = await loadPublishedAttraction(id)
-    return saveDraft(publishedToDraft(pkg))
+    return await createDraftOnServer(publishedToDraft(await loadPublishedAttraction(id)))
   } catch {
     return null
   }
 }
 
-export function createDraft(input: {
+export async function createDraft(input: {
   name: string
   description: string
   start?: LngLat
-}): DraftAttraction {
+}): Promise<DraftAttraction> {
   const now = Date.now()
   const start = input.start || { lng: 121.49195, lat: 31.2272 }
   const item: DraftAttraction = {
@@ -128,24 +142,37 @@ export function createDraft(input: {
     createdAt: now,
     updatedAt: now,
   }
-  const list = listLocalDrafts()
-  list.unshift(item)
-  writeAll(list)
-  return item
+  return createDraftOnServer(item)
 }
 
-export function saveDraft(next: DraftAttraction): DraftAttraction {
-  const list = listLocalDrafts()
-  const idx = list.findIndex((a) => a.id === next.id)
-  const saved = { ...next, updatedAt: Date.now() }
-  if (idx >= 0) list[idx] = saved
-  else list.unshift(saved)
-  writeAll(list)
-  return saved
+export async function saveDraft(next: DraftAttraction): Promise<DraftAttraction> {
+  const previous = pendingSaves.get(next.id) || Promise.resolve()
+  const request = previous.catch(() => undefined).then(async () => {
+    const url = draftsApiUrl(next.id)
+    const data = await readDraftApiJson<{ ok: true; item: DraftAttraction }>(
+      await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...next, updatedAt: Date.now() }),
+      }),
+      'PUT',
+      url,
+    )
+    return normalizeDraft(data.item)
+  })
+  pendingSaves.set(next.id, request)
+  try {
+    return await request
+  } finally {
+    if (pendingSaves.get(next.id) === request) pendingSaves.delete(next.id)
+  }
 }
 
-export function deleteDraft(id: string): boolean {
-  writeAll(listLocalDrafts().filter((a) => a.id !== id))
+export async function deleteDraft(id: string): Promise<boolean> {
+  const url = draftsApiUrl(id)
+  const res = await fetch(url, { method: 'DELETE' })
+  if (res.status === 404) return false
+  await readDraftApiJson<{ ok: true }>(res, 'DELETE', url)
   return true
 }
 
@@ -381,19 +408,8 @@ export function buildCatalog(packages: PublishedAttraction[]): AttractionCatalog
   }
 }
 
-function downloadJson(filename: string, data: unknown) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
 /**
- * 发布：图片落成文件、包体写入本应用 public/spots（与前台同一数据源）
- * 开发服务不可用时回落为浏览器下载（图片内嵌的离线包）
+ * 发布：图片落成文件、包体写入本应用 public/spots（与前台同一数据源），随后更新服务端草稿状态。
  */
 export async function publishDraft(
   id: string,
@@ -401,33 +417,27 @@ export async function publishDraft(
 ): Promise<{
   draft: DraftAttraction
   pkg: PublishedAttraction
-  mode: 'config' | 'download'
+  mode: 'config'
+  imageCount: number
   targetLabel?: string
 } | null> {
-  const item = getDraft(id)
+  const item = await getDraft(id)
   if (!item || item.spots.length === 0) return null
-  const draft = saveDraft({
+  const draft = {
     ...item,
-    status: 'published',
+    status: 'published' as const,
     start: opts?.start || item.start,
     zoom: typeof opts?.zoom === 'number' && opts.zoom > 0 ? opts.zoom : item.zoom || DEFAULT_MAP_ZOOM,
     coverImage: item.coverImage || item.spots[0].image,
-  })
+  }
   const { pkg, media } = await toPublishedPackage(draft)
-
-  try {
-    const written = await exportPackageViaServer(pkg, media)
-    return {
-      draft,
-      pkg,
-      mode: 'config',
-      targetLabel: `${written.absolutePath}\\${written.attractionPath}`,
-    }
-  } catch {
-    const local = await toSelfContainedPackage(draft)
-    downloadJson(`${local.id}.json`, local)
-    await new Promise((r) => setTimeout(r, 120))
-    downloadJson('catalog.json', buildCatalog([local]))
-    return { draft, pkg: local, mode: 'download' }
+  const written = await exportPackageViaServer(pkg, media)
+  const saved = await saveDraft(draft)
+  return {
+    draft: saved,
+    pkg,
+    mode: 'config',
+    imageCount: media.length,
+    targetLabel: written.publicPath,
   }
 }

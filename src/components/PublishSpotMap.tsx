@@ -41,8 +41,6 @@ type AnyMap = {
   setZoom: (z: number) => void
   getZoom: () => number
   getCenter: () => { getLng: () => number; getLat: () => number }
-  setMapStyle: (s: string) => void
-  setFeatures: (f: string[]) => void
   add: (overlay: unknown) => void
   remove: (overlay: unknown | unknown[]) => void
   on: (ev: string, fn: (e?: { lnglat?: { getLng: () => number; getLat: () => number } }) => void) => void
@@ -64,11 +62,11 @@ type AMapNS = {
 
 function markerHtml(index: number, name: string, active: boolean) {
   return `
-    <div style="display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);cursor:grab;">
+    <div style="min-width:44px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;transform:translate(-50%,-100%);cursor:grab;">
       <div style="
         width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;
         font:600 13px/1 system-ui,sans-serif;color:#fff;
-        background:${active ? '#3b82f6' : '#111827'};
+        background:${active ? '#79552f' : '#181f27'};
         box-shadow:0 4px 12px rgba(0,0,0,.2);border:2px solid #fff;
       ">${index + 1}</div>
       <div style="
@@ -82,7 +80,7 @@ function markerHtml(index: number, name: string, active: boolean) {
 
 function startMarkerHtml() {
   return `
-    <div style="display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);cursor:grab;">
+    <div style="min-width:44px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;transform:translate(-50%,-100%);cursor:grab;">
       <div style="
         width:30px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center;
         font:700 12px/1 system-ui,sans-serif;color:#fff;background:#10b981;
@@ -332,12 +330,12 @@ export function PublishSpotMap({
 
       const line = new AMapLib.Polyline({
         path: seg,
-        strokeColor: '#3b82f6',
+        strokeColor: '#79552f',
         strokeWeight: 4,
         strokeOpacity: real ? 0.85 : 0.55,
         strokeStyle: real ? 'solid' : 'dashed',
         showDir: true,
-        dirColor: '#bfdbfe',
+        dirColor: '#b58b59',
         lineJoin: 'round',
         lineCap: 'round',
         zIndex: 60,
@@ -369,8 +367,6 @@ export function PublishSpotMap({
           viewMode: '2D',
           zoom: zoomRef.current,
           center: [center.lng, center.lat],
-          mapStyle: 'amap://styles/whitesmoke',
-          features: ['bg', 'road', 'building', 'point'],
           showLabel: true,
         })
         mapRef.current = map
@@ -452,7 +448,7 @@ export function PublishSpotMap({
     <div className="relative h-full w-full">
       <div ref={containerRef} className="h-full w-full bg-[#f5f5f5]" />
       {routeHint && (
-        <div className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full border border-black/5 bg-white/95 px-3 py-1 text-xs text-[#6b7280] shadow-sm">
+        <div className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-md border border-black/10 bg-white/95 px-3 py-1.5 text-xs text-[#50635d] shadow-sm">
           {routeHint}
         </div>
       )}

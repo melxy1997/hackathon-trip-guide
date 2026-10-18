@@ -1,6 +1,9 @@
-import { Link, useNavigate } from 'react-router-dom'
+﻿import { Link, useNavigate } from 'react-router-dom'
 import { RotateCcw, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
+import bookmarkRibbon from '../assets/brand/bookmark-ribbon.svg'
+import mountainHorizon from '../assets/brand/mountain-horizon.svg'
+import orbitalGrid from '../assets/brand/orbital-grid.svg'
 import { ModeTag } from '../components/ModeTag'
 import { SiteFooter } from '../components/SiteFooter'
 import { SiteHeader } from '../components/SiteHeader'
@@ -35,7 +38,7 @@ function base(
     id,
     name: name || '未命名景点',
     description: description || '暂无简介',
-    coverImage: coverImage || '/spots/map-intro.jpg',
+    coverImage,
   }
 }
 
@@ -99,6 +102,7 @@ export function PublishListPage() {
   const navigate = useNavigate()
   const [rows, setRows] = useState<ListRow[]>([])
   const [trashed, setTrashed] = useState<TrashedSpot[]>([])
+  const [trashError, setTrashError] = useState('')
   const [error, setError] = useState('')
   const [toast, setToast] = useState('')
   const [pendingDelete, setPendingDelete] = useState('')
@@ -106,46 +110,67 @@ export function PublishListPage() {
   const [tick, setTick] = useState(0)
 
   const reload = useCallback(() => {
-    const drafts = listLocalDrafts()
-    void listTrashedSpots().then(setTrashed)
-    loadCatalog()
-      .then((catalog) => {
-        setError('')
-        return buildRows(catalog, drafts)
+    void listTrashedSpots()
+      .then((trash) => {
+        setTrashed(trash)
+        setTrashError('')
       })
-      .catch(() => {
-        // catalog 缺失时仍展示本地草稿
-        setError('目录加载失败，只列出本地草稿')
-        return buildRows([], drafts)
+      .catch((e) => {
+        setTrashed([])
+        setTrashError(e instanceof Error ? e.message : '回收站加载失败')
       })
+    void listLocalDrafts()
+      .then((drafts) =>
+        loadCatalog()
+          .then((catalog) => {
+            setError('')
+            return buildRows(catalog, drafts)
+          })
+          .catch(() => {
+            setError('目录加载失败，只列出草稿')
+            return buildRows([], drafts)
+          }),
+      )
       .then(setRows)
+      .catch((e) => {
+        setError(e instanceof Error ? e.message : '草稿加载失败')
+        setRows([])
+      })
   }, [])
 
   useEffect(() => {
     reload()
   }, [reload, tick])
 
-  const onCreate = () => {
-    const item = createDraft({
-      name: '',
-      description: '',
-    })
-    navigate(`/publish/${item.id}`)
+  const onCreate = async () => {
+    try {
+      const item = await createDraft({
+        name: '',
+        description: '',
+      })
+      navigate(`/publish/${item.id}`)
+    } catch (e) {
+      setToast(e instanceof Error ? e.message : '新建草稿失败')
+    }
   }
 
   const onDelete = async (row: ListRow) => {
     setPendingDelete('')
     if (row.localOnly) {
-      deleteDraft(row.id)
-      setToast('已删除本地草稿')
-      setTick((t) => t + 1)
+      try {
+        await deleteDraft(row.id)
+        setToast('已删除草稿')
+        setTick((t) => t + 1)
+      } catch (e) {
+        setToast(e instanceof Error ? e.message : '删除草稿失败')
+      }
       return
     }
     setBusy(row.id)
     try {
       const result = await trashSpotViaServer(row.id)
-      deleteDraft(row.id)
-      setToast(`已移入 .trash\\spots（${result.trashed.join('、')}），可在页面底部恢复`)
+      await deleteDraft(row.id)
+      setToast(`已移入回收站（${result.trashed.join('、')}），可在页面底部恢复`)
       setTick((t) => t + 1)
     } catch (e) {
       setToast(e instanceof Error ? e.message : '删除失败')
@@ -168,33 +193,51 @@ export function PublishListPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f7f8fa] text-[#111827]">
+    <div className="flex min-h-screen flex-col bg-[var(--tw-color-canvas)] text-[var(--tw-color-ink)]">
       <SiteHeader back={{ label: '返回前台', to: '/' }} cta={{ label: '新建景点', onClick: onCreate }} />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-5 sm:px-8 py-6 sm:py-8 space-y-6">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-medium tracking-tight">景点管理</h2>
-          <span className="rounded-md bg-[#eef2ff] px-1.5 py-0.5 text-[11px] text-[#4f46e5]">发布后台</span>
-        </div>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
+        <section className="mb-10 grid gap-6 border-b border-[var(--tw-color-divider)] pb-9 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-end">
+          <div>
+            <p className="tw-ui-orbit-rule">Creator studio · 01</p>
+            <h1 className="mt-5 font-tw-editorial text-3xl font-semibold tracking-[0.06em] sm:text-5xl">漫游创作台</h1>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--tw-color-ink-secondary)]">
+              从一处真实地点出发，编排时间、路径与叙事。你的每个草稿，都是一段尚待开启的旅程。
+            </p>
+          </div>
+          <div className="relative grid grid-cols-3 overflow-hidden border-y border-[var(--tw-color-divider)] py-4 text-center">
+            <img
+              src={orbitalGrid}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 hidden h-full w-full object-cover opacity-[0.18] lg:block"
+            />
+            <div className="relative"><strong className="block font-tw-editorial text-2xl">{rows.length}</strong><span className="text-[10px] tracking-[0.14em] text-[var(--tw-color-ink-secondary)]">全部作品</span></div>
+            <div className="relative border-x border-[var(--tw-color-divider)]"><strong className="block font-tw-editorial text-2xl">{rows.filter((row) => row.status === 'draft').length}</strong><span className="text-[10px] tracking-[0.14em] text-[var(--tw-color-ink-secondary)]">创作中</span></div>
+            <div className="relative"><strong className="block font-tw-editorial text-2xl">{rows.filter((row) => row.status === 'published').length}</strong><span className="text-[10px] tracking-[0.14em] text-[var(--tw-color-ink-secondary)]">已发布</span></div>
+          </div>
+        </section>
+
+        <div className="space-y-6">
 
         {error ? (
-          <div className="rounded-2xl border border-red-100 bg-white px-6 py-5 text-sm text-red-600">{error}</div>
+          <div role="alert" data-kind="error" className="tw-feedback rounded-[8px] border border-[var(--tw-color-border)] bg-[var(--tw-color-surface)] px-6 py-5 text-sm">{error}</div>
         ) : null}
 
         {rows.length === 0 ? (
           <button
             type="button"
             onClick={onCreate}
-            className="w-full rounded-2xl border border-dashed border-black/15 bg-white px-6 py-16 text-center hover:border-[#3b82f6]/40 hover:bg-[#f8fbff]"
+            className="tw-ui-surface w-full border-dashed px-6 py-16 text-center hover:border-[var(--tw-color-focus)] hover:bg-[var(--tw-color-surface-muted)]"
           >
             <p className="text-base font-medium">创建第一个景点</p>
-            <p className="mt-1 text-sm text-[#9ca3af]">定范围 · AI+高德生成 · 发布</p>
+            <p className="mt-1 text-sm text-[var(--tw-color-ink-secondary)]">定范围 · AI+高德生成 · 发布</p>
           </button>
         ) : (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-[#6b7280]">全部景点</h3>
-              <span className="text-xs text-[#9ca3af]">{rows.length} 个</span>
+              <h3 className="text-sm font-medium text-[var(--tw-color-ink-secondary)]">全部景点</h3>
+              <span className="text-xs text-[var(--tw-color-ink-secondary)]">{rows.length} 个</span>
             </div>
 
             {rows.map((row) => {
@@ -204,33 +247,52 @@ export function PublishListPage() {
               return (
                 <div
                   key={row.id}
-                  className="flex items-center gap-4 rounded-2xl border border-black/[0.06] bg-white p-3 transition-shadow hover:shadow-md"
+                  className="group grid gap-4 overflow-hidden tw-ui-surface p-3 transition-[box-shadow,transform] hover:-translate-y-0.5 hover:shadow-[var(--tw-shadow-card)] sm:grid-cols-[180px_minmax(0,1fr)_auto] sm:items-center"
                 >
-                  <Link to={`/publish/${row.id}`} className="flex min-w-0 flex-1 items-center gap-4">
-                    <img
-                      src={row.coverImage}
-                      alt=""
-                      className="h-[68px] w-[102px] shrink-0 rounded-xl bg-[#f3f4f6] object-cover"
-                    />
+                  <Link to={`/publish/${row.id}`} className="contents">
+                    <div className="relative h-full min-h-28 w-full overflow-hidden bg-[var(--tw-color-surface-muted)]">
+                      {row.coverImage ? (
+                        <img
+                          src={row.coverImage}
+                          alt=""
+                          className="aspect-[16/9] h-full w-full object-cover sm:aspect-[4/3]"
+                        />
+                      ) : (
+                        <img
+                          src={mountainHorizon}
+                          alt=""
+                          aria-hidden="true"
+                          className="pointer-events-none aspect-[16/9] h-full w-full object-contain p-4 opacity-60 sm:aspect-[4/3]"
+                        />
+                      )}
+                    </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 items-center gap-2">
                         <h4 className="truncate text-[15px] font-medium">{row.name}</h4>
                         <ModeTag mode={row.mode} />
                         <span
-                          className={`shrink-0 rounded-md px-1.5 py-0.5 text-[11px] ${
+                          className={`inline-flex shrink-0 items-center gap-1 border-l-2 pl-1.5 text-[11px] font-medium ${
                             row.status === 'published'
-                              ? 'bg-emerald-50 text-emerald-700'
-                              : 'bg-amber-50 text-amber-700'
+                              ? 'border-[var(--tw-success-700)] text-[var(--tw-success-700)]'
+                              : 'border-[var(--tw-color-decorative)] text-[var(--tw-color-accent-text)]'
                           }`}
                         >
+                          {row.status === 'published' && (
+                            <img
+                              src={bookmarkRibbon}
+                              alt=""
+                              aria-hidden="true"
+                              className="pointer-events-none h-4 w-2.5 shrink-0"
+                            />
+                          )}
                           {row.status === 'published' ? '已发布' : '草稿'}
                         </span>
                       </div>
-                      <p className="mt-1 truncate text-sm text-[#6b7280]">{row.description}</p>
+                      <p className="mt-1 truncate text-sm text-[var(--tw-color-ink-secondary)]">{row.description}</p>
                       {summary.total === 0 ? (
-                        <p className="mt-1.5 text-[11px] text-[#9ca3af]">暂无节点</p>
+                        <p className="mt-1.5 text-[11px] text-[var(--tw-color-ink-secondary)]">暂无节点</p>
                       ) : (
-                        <p className="mt-1.5 line-clamp-3 text-[11px] text-[#9ca3af]">
+                        <p className="mt-1.5 line-clamp-3 text-[11px] text-[var(--tw-color-ink-secondary)]">
                           {summary.total} 个节点 · 已编辑 {summary.edited} / 未编辑{' '}
                           {summary.total - summary.edited} ·{' '}
                           {branches.length > 0 ? branches.join(' · ') : summary.names}
@@ -239,19 +301,23 @@ export function PublishListPage() {
                     </div>
                   </Link>
 
-                  <div className="flex shrink-0 items-center gap-1 pr-1">
+                  <div className="flex shrink-0 items-center justify-end gap-1 border-t border-[var(--tw-color-divider)] pt-3 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0">
                     {pendingDelete === row.id ? (
                       <>
                         <button
                           type="button"
-                          className="rounded-lg px-2 py-1.5 text-xs text-[#6b7280] hover:bg-black/[0.04]"
+                          data-variant="quiet"
+                          data-size="sm"
+                          className="tw-ui-button min-h-0 px-2 py-1.5 text-xs text-[var(--tw-color-ink-secondary)]"
                           onClick={() => setPendingDelete('')}
                         >
                           取消
                         </button>
                         <button
                           type="button"
-                          className="rounded-lg bg-red-600 px-2.5 py-1.5 text-xs text-white hover:bg-red-700"
+                          data-variant="danger"
+                          data-size="sm"
+                          className="tw-ui-button min-h-0 px-2.5 py-1.5 text-xs"
                           onClick={() => onDelete(row)}
                         >
                           确认删除
@@ -260,8 +326,10 @@ export function PublishListPage() {
                     ) : (
                       <button
                         type="button"
-                        className="rounded-lg p-2 text-[#9ca3af] hover:bg-black/[0.04] hover:text-red-600 disabled:opacity-40"
-                        title={row.localOnly ? '删除本地草稿' : '移入 .trash\\spots（可恢复）'}
+                        data-variant="quiet"
+                        data-size="sm"
+                        className="tw-ui-button min-h-0 p-2 text-[var(--tw-color-ink-secondary)] hover:text-[var(--tw-danger-700)]"
+                        title={row.localOnly ? '删除草稿' : '移入回收站（可恢复）'}
                         disabled={busy === row.id}
                         onClick={() => setPendingDelete(row.id)}
                       >
@@ -275,27 +343,33 @@ export function PublishListPage() {
           </div>
         )}
 
+        {trashError ? (
+          <div role="alert" data-kind="warning" className="tw-feedback rounded-[8px] border border-[var(--tw-color-border)] bg-[var(--tw-color-surface)] px-6 py-4 text-sm">{trashError}</div>
+        ) : null}
+
         {trashed.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-[#6b7280]">已删除</h3>
+            <h3 className="text-sm font-medium text-[var(--tw-color-ink-secondary)]">已删除</h3>
             {trashed.map((entry) => (
               <div
                 key={entry.folder}
-                className="flex items-center gap-4 rounded-2xl border border-dashed border-black/15 bg-white px-3.5 py-2.5"
+                className="tw-ui-surface flex items-center gap-4 border-dashed px-3.5 py-2.5"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex min-w-0 items-center gap-2">
-                    <h4 className="truncate text-sm font-medium text-[#6b7280]">{entry.name}</h4>
+                    <h4 className="truncate text-sm font-medium text-[var(--tw-color-ink-secondary)]">{entry.name}</h4>
                     <ModeTag mode={entry.mode} />
-                    <span className="truncate text-[11px] text-[#9ca3af]">{entry.id}</span>
+                    <span className="truncate text-[11px] text-[var(--tw-color-ink-secondary)]">{entry.id}</span>
                   </div>
-                  <p className="mt-0.5 text-[11px] text-[#9ca3af]">
+                  <p className="mt-0.5 text-[11px] text-[var(--tw-color-ink-secondary)]">
                     删除于 {new Date(entry.trashedAt).toLocaleString('zh-CN', { hour12: false })}
                   </p>
                 </div>
                 <button
                   type="button"
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-black/10 px-2.5 py-1.5 text-xs text-[#374151] hover:bg-[#f9fafb] disabled:opacity-40"
+                  data-variant="secondary"
+                  data-size="sm"
+                  className="tw-ui-button shrink-0"
                   disabled={busy === entry.folder}
                   onClick={() => onRestore(entry)}
                 >
@@ -306,14 +380,21 @@ export function PublishListPage() {
             ))}
           </div>
         )}
+        </div>
       </main>
 
       <SiteFooter />
 
       {toast && (
-        <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-xl bg-[#111827] px-4 py-2.5 text-sm text-white shadow-lg">
-          {toast}
-          <button type="button" className="ml-3 text-white/60" onClick={() => setToast('')}>
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          data-kind="success"
+          className="tw-feedback fixed bottom-3 left-3 right-3 z-40 flex min-h-11 items-center gap-3 rounded-[8px] border border-[var(--tw-color-border)] bg-[var(--tw-color-surface)] px-4 py-2.5 text-sm text-[var(--tw-color-ink)] shadow-[var(--tw-shadow-dialog)] sm:bottom-6 sm:left-1/2 sm:right-auto sm:max-w-[90vw] sm:-translate-x-1/2"
+        >
+          <span className="min-w-0 flex-1">{toast}</span>
+          <button type="button" className="shrink-0 text-[var(--tw-color-link)] hover:underline" onClick={() => setToast('')}>
             关闭
           </button>
         </div>

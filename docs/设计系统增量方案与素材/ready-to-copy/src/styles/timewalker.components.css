@@ -1,0 +1,164 @@
+/* Timewalker minimal UI primitives. Scope specific components via .tw-ui-*. */
+.tw-ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: var(--tw-radius-control);
+  padding: 11px 18px;
+  font: 500 14px/1.4 var(--tw-font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color var(--tw-motion-fast) ease,
+    border-color var(--tw-motion-fast) ease,
+    color var(--tw-motion-fast) ease,
+    transform var(--tw-motion-fast) ease;
+}
+.tw-ui-button:hover:not(:disabled) { transform: translateY(-1px); }
+.tw-ui-button:active:not(:disabled) { transform: translateY(0); }
+.tw-ui-button[data-variant='primary'] {
+  background: var(--tw-color-action);
+  color: var(--tw-color-on-action);
+}
+.tw-ui-button[data-variant='primary']:hover:not(:disabled) { background: var(--tw-color-action-hover); }
+.tw-ui-button[data-variant='secondary'] {
+  border-color: var(--tw-color-border);
+  background: var(--tw-color-surface);
+  color: var(--tw-color-ink);
+}
+.tw-ui-button[data-variant='secondary']:hover:not(:disabled) { background: var(--tw-color-surface-muted); }
+.tw-ui-button[data-variant='quiet'] { color: var(--tw-color-ink); background: transparent; }
+.tw-ui-button[data-variant='quiet']:hover:not(:disabled) { background: var(--tw-color-surface-muted); }
+.tw-ui-button[data-variant='danger'] { color: white; background: var(--tw-danger-700); }
+.tw-ui-button[data-size='sm'] { min-height: 36px; padding: 7px 12px; font-size: 12px; }
+.tw-ui-button:disabled, .tw-ui-button[aria-disabled='true'] { opacity: .5; cursor: not-allowed; }
+.tw-ui-button:disabled:hover { transform: none; }
+.tw-ui-surface {
+  color: var(--tw-color-ink);
+  border: 1px solid var(--tw-color-border);
+  border-radius: var(--tw-radius-card);
+  background: var(--tw-color-surface);
+}
+.tw-ui-surface[data-variant='raised'] { box-shadow: var(--tw-shadow-card); }
+.tw-ui-surface[data-variant='glass'] {
+  background: var(--tw-color-overlay);
+  border-color: rgba(32,37,39,.09);
+  border-radius: var(--tw-radius-overlay);
+  box-shadow: var(--tw-shadow-overlay);
+  -webkit-backdrop-filter: blur(var(--tw-blur-overlay));
+  backdrop-filter: blur(var(--tw-blur-overlay));
+}
+.tw-ui-field { display: grid; gap: 7px; color: var(--tw-color-ink); }
+.tw-ui-field label { font: 500 13px/1.45 var(--tw-font-sans); }
+.tw-ui-input {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 13px;
+  border: 1px solid var(--tw-color-border);
+  border-radius: var(--tw-radius-control);
+  background: var(--tw-color-surface);
+  color: var(--tw-color-ink);
+  font: 400 14px/1.5 var(--tw-font-sans);
+}
+.tw-ui-input:focus-visible { border-color: var(--tw-color-focus); }
+.tw-ui-input[aria-invalid='true'] { border-color: var(--tw-danger-700); }
+.tw-ui-field-note { color: var(--tw-color-ink-secondary); font-size: 12px; line-height: 1.5; }
+.tw-ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--tw-color-border);
+  border-radius: var(--tw-radius-pill);
+  padding: 5px 9px;
+  background: var(--tw-color-surface);
+  color: var(--tw-color-ink-secondary);
+  font: 500 11px/1.3 var(--tw-font-sans);
+}
+.tw-ui-badge[data-mode='story'] { background: #eae5db; border-color: #d5c3a6; color: #725332; }
+.tw-ui-badge[data-mode='checkin'] { background: #e8efea; border-color: #c3d3c7; color: #3f604d; }
+.tw-ui-orbit-rule { position: relative; display: flex; align-items: center; gap: 10px; }
+.tw-ui-orbit-rule::before { content: ''; width: 38px; height: 1px; background: var(--tw-color-decorative); }
+.tw-ui-orbit-rule::after { content: '✧'; color: var(--tw-color-accent-text); font-size: 14px; }
+@media (prefers-reduced-motion: reduce) {
+  .tw-ui-button { transition: none; transform: none !important; }
+}
+
+/* -------------------- V1.1 refined overrides -------------------- */
+/* V1.1 refined geometry and brand language. Import after V1 components.css */
+.tw-ui-button {
+  border-radius: var(--tw-radius-control);
+  min-height: 44px;
+  font-weight: 550;
+  letter-spacing: .015em;
+  box-shadow: none;
+}
+.tw-ui-button[data-size='sm'] { min-height: 44px; }
+.tw-ui-button:hover:not(:disabled) { transform: translateY(-1px); }
+.tw-ui-button[data-variant='primary'] { background: var(--tw-color-action); border-color: var(--tw-color-action); }
+.tw-ui-button[data-variant='secondary'] { background: var(--tw-color-surface); border-color: var(--tw-color-border); }
+.tw-ui-button[data-variant='quiet'] { color: var(--tw-color-link); }
+.tw-ui-button[data-variant='danger'] { background: var(--tw-color-error); }
+.tw-ui-button[data-variant='primary']:focus-visible { outline-color: var(--tw-color-focus); }
+.tw-ui-surface { border-radius: var(--tw-radius-card); box-shadow: none; }
+.tw-ui-surface[data-variant='raised'] { box-shadow: var(--tw-shadow-card); }
+.tw-ui-surface[data-variant='glass'] { -webkit-backdrop-filter: blur(var(--tw-blur-overlay)); border-radius: var(--tw-radius-overlay); box-shadow: var(--tw-shadow-overlay); }
+.tw-ui-input { border-radius: var(--tw-radius-control); }
+.tw-ui-input:focus-visible { border-color: var(--tw-color-selected-border); outline-offset: 2px; }
+.tw-ui-badge { border-radius: 3px; letter-spacing: .035em; }
+.tw-ui-badge[data-mode='story'] { color: #604426; background: #F3EBDD; border-color: #D6C2A8; }
+.tw-ui-badge[data-mode='checkin'] { color: #385A47; background: #EBF0EB; border-color: #C8D6C9; }
+
+/* Precision shapes: use only in editorial covers and special panels; not every input/modal. */
+.tw-ui-surface[data-geometry='editorial'] {
+  border-radius: 2px;
+  border-color: var(--tw-color-divider);
+}
+.tw-cut-panel {
+  --tw-cut: var(--tw-corner-cut-md);
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - var(--tw-cut)) 0, 100% var(--tw-cut), 100% 100%, 0 100%);
+}
+.tw-cut-panel::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  right: 0;
+  width: var(--tw-cut);
+  height: var(--tw-cut);
+  border-left: 1px solid var(--tw-color-decorative);
+  transform: rotate(-45deg) translate(-1px, 3px);
+  transform-origin: right top;
+}
+.tw-rail-rule { display: flex; align-items: center; gap: 12px; color: var(--tw-color-ink-secondary); }
+.tw-rail-rule::before { content: ''; width: 34px; height: 1px; background: var(--tw-color-decorative); }
+.tw-rail-rule::after { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--tw-color-decorative); }
+.tw-eyebrow { font: 500 10px/1.5 var(--tw-font-sans); letter-spacing: .26em; text-transform: uppercase; color: var(--tw-color-accent-text); }
+.tw-display-title { font-family: var(--tw-font-editorial); font-weight: 450; letter-spacing: -.028em; line-height: 1.26; }
+.tw-chapter-index { font-family: Georgia, 'Times New Roman', serif; font-size: 28px; line-height: 1; color: var(--tw-color-accent-text); font-style: italic; }
+.tw-toolbar-divider { align-self: stretch; width: 1px; background: var(--tw-color-divider); }
+.tw-selected { color: var(--tw-color-ink); background: var(--tw-color-selected); border-color: var(--tw-color-selected-border) !important; }
+.tw-text-link { color: var(--tw-color-link); text-decoration: none; border-bottom: 1px solid var(--tw-color-decorative); }
+.tw-text-link:hover { color: var(--tw-color-link-hover); border-bottom-color: var(--tw-color-link-hover); }
+
+/* Map overlay: glass is a deliberate functional layer, not a default card aesthetic. */
+.tw-map-float { background: var(--tw-color-overlay); border: 1px solid rgba(24,31,39,.13); border-radius: var(--tw-radius-overlay); backdrop-filter: blur(var(--tw-blur-overlay)); box-shadow: var(--tw-shadow-overlay); }
+.tw-map-float[data-importance='secondary'] { box-shadow: 0 4px 18px rgba(24,31,39,.075); }
+
+/* Notification variants deliberately independent from brand accent. */
+.tw-feedback { border-left: 2px solid var(--tw-color-decorative); }
+.tw-feedback[data-kind='success'] { border-left-color: var(--tw-color-success); }
+.tw-feedback[data-kind='error'] { border-left-color: var(--tw-color-error); }
+.tw-feedback[data-kind='warning'] { border-left-color: var(--tw-color-warning); }
+.tw-feedback[data-kind='info'] { border-left-color: var(--tw-color-link); }
+
+/* Never blanket-recolor AMap, content imagery, or legacy components. */
+@media (prefers-reduced-motion: reduce) { .tw-ui-button { transition: none; transform: none !important; } }

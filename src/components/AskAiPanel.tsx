@@ -94,16 +94,18 @@ export function AskAiPanel({ name, clue }: { name: string; clue?: AskClue }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="cursor-pointer inline-flex items-center gap-1.5 rounded-full border border-black/5 bg-white/95 px-3.5 py-2 text-sm shadow-sm backdrop-blur-md hover:bg-[#f9fafb]"
+        aria-expanded={open}
+        aria-controls="story-ai-panel"
+        className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded border border-[#d4af67]/35 bg-[rgba(5,8,17,.88)] px-3.5 py-2 text-sm text-[var(--tw-scene-ink)] shadow-[0_10px_35px_rgba(0,0,0,.3)] backdrop-blur-xl transition-colors hover:border-[#d4af67]/60 hover:bg-[rgba(15,20,34,.96)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--tw-scene-accent)]"
       >
-        <MessageCircle size={15} className="text-[#3b82f6]" />
+        <MessageCircle size={15} className="text-[var(--tw-scene-accent)]" />
         {open ? '收起问答' : '问线索'}
       </button>
 
       {open && (
-        <div className="fixed right-3 top-16 z-40 w-[min(92vw,360px)] rounded-2xl border border-black/5 bg-white/95 p-4 shadow-lg backdrop-blur-md">
-          <div className="mb-3 flex items-center gap-2 text-[#111827]">
-            <HelpCircle size={15} className="text-[#6b7280]" />
+        <div id="story-ai-panel" className="fixed inset-x-3 top-[calc(4.5rem+env(safe-area-inset-top))] z-[60] max-h-[min(52dvh,28rem)] overflow-y-auto rounded-lg border border-[#d4af67]/25 bg-[rgba(7,11,22,.96)] p-4 text-[var(--tw-scene-ink)] shadow-[0_24px_80px_rgba(0,0,0,.55)] backdrop-blur-xl sm:inset-x-auto sm:right-5 sm:max-h-[calc(100dvh-6rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] sm:w-[min(92vw,380px)]">
+          <div className="mb-3 flex items-center gap-2 text-[var(--tw-scene-ink)]">
+            <HelpCircle size={15} className="text-[var(--tw-scene-muted)]" />
             <span className="text-sm font-medium">询问线索</span>
           </div>
           <div className="flex gap-2">
@@ -112,13 +114,15 @@ export function AskAiPanel({ name, clue }: { name: string; clue?: AskClue }) {
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && void ask()}
               placeholder="例如：我该怎么走？"
-              className="flex-1 rounded-xl border border-black/8 bg-[#f9fafb] px-3 py-2 text-sm outline-none focus:border-[#3b82f6]/50 focus:bg-white"
+              aria-label="输入线索问题"
+              className="min-h-11 min-w-0 flex-1 rounded border border-white/15 bg-white/5 px-3 py-2 text-sm text-[var(--tw-scene-ink)] outline-none placeholder:text-[var(--tw-scene-muted)] focus:border-[var(--tw-scene-accent)]/70 focus:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--tw-scene-accent)]"
             />
             <button
               type="button"
               onClick={() => void ask()}
               disabled={asking || !question.trim()}
-              className="cursor-pointer rounded-xl bg-[#3b82f6] px-3 py-2 text-white hover:bg-[#2563eb] disabled:opacity-45"
+              aria-label={asking ? '正在询问' : '发送问题'}
+              className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded bg-[var(--tw-scene-accent)] px-3 py-2 text-[#101820] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--tw-scene-accent)] disabled:opacity-45"
             >
               {asking ? (
                 <span className="block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -128,7 +132,7 @@ export function AskAiPanel({ name, clue }: { name: string; clue?: AskClue }) {
             </button>
           </div>
           {answer && (
-            <div className="mt-3 rounded-xl border border-black/5 bg-[#f9fafb] p-3 text-sm leading-relaxed text-[#374151]">
+            <div className="mt-3 rounded-md border border-white/10 bg-white/5 p-3 text-sm leading-relaxed text-[var(--tw-scene-muted)]">
               {answer}
             </div>
           )}

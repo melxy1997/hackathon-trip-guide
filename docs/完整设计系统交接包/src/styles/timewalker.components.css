@@ -1,0 +1,88 @@
+/* Timewalker minimal UI primitives. Scope specific components via .tw-ui-*. */
+.tw-ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: var(--tw-radius-control);
+  padding: 11px 18px;
+  font: 500 14px/1.4 var(--tw-font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color var(--tw-motion-fast) ease,
+    border-color var(--tw-motion-fast) ease,
+    color var(--tw-motion-fast) ease,
+    transform var(--tw-motion-fast) ease;
+}
+.tw-ui-button:hover:not(:disabled) { transform: translateY(-1px); }
+.tw-ui-button:active:not(:disabled) { transform: translateY(0); }
+.tw-ui-button[data-variant='primary'] {
+  background: var(--tw-color-action);
+  color: var(--tw-color-on-action);
+}
+.tw-ui-button[data-variant='primary']:hover:not(:disabled) { background: var(--tw-color-action-hover); }
+.tw-ui-button[data-variant='secondary'] {
+  border-color: var(--tw-color-border);
+  background: var(--tw-color-surface);
+  color: var(--tw-color-ink);
+}
+.tw-ui-button[data-variant='secondary']:hover:not(:disabled) { background: var(--tw-color-surface-muted); }
+.tw-ui-button[data-variant='quiet'] { color: var(--tw-color-ink); background: transparent; }
+.tw-ui-button[data-variant='quiet']:hover:not(:disabled) { background: var(--tw-color-surface-muted); }
+.tw-ui-button[data-variant='danger'] { color: white; background: var(--tw-danger-700); }
+.tw-ui-button[data-size='sm'] { min-height: 36px; padding: 7px 12px; font-size: 12px; }
+.tw-ui-button:disabled, .tw-ui-button[aria-disabled='true'] { opacity: .5; cursor: not-allowed; }
+.tw-ui-button:disabled:hover { transform: none; }
+.tw-ui-surface {
+  color: var(--tw-color-ink);
+  border: 1px solid var(--tw-color-border);
+  border-radius: var(--tw-radius-card);
+  background: var(--tw-color-surface);
+}
+.tw-ui-surface[data-variant='raised'] { box-shadow: var(--tw-shadow-card); }
+.tw-ui-surface[data-variant='glass'] {
+  background: var(--tw-color-overlay);
+  border-color: rgba(32,37,39,.09);
+  border-radius: var(--tw-radius-overlay);
+  box-shadow: var(--tw-shadow-overlay);
+  -webkit-backdrop-filter: blur(var(--tw-blur-overlay));
+  backdrop-filter: blur(var(--tw-blur-overlay));
+}
+.tw-ui-field { display: grid; gap: 7px; color: var(--tw-color-ink); }
+.tw-ui-field label { font: 500 13px/1.45 var(--tw-font-sans); }
+.tw-ui-input {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 13px;
+  border: 1px solid var(--tw-color-border);
+  border-radius: var(--tw-radius-control);
+  background: var(--tw-color-surface);
+  color: var(--tw-color-ink);
+  font: 400 14px/1.5 var(--tw-font-sans);
+}
+.tw-ui-input:focus-visible { border-color: var(--tw-color-focus); }
+.tw-ui-input[aria-invalid='true'] { border-color: var(--tw-danger-700); }
+.tw-ui-field-note { color: var(--tw-color-ink-secondary); font-size: 12px; line-height: 1.5; }
+.tw-ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--tw-color-border);
+  border-radius: var(--tw-radius-pill);
+  padding: 5px 9px;
+  background: var(--tw-color-surface);
+  color: var(--tw-color-ink-secondary);
+  font: 500 11px/1.3 var(--tw-font-sans);
+}
+.tw-ui-badge[data-mode='story'] { background: #eae5db; border-color: #d5c3a6; color: #725332; }
+.tw-ui-badge[data-mode='checkin'] { background: #e8efea; border-color: #c3d3c7; color: #3f604d; }
+.tw-ui-orbit-rule { position: relative; display: flex; align-items: center; gap: 10px; }
+.tw-ui-orbit-rule::before { content: ''; width: 38px; height: 1px; background: var(--tw-color-decorative); }
+.tw-ui-orbit-rule::after { content: '✧'; color: var(--tw-color-accent-text); font-size: 14px; }
+@media (prefers-reduced-motion: reduce) {
+  .tw-ui-button { transition: none; transform: none !important; }
+}

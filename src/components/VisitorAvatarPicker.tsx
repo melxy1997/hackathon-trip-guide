@@ -20,21 +20,21 @@ export function VisitorAvatarPicker({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   return (
-    <div className="mb-3 flex items-center gap-3">
-      <span className="text-xs text-[#9ca3af] shrink-0">{label}</span>
-      <span className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-black/10 bg-white">
+    <div className="mb-3 flex flex-wrap items-center gap-3">
+      <span className="shrink-0 text-xs text-[var(--tw-color-ink-secondary)]">{label}</span>
+      <span className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-[var(--tw-color-border)] bg-[var(--tw-color-surface)]">
         <img src={value || mascot} alt="" className="h-full w-full object-cover" />
       </span>
       <button
         type="button"
         onClick={() => fileInputRef.current?.click()}
-        className="inline-flex items-center gap-1 text-xs text-[#3b82f6] shrink-0"
+        className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-[var(--tw-color-link)] hover:underline"
       >
         <ImagePlus size={13} />
         上传
       </button>
       {value && (
-        <button type="button" onClick={onReset} className="text-xs text-[#9ca3af] shrink-0">
+        <button type="button" onClick={onReset} className="shrink-0 text-xs text-[var(--tw-color-link)] hover:underline">
           恢复默认
         </button>
       )}

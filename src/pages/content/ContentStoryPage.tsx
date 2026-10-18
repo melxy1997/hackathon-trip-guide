@@ -336,7 +336,7 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
 
   if (!selected) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f7f8fa] text-sm text-[#6b7280]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--tw-color-canvas)] text-sm text-[var(--tw-color-ink-secondary)]">
         加载中…
       </div>
     )
@@ -357,52 +357,52 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
   })()
 
   return (
-    <div className="h-screen flex flex-col bg-[#f7f8fa] text-[#111827]">
-      <header className="shrink-0 flex items-center justify-between gap-3 px-4 sm:px-5 h-14 bg-white border-b border-black/5">
+    <div className="flex h-[100dvh] flex-col bg-[var(--tw-color-canvas)] text-[var(--tw-color-ink)]">
+      <header className="z-20 grid min-h-16 shrink-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 border-b border-[var(--tw-color-divider)] bg-[color:var(--tw-color-overlay)] px-4 py-2 backdrop-blur-[var(--tw-blur-overlay)] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:px-6">
         <button
           type="button"
           onClick={() => navigate(`/publish/${draft.id}`)}
-          className="inline-flex items-center gap-1 text-sm text-[#6b7280] hover:text-[#111827] shrink-0"
+          className="inline-flex items-center gap-1 text-sm text-[var(--tw-color-ink-secondary)] hover:text-[var(--tw-color-ink)] shrink-0"
         >
           <ArrowLeft size={16} />
           调整地点
         </button>
 
-        <div className="min-w-0 text-center leading-tight">
+        <div className="min-w-0 overflow-hidden text-center leading-tight">
           <div className="flex items-center justify-center gap-1">
             <p className="truncate text-[15px] font-medium">{draft.name}</p>
             <input
               value={draft.story?.title || ''}
               onChange={(e) => updateStoryTitle(e.target.value)}
               placeholder="故事名"
-              className="field-sizing-content min-w-[4.5em] max-w-[18em] rounded-md border border-transparent bg-transparent px-0.5 text-left text-[12px] text-[#6b7280] outline-none hover:border-black/8 hover:bg-[#f9fafb] focus:border-[#3b82f6]/50 focus:bg-white focus:text-[#111827]"
+              className="field-sizing-content min-w-[4.5em] max-w-[18em] rounded-md border border-transparent bg-transparent px-0.5 text-left text-[12px] text-[var(--tw-color-ink-secondary)] outline-none hover:border-[var(--tw-color-border)] hover:bg-[var(--tw-color-surface-muted)] focus:border-[var(--tw-color-focus)] focus:bg-[var(--tw-color-surface)] focus:text-[var(--tw-color-ink)]"
             />
           </div>
-          <p className="text-[11px] text-[#9ca3af] tabular-nums">
+          <p className="text-[11px] text-[var(--tw-color-ink-secondary)] tabular-nums">
             {draft.spots.length} 个节点 · 已写 {writtenCount} · {branchCount} 处分支 ·{' '}
             {endingCount} 个结局
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="relative shrink-0" ref={dirRef}>
+        <div className="col-span-2 grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 sm:col-span-1 sm:flex sm:w-auto sm:shrink-0">
+          <div className="relative min-w-0 sm:shrink-0" ref={dirRef}>
             <input
               value={draft.storyDirection || ''}
               onChange={(e) => updateDraft({ storyDirection: e.target.value })}
               onFocus={() => setDirOpen(true)}
               onClick={() => setDirOpen(true)}
               placeholder="输入故事创作方向"
-              className="w-[150px] lg:w-[240px] rounded-lg border border-black/8 bg-[#f9fafb] px-2.5 py-1.5 text-sm outline-none focus:border-[#3b82f6]/50 focus:bg-white"
+              className="tw-ui-input min-h-9 w-full min-w-0 bg-[var(--tw-color-surface-muted)] px-2.5 py-1.5 sm:w-[150px] lg:w-[240px]"
             />
             {dirOpen && (
-              <div className="absolute right-0 top-full z-50 mt-2 w-[min(90vw,460px)] rounded-xl border border-black/10 bg-white p-2 shadow-xl">
+              <div className="absolute right-0 top-full z-50 mt-2 w-[min(90vw,460px)] rounded-[8px] border border-[var(--tw-color-border)] bg-[var(--tw-color-surface)] p-2 shadow-[var(--tw-shadow-dialog)]">
                 <textarea
                   value={draft.storyDirection || ''}
                   onChange={(e) => updateDraft({ storyDirection: e.target.value })}
                   rows={5}
                   autoFocus
                   placeholder="输入故事创作方向"
-                  className="max-h-[40vh] w-full resize-none rounded-lg border border-black/8 bg-[#f9fafb] px-2.5 py-2 text-sm leading-relaxed outline-none focus:border-[#3b82f6]/50 focus:bg-white"
+                  className="tw-ui-input max-h-[40vh] min-h-0 resize-none bg-[var(--tw-color-surface-muted)] px-2.5 py-2 leading-relaxed focus:bg-[var(--tw-color-surface)]"
                 />
               </div>
             )}
@@ -412,14 +412,16 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
               type="button"
               onClick={() => (genOpen ? setGenOpen(false) : openGen())}
               disabled={busy}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm hover:bg-[#f3f4f6] disabled:opacity-50"
+              data-variant="secondary"
+              data-size="sm"
+              className="tw-ui-button min-w-0"
             >
               <Sparkles size={14} />
               {busy ? '生成中…' : 'AI 生成内容'}
             </button>
             {genOpen && !busy && (
-              <div className="absolute right-0 top-full z-50 mt-2 w-[248px] rounded-xl border border-black/10 bg-white p-3 shadow-xl">
-                <p className="mb-2 text-[11px] text-[#9ca3af]">这一趟让 AI 写</p>
+              <div className="absolute right-0 top-full z-50 mt-2 w-[248px] rounded-[8px] border border-[var(--tw-color-border)] bg-[var(--tw-color-surface)] p-3 shadow-[var(--tw-shadow-dialog)]">
+                <p className="mb-2 text-[11px] text-[var(--tw-color-ink-secondary)]">这一趟让 AI 写</p>
                 <div className="space-y-1.5">
                   {GEN_PART_ITEMS.map((item) => (
                     <label
@@ -441,7 +443,9 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
                   <button
                     type="button"
                     onClick={() => setGenOpen(false)}
-                    className="cursor-pointer rounded-lg border border-black/10 px-2.5 py-1 text-xs hover:bg-[#f3f4f6]"
+                    data-variant="secondary"
+                    data-size="sm"
+                    className="tw-ui-button min-h-0 px-2.5 py-1 text-xs"
                   >
                     取消
                   </button>
@@ -453,7 +457,9 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
                       setGenOpen(false)
                       void onGenerateContent(parts)
                     }}
-                    className="cursor-pointer rounded-lg bg-[#3b82f6] px-2.5 py-1 text-xs text-white hover:bg-[#2563eb] disabled:opacity-50"
+                    data-variant="primary"
+                    data-size="sm"
+                    className="tw-ui-button min-h-0 px-2.5 py-1 text-xs"
                   >
                     开始生成
                   </button>
@@ -464,7 +470,9 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
           <button
             type="button"
             onClick={() => navigate(`/publish/${draft.id}/preview?from=content`)}
-            className="rounded-lg bg-[#3b82f6] text-white px-3.5 py-1.5 text-sm hover:bg-[#2563eb]"
+            data-variant="primary"
+            data-size="sm"
+            className="tw-ui-button min-w-0"
           >
             预览
           </button>
@@ -473,8 +481,8 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
 
       <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="mx-auto w-full max-w-[1200px] px-5 py-6 sm:px-8 grid gap-6 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)] lg:items-start">
-          <aside className="space-y-1 rounded-2xl border border-black/[0.06] bg-white p-3 lg:sticky lg:top-6">
-            <p className="px-1 pb-1 text-xs font-medium text-[#6b7280]">漫游节点</p>
+          <aside className="space-y-1 tw-ui-surface p-3 lg:sticky lg:top-6">
+            <p className="px-1 pb-1 text-xs font-medium text-[var(--tw-color-ink-secondary)]">漫游节点</p>
             {draft.spots.map((spot, index) => {
               const active = spot.id === selected.id
               return (
@@ -482,17 +490,20 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
                   key={spot.id}
                   type="button"
                   onClick={() => setSelectedId(spot.id)}
-                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left ${
-                    active ? 'bg-[#eff6ff]' : 'hover:bg-[#f9fafb]'
+                  aria-current={active ? 'true' : undefined}
+                  className={`flex w-full items-center gap-2 rounded-[4px] border-l-2 px-2 py-2 text-left ${
+                    active
+                      ? 'tw-selected border-[var(--tw-color-ink)] font-medium'
+                      : 'border-transparent hover:bg-[var(--tw-color-surface-muted)]'
                   }`}
                 >
-                  <span className="w-5 h-5 rounded-full bg-[#111827] text-white text-[11px] flex items-center justify-center shrink-0">
+                  <span className="w-5 h-5 rounded-full bg-[var(--tw-color-action)] text-white text-[11px] flex items-center justify-center shrink-0">
                     {index + 1}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-sm">{spot.name}</span>
                   <span
                     className={`shrink-0 text-[10px] ${
-                      isSpotPlaceholder(spot) ? 'text-amber-600' : 'text-[#9ca3af]'
+                      isSpotPlaceholder(spot) ? 'font-medium text-[var(--tw-color-accent-text)]' : 'text-[var(--tw-color-ink-secondary)]'
                     }`}
                   >
                     {isSpotPlaceholder(spot) ? '未写' : '已写'}
@@ -503,13 +514,13 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
           </aside>
 
           <section className="mx-auto w-full max-w-3xl space-y-4">
-            <div className="rounded-2xl border border-black/[0.06] bg-white p-5">
+            <div className="tw-ui-surface p-5">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="text-sm font-medium">故事结构</p>
                 <button
                   type="button"
                   onClick={() => setGraphOpen((v) => !v)}
-                  className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-[#6b7280] hover:text-[#111827]"
+                  className="inline-flex cursor-pointer items-center gap-1 text-[11px] text-[var(--tw-color-ink-secondary)] hover:text-[var(--tw-color-ink)]"
                 >
                   {graphOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
                   {graphOpen ? '收起' : '展开'}
@@ -520,10 +531,10 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
               )}
             </div>
 
-            <div className="rounded-2xl border border-black/[0.06] bg-white p-5">
+            <div className="tw-ui-surface p-5">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="text-sm font-medium">前情提要</p>
-                <p className="text-[11px] text-[#9ca3af]">列表与封面用这段字</p>
+                <p className="text-[11px] text-[var(--tw-color-ink-secondary)]">列表与封面用这段字</p>
               </div>
               <VisitorAvatarPicker
                 label="角色头像"
@@ -536,14 +547,14 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
                 onChange={(e) => updateDraft({ description: e.target.value })}
                 rows={3}
                 placeholder="点「AI 生成内容」会按创作方向写好开场，也可以自己改"
-                className="w-full resize-none rounded-lg border border-black/8 bg-[#f9fafb] px-3 py-2 text-sm outline-none focus:border-[#3b82f6]/50 focus:bg-white"
+                className="tw-ui-input min-h-0 resize-none bg-[var(--tw-color-surface-muted)] px-3 py-2 focus:bg-[var(--tw-color-surface)]"
               />
             </div>
 
-            <div className="rounded-2xl border border-black/[0.06] bg-white p-5">
+            <div className="tw-ui-surface p-5">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="text-sm font-medium">节点内容</p>
-                <p className="text-[11px] text-[#9ca3af] tabular-nums">
+                <p className="text-[11px] text-[var(--tw-color-ink-secondary)] tabular-nums">
                   第 {draft.spots.findIndex((s) => s.id === selected.id) + 1} / {draft.spots.length} 站
                 </p>
               </div>
@@ -555,10 +566,10 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
               />
             </div>
 
-            <div className="rounded-2xl border border-black/[0.06] bg-white p-5">
+            <div className="tw-ui-surface p-5">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="inline-flex min-w-0 items-center gap-1.5 text-sm font-medium">
-                  <GitBranch size={14} className="shrink-0 text-[#9ca3af]" />
+                  <GitBranch size={14} className="shrink-0 text-[var(--tw-color-ink-secondary)]" />
                   <span className="truncate">这个节点的去向</span>
                 </p>
                 <div className="flex shrink-0 items-center gap-1.5">
@@ -566,7 +577,7 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
                     type="button"
                     onClick={() => persist(setStoryEntry(draft, selected.id))}
                     disabled={isEntry}
-                    className="cursor-pointer rounded border border-black/10 px-1.5 py-0.5 text-[10px] hover:bg-[#f3f4f6] disabled:opacity-45"
+                    className="cursor-pointer rounded border border-[var(--tw-color-border)] px-1.5 py-0.5 text-[10px] hover:bg-[var(--tw-color-surface-muted)] disabled:opacity-45"
                   >
                     {isEntry ? '已是入口' : '设为入口'}
                   </button>
@@ -574,7 +585,7 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
                     type="button"
                     onClick={() => persist(markStoryEnding(draft, selected.id))}
                     disabled={isEnding}
-                    className="cursor-pointer rounded border border-black/10 px-1.5 py-0.5 text-[10px] hover:bg-[#f3f4f6] disabled:opacity-45"
+                    className="cursor-pointer rounded border border-[var(--tw-color-border)] px-1.5 py-0.5 text-[10px] hover:bg-[var(--tw-color-surface-muted)] disabled:opacity-45"
                   >
                     标为结局
                   </button>
@@ -582,7 +593,7 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
               </div>
 
               {spotStored.length === 0 && !isEnding && (
-                <p className="mb-3 text-sm text-[#9ca3af]">
+                <p className="mb-3 text-sm text-[var(--tw-color-ink-secondary)]">
                   这个节点还没连去向，前台会按数组顺序接
                   {implicitNextName ? `「${implicitNextName}」` : '下一站'}。
                 </p>
@@ -590,56 +601,56 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
 
               <div className="space-y-3">
                 {spotTargets.map((choice, i) => (
-                  <div key={choice.to} className="rounded-xl border border-black/8 bg-[#f9fafb] p-3">
+                  <div key={choice.to} className="rounded-[6px] border border-[var(--tw-color-border)] bg-[var(--tw-color-surface-muted)] p-3">
                     <div className="mb-2 flex items-center justify-between gap-2">
-                      <p className="min-w-0 truncate text-xs text-[#6b7280]">
-                        去向 {i + 1} · <span className="text-[#111827]">{nameOf(choice.to)}</span>
+                      <p className="min-w-0 truncate text-xs text-[var(--tw-color-ink-secondary)]">
+                        去向 {i + 1} · <span className="text-[var(--tw-color-ink)]">{nameOf(choice.to)}</span>
                       </p>
                       <button
                         type="button"
                         onClick={() => persist(toggleStoryChoice(draft, selected.id, choice.to))}
                         title="删掉这条去向"
-                        className="shrink-0 cursor-pointer rounded p-0.5 text-[#9ca3af] hover:text-red-600"
+                        className="shrink-0 cursor-pointer rounded p-0.5 text-[var(--tw-color-ink-secondary)] hover:text-[var(--tw-danger-700)]"
                       >
                         <X size={13} />
                       </button>
                     </div>
                     <label className="block">
-                      <span className="text-[11px] text-[#9ca3af]">选项文案（留空则显示「下一步 · 目标名」）</span>
+                      <span className="text-[11px] text-[var(--tw-color-ink-secondary)]">选项文案（留空则显示「下一步 · 目标名」）</span>
                       <input
                         value={choice.label || ''}
                         onChange={(e) => updateChoiceText(choice.to, 'label', e.target.value)}
                         placeholder={`下一步 · ${nameOf(choice.to)}`}
-                        className="mt-1 w-full rounded-lg border border-black/8 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-[#3b82f6]/50"
+                        className="tw-ui-input mt-1 min-h-0 px-2.5 py-1.5"
                       />
                     </label>
                     <label className="mt-2 block">
-                      <span className="text-[11px] text-[#9ca3af]">一行小字（选填，如「约 80 米 · 5 分钟」）</span>
+                      <span className="text-[11px] text-[var(--tw-color-ink-secondary)]">一行小字（选填，如「约 80 米 · 5 分钟」）</span>
                       <input
                         value={choice.note || ''}
                         onChange={(e) => updateChoiceText(choice.to, 'note', e.target.value)}
-                        className="mt-1 w-full rounded-lg border border-black/8 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-[#3b82f6]/50"
+                        className="mt-1 w-full rounded-[4px] border border-[var(--tw-color-border)] bg-[var(--tw-color-surface)] px-2.5 py-1.5 text-sm outline-none focus:border-[var(--tw-color-focus)]"
                       />
                     </label>
                   </div>
                 ))}
 
                 {isEnding && (
-                  <label className="block rounded-xl border border-black/8 bg-[#f9fafb] p-3">
-                    <span className="text-[11px] text-[#9ca3af]">结局标题（留空则显示「故事结束」）</span>
+                  <label className="block rounded-[6px] border border-[var(--tw-color-border)] bg-[var(--tw-color-surface-muted)] p-3">
+                    <span className="text-[11px] text-[var(--tw-color-ink-secondary)]">结局标题（留空则显示「故事结束」）</span>
                     <input
                       value={draft.story?.endings?.[selected.id] || ''}
                       onChange={(e) => updateEndingTitle(selected.id, e.target.value)}
                       placeholder="如：结局 · 登临揽胜"
-                      className="mt-1 w-full rounded-lg border border-black/8 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-[#3b82f6]/50"
+                      className="mt-1 w-full rounded-[4px] border border-[var(--tw-color-border)] bg-[var(--tw-color-surface)] px-2.5 py-1.5 text-sm outline-none focus:border-[var(--tw-color-focus)]"
                     />
                   </label>
                 )}
               </div>
 
               <div className="mt-3 flex items-center justify-between gap-2">
-                <p className="text-[11px] text-[#9ca3af]">去向（可多选，不设上限；全不勾 = 结局）</p>
-                <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-[#9ca3af]">
+                <p className="text-[11px] text-[var(--tw-color-ink-secondary)]">去向（可多选，不设上限；全不勾 = 结局）</p>
+                <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-[var(--tw-color-ink-secondary)]">
                   {isEnding ? (
                     <>
                       <Flag size={11} />
@@ -651,13 +662,13 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
                 </span>
               </div>
 
-              <div className="mt-1 max-h-40 space-y-0.5 overflow-y-auto rounded-xl border border-black/8 bg-[#f9fafb] p-1.5">
+              <div className="mt-1 max-h-40 space-y-0.5 overflow-y-auto rounded-[6px] border border-[var(--tw-color-border)] bg-[var(--tw-color-surface-muted)] p-1.5">
                 {draft.spots
                   .filter((s) => s.id !== selected.id)
                   .map((s) => (
                     <label
                       key={s.id}
-                      className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-xs hover:bg-white"
+                      className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-xs hover:bg-[var(--tw-color-surface)]"
                     >
                       <input
                         type="checkbox"
@@ -672,16 +683,16 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
               <button
                 type="button"
                 onClick={() => persist(resetStoryChoices(draft, selected.id))}
-                className="mt-2 cursor-pointer rounded border border-black/10 px-2 py-1 text-[11px] hover:bg-[#f3f4f6]"
+                className="mt-2 cursor-pointer rounded border border-[var(--tw-color-border)] px-2 py-1 text-[11px] hover:bg-[var(--tw-color-surface-muted)]"
               >
                 按数组顺序（默认）
               </button>
 
               {storyBlockers.length > 0 && (
-                <div className="mt-3 space-y-1 border-t border-black/5 pt-3">
-                  <p className="text-xs font-medium text-[#6b7280]">分支检查</p>
+                <div className="mt-3 space-y-1 border-t border-[var(--tw-color-divider)] pt-3">
+                  <p className="text-xs font-medium text-[var(--tw-color-ink-secondary)]">分支检查</p>
                   {storyBlockers.map((issue, i) => (
-                    <p key={i} className="text-[11px] leading-relaxed text-red-600">
+                    <p key={i} className="text-[11px] font-medium leading-relaxed text-[var(--tw-danger-700)]">
                       · {issue.message}
                     </p>
                   ))}
@@ -689,7 +700,7 @@ export function ContentStoryPage({ draft, persist, initialSpotId }: ContentPageP
               )}
             </div>
 
-            <p className="pb-6 text-center text-xs text-[#9ca3af]">
+            <p className="pb-6 text-center text-xs text-[var(--tw-color-ink-secondary)]">
               坐标在「调整地点」里改；这一页只写文案
             </p>
           </section>

@@ -40,7 +40,7 @@ export function TourRoute() {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-3 bg-[#f7f8fa] px-6 text-center">
         <p className="text-sm text-red-600">{error}</p>
-        <Link to="/" className="text-sm text-[#3b82f6] hover:underline">
+        <Link to="/" className="inline-flex min-h-11 items-center text-sm text-[#354b46] underline decoration-[#b58b59] underline-offset-4 hover:text-[#181f27] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#79552f]">
           返回景点列表
         </Link>
       </div>

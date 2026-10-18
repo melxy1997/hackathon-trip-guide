@@ -33,11 +33,11 @@ interface AmapLiveMapProps {
 }
 
 function spotHtml(label: string, name: string, active: boolean) {
-  const bg = active ? '#3b82f6' : '#111827'
+  const bg = active ? '#79552f' : '#181f27'
   const badge = label
     ? `<div style="width:26px;height:26px;margin:0 auto;border-radius:999px;background:${bg};color:#fff;font:600 12px/26px system-ui,sans-serif;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25)">${label}</div>`
     : `<div style="width:14px;height:14px;margin:6px auto;border-radius:999px;background:${bg};border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25)"></div>`
-  return `<div style="transform:translate(-50%,-100%);text-align:center;pointer-events:auto;cursor:pointer">
+  return `<div style="min-width:44px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;transform:translate(-50%,-100%);text-align:center;pointer-events:auto;cursor:pointer">
     ${badge}
     <div style="margin-top:3px;padding:1px 6px;border-radius:4px;background:rgba(255,255,255,.95);font:500 11px/1.2 system-ui,sans-serif;color:#111;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.12)">${name}</div>
   </div>`
@@ -46,7 +46,7 @@ function spotHtml(label: string, name: string, active: boolean) {
 /** 游客头像：方图裁成圆，白底当圆牌，锚在点上（游客脚下就是当前坐标）；没上传就用内置吉祥物 */
 function visitorHtml(src: string) {
   return `<div style="transform:translate(-50%,-50%);text-align:center">
-    <div style="width:36px;height:36px;margin:0 auto;border-radius:999px;overflow:hidden;background:#fff;border:2px solid #fff;box-shadow:0 2px 8px rgba(59,130,246,.45)">
+    <div style="width:36px;height:36px;margin:0 auto;border-radius:999px;overflow:hidden;background:#fff;border:2px solid #fff;box-shadow:0 2px 8px rgba(121,85,47,.38)">
       <img src="${src}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
     </div>
   </div>`
@@ -60,8 +60,6 @@ type AnyMarker = {
 
 type AnyMap = {
   setCenter: (c: number[]) => void
-  setMapStyle: (s: string) => void
-  setFeatures: (f: string[]) => void
   add: (overlay: unknown) => void
   remove: (overlay: unknown) => void
   on: (ev: string, fn: (e: { lnglat: { getLng: () => number; getLat: () => number } }) => void) => void
@@ -198,8 +196,6 @@ export function AmapLiveMap({
           viewMode: '2D',
           zoom: zoomRef.current,
           center: [viewCenter.lng, viewCenter.lat],
-          mapStyle: 'amap://styles/whitesmoke',
-          features: ['bg', 'road', 'building', 'point'],
           showLabel: true,
           animateEnable: false,
           jogEnable: false,
@@ -307,11 +303,11 @@ export function AmapLiveMap({
     if (!map || !AMapLib || !routePath || routePath.length < 2) return
     const line = new AMapLib.Polyline({
       path: routePath.map((p) => [p.lng, p.lat]),
-      strokeColor: '#3b82f6',
+      strokeColor: '#79552f',
       strokeWeight: 4,
       strokeOpacity: 0.85,
       showDir: true,
-      dirColor: '#bfdbfe',
+      dirColor: '#b58b59',
       lineJoin: 'round',
       lineCap: 'round',
       zIndex: 80,

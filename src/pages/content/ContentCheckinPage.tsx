@@ -164,7 +164,7 @@ export function ContentCheckinPage({ draft, persist, initialSpotId }: ContentPag
 
   if (!selected) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f7f8fa] text-sm text-[#6b7280]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--tw-color-canvas)] text-sm text-[var(--tw-color-ink-secondary)]">
         加载中…
       </div>
     )
@@ -173,12 +173,12 @@ export function ContentCheckinPage({ draft, persist, initialSpotId }: ContentPag
   const writtenCount = draft.spots.filter((s) => !isSpotPlaceholder(s)).length
 
   return (
-    <div className="h-screen flex flex-col bg-[#f7f8fa] text-[#111827]">
-      <header className="shrink-0 flex items-center justify-between gap-3 px-4 sm:px-5 h-14 bg-white border-b border-black/5">
+    <div className="flex h-[100dvh] flex-col bg-[var(--tw-color-canvas)] text-[var(--tw-color-ink)]">
+      <header className="z-20 grid min-h-16 shrink-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2 border-b border-[var(--tw-color-divider)] bg-[color:var(--tw-color-overlay)] px-4 py-2 backdrop-blur-[var(--tw-blur-overlay)] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:px-6">
         <button
           type="button"
           onClick={() => navigate(`/publish/${draft.id}`)}
-          className="inline-flex items-center gap-1 text-sm text-[#6b7280] hover:text-[#111827] shrink-0"
+          className="inline-flex items-center gap-1 text-sm text-[var(--tw-color-ink-secondary)] hover:text-[var(--tw-color-ink)] shrink-0"
         >
           <ArrowLeft size={16} />
           调整地点
@@ -186,17 +186,19 @@ export function ContentCheckinPage({ draft, persist, initialSpotId }: ContentPag
 
         <div className="min-w-0 text-center">
           <p className="truncate text-[15px] font-medium">{draft.name}</p>
-          <p className="text-[11px] text-[#9ca3af] tabular-nums">
+          <p className="text-[11px] text-[var(--tw-color-ink-secondary)] tabular-nums">
             {draft.spots.length} 个节点 · 已写 {writtenCount}
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="col-span-2 grid w-full grid-cols-2 gap-2 sm:col-span-1 sm:flex sm:w-auto sm:shrink-0">
           <button
             type="button"
             onClick={() => void onGenerateContent()}
             disabled={busy}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm hover:bg-[#f3f4f6] disabled:opacity-50"
+            data-variant="secondary"
+            data-size="sm"
+            className="tw-ui-button min-w-0"
           >
             <Sparkles size={14} />
             {busy ? '生成中…' : 'AI 生成讲解'}
@@ -204,7 +206,9 @@ export function ContentCheckinPage({ draft, persist, initialSpotId }: ContentPag
           <button
             type="button"
             onClick={() => navigate(`/publish/${draft.id}/preview?from=content`)}
-            className="rounded-lg bg-[#3b82f6] text-white px-3.5 py-1.5 text-sm hover:bg-[#2563eb]"
+            data-variant="primary"
+            data-size="sm"
+            className="tw-ui-button min-w-0"
           >
             预览
           </button>
@@ -213,8 +217,8 @@ export function ContentCheckinPage({ draft, persist, initialSpotId }: ContentPag
 
       <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="mx-auto w-full max-w-[1200px] px-5 py-6 sm:px-8 grid gap-6 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)] lg:items-start">
-          <aside className="space-y-1 rounded-2xl border border-black/[0.06] bg-white p-3 lg:sticky lg:top-6">
-            <p className="px-1 pb-1 text-xs font-medium text-[#6b7280]">漫游节点</p>
+          <aside className="space-y-1 tw-ui-surface p-3 lg:sticky lg:top-6">
+            <p className="px-1 pb-1 text-xs font-medium text-[var(--tw-color-ink-secondary)]">漫游节点</p>
             {draft.spots.map((spot, index) => {
               const active = spot.id === selected.id
               return (
@@ -222,17 +226,20 @@ export function ContentCheckinPage({ draft, persist, initialSpotId }: ContentPag
                   key={spot.id}
                   type="button"
                   onClick={() => setSelectedId(spot.id)}
-                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left ${
-                    active ? 'bg-[#eff6ff]' : 'hover:bg-[#f9fafb]'
+                  aria-current={active ? 'true' : undefined}
+                  className={`flex w-full items-center gap-2 rounded-[4px] border-l-2 px-2 py-2 text-left ${
+                    active
+                      ? 'tw-selected border-[var(--tw-color-ink)] font-medium'
+                      : 'border-transparent hover:bg-[var(--tw-color-surface-muted)]'
                   }`}
                 >
-                  <span className="w-5 h-5 rounded-full bg-[#111827] text-white text-[11px] flex items-center justify-center shrink-0">
+                  <span className="w-5 h-5 rounded-full bg-[var(--tw-color-action)] text-white text-[11px] flex items-center justify-center shrink-0">
                     {index + 1}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-sm">{spot.name}</span>
                   <span
                     className={`shrink-0 text-[10px] ${
-                      isSpotPlaceholder(spot) ? 'text-amber-600' : 'text-[#9ca3af]'
+                      isSpotPlaceholder(spot) ? 'font-medium text-[var(--tw-color-accent-text)]' : 'text-[var(--tw-color-ink-secondary)]'
                     }`}
                   >
                     {isSpotPlaceholder(spot) ? '未写' : '已写'}
@@ -243,10 +250,10 @@ export function ContentCheckinPage({ draft, persist, initialSpotId }: ContentPag
           </aside>
 
           <section className="mx-auto w-full max-w-3xl space-y-4">
-            <div className="rounded-2xl border border-black/[0.06] bg-white p-5">
+            <div className="tw-ui-surface p-5">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="text-sm font-medium">景点简介</p>
-                <p className="text-[11px] text-[#9ca3af]">列表与封面用这段字</p>
+                <p className="text-[11px] text-[var(--tw-color-ink-secondary)]">列表与封面用这段字</p>
               </div>
               <VisitorAvatarPicker
                 value={draft.visitorAvatar}
@@ -258,14 +265,14 @@ export function ContentCheckinPage({ draft, persist, initialSpotId }: ContentPag
                 onChange={(e) => updateDraft({ description: e.target.value })}
                 rows={3}
                 placeholder="点「AI 生成讲解」会一并写好，也可以自己改"
-                className="w-full resize-none rounded-lg border border-black/8 bg-[#f9fafb] px-3 py-2 text-sm outline-none focus:border-[#3b82f6]/50 focus:bg-white"
+                className="tw-ui-input min-h-0 resize-none bg-[var(--tw-color-surface-muted)] px-3 py-2 focus:bg-[var(--tw-color-surface)]"
               />
             </div>
 
-            <div className="rounded-2xl border border-black/[0.06] bg-white p-5">
+            <div className="tw-ui-surface p-5">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="text-sm font-medium">节点内容</p>
-                <p className="text-[11px] text-[#9ca3af] tabular-nums">
+                <p className="text-[11px] text-[var(--tw-color-ink-secondary)] tabular-nums">
                   第 {draft.spots.findIndex((s) => s.id === selected.id) + 1} / {draft.spots.length} 站
                 </p>
               </div>
@@ -277,7 +284,7 @@ export function ContentCheckinPage({ draft, persist, initialSpotId }: ContentPag
               />
             </div>
 
-            <p className="pb-6 text-center text-xs text-[#9ca3af]">
+            <p className="pb-6 text-center text-xs text-[var(--tw-color-ink-secondary)]">
               坐标在「调整地点」里改；这一页只写文案
             </p>
           </section>

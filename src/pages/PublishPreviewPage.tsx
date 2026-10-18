@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
+import fourStar from '../assets/brand/four-star.svg'
 import {
   ensureEditableDraft,
   isSpotPlaceholder,
@@ -83,13 +84,9 @@ export function PublishPreviewPage() {
       const result = await publishDraft(draft.id, { zoom: draft.zoom, start: draft.start })
       if (result) {
         setDraft(result.draft)
-        const n = Object.keys(result.pkg.assets || {}).length
+        const n = result.imageCount
         setPublished(true)
-        setToast(
-          result.mode === 'config'
-            ? `已发布（${n} 张图），前台可立即查看`
-            : `写入 public/spots 失败，已改为下载文件（含 ${n} 张图）`,
-        )
+        setToast(`已发布（${n} 张图），前台可立即查看`)
       }
     } catch (e) {
       setToast(e instanceof Error ? e.message : '导出失败')
@@ -100,9 +97,9 @@ export function PublishPreviewPage() {
 
   if (failed) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-[#f7f8fa] px-6 text-center">
-        <p className="text-sm text-red-600">{failed}</p>
-        <button type="button" onClick={exit} className="text-sm text-[#3b82f6] hover:underline">
+      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-[var(--tw-color-canvas)] px-6 text-center">
+        <p role="alert" data-kind="error" className="tw-feedback rounded-[8px] border border-[var(--tw-color-border)] bg-[var(--tw-color-surface)] px-5 py-4 text-sm">{failed}</p>
+        <button type="button" onClick={exit} className="text-sm font-medium text-[var(--tw-color-link)] hover:underline">
           返回编辑
         </button>
       </div>
@@ -111,37 +108,38 @@ export function PublishPreviewPage() {
 
   if (!pkg || !draft) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#f7f8fa] text-sm text-[#6b7280]">
+      <div className="flex h-screen items-center justify-center bg-[var(--tw-color-canvas)] text-sm text-[var(--tw-color-ink-secondary)]">
         正在准备预览…
       </div>
     )
   }
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden">
+    <div className="relative h-[100dvh] w-screen overflow-hidden">
       {pkg.mode === 'story' ? (
         <StoryTourPage key={pkg.id} pkg={pkg} />
       ) : (
         <TourPage key={pkg.id} initialPackage={pkg} />
       )}
 
-      {/* 预览工具条：浮在右下角，不占前台自己的版位 */}
-      <div className="pointer-events-none absolute bottom-4 right-3 z-[60] flex max-w-[calc(100vw-1.5rem)] items-center">
-        <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-black/5 bg-white/95 py-1.5 pl-3 pr-1.5 shadow-lg backdrop-blur-md">
-          <span className="shrink-0 text-[11px] text-[#9ca3af]">预览中</span>
-          <button
-            type="button"
-            onClick={exit}
-            className="inline-flex cursor-pointer items-center gap-1 rounded-full px-2 py-1 text-xs text-[#6b7280] hover:bg-[#f3f4f6] hover:text-[#111827]"
-          >
+      {/* 预览工具条：窄屏贴底铺开，宽屏浮在右下角，不占前台自己的版位 */}
+      <div className="pointer-events-none absolute bottom-3 left-3 right-3 z-[60] sm:bottom-4 sm:left-auto sm:right-3 sm:max-w-[calc(100vw-1.5rem)]">
+        <div className="tw-map-float pointer-events-auto grid grid-cols-2 gap-1 rounded-[8px] border border-[var(--tw-color-divider)] bg-[var(--tw-color-surface)]/95 p-1.5 shadow-[var(--tw-shadow-dialog)] backdrop-blur-md sm:flex sm:items-center">
+          <span className="col-span-2 inline-flex items-center gap-1 px-2 py-1 text-[11px] text-[var(--tw-color-ink-secondary)] sm:col-auto sm:shrink-0">
+            <img
+              src={fourStar}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none h-3 w-3 shrink-0"
+            />
+            预览中
+          </span>
+          <button type="button" onClick={exit} data-variant="quiet" data-size="sm" className="tw-ui-button min-w-0 px-2">
             <ArrowLeft size={12} />
             退出预览
           </button>
           {published && (
-            <Link
-              to={`/tour/${draft.id}`}
-              className="inline-flex items-center gap-1 rounded-full border border-black/10 px-2.5 py-1 text-xs text-[#111827] hover:bg-[#f3f4f6]"
-            >
+            <Link to={`/tour/${draft.id}`} data-variant="secondary" data-size="sm" className="tw-ui-button min-w-0 px-2">
               去前台看
               <ExternalLink size={12} />
             </Link>
@@ -151,7 +149,9 @@ export function PublishPreviewPage() {
             onClick={() => void onPublish()}
             disabled={busy || !!blocked}
             title={blocked || undefined}
-            className="shrink-0 cursor-pointer rounded-full bg-[#3b82f6] px-3.5 py-1.5 text-xs text-white hover:bg-[#2563eb] disabled:cursor-default disabled:opacity-50"
+            data-variant="primary"
+            data-size="sm"
+            className="tw-ui-button col-span-2 min-w-0 sm:col-auto"
           >
             {busy ? '发布中…' : '发布'}
           </button>
@@ -159,9 +159,15 @@ export function PublishPreviewPage() {
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 left-1/2 z-[70] flex max-w-[90vw] -translate-x-1/2 items-center gap-3 rounded-full bg-[#111827] px-4 py-2 text-sm text-white shadow-lg">
-          <span className="truncate">{toast}</span>
-          <button type="button" className="shrink-0 text-white/60" onClick={() => setToast('')}>
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          data-kind={published ? 'success' : 'info'}
+          className="tw-feedback fixed bottom-3 left-3 right-3 z-[70] flex min-h-11 items-center gap-3 rounded-[8px] border border-[var(--tw-color-border)] bg-[var(--tw-color-surface)] px-4 py-2 text-sm text-[var(--tw-color-ink)] shadow-[var(--tw-shadow-dialog)] sm:bottom-6 sm:left-1/2 sm:right-auto sm:max-w-[90vw] sm:-translate-x-1/2"
+        >
+          <span className="min-w-0 flex-1 truncate">{toast}</span>
+          <button type="button" className="shrink-0 text-[var(--tw-color-link)] hover:underline" onClick={() => setToast('')}>
             关闭
           </button>
         </div>

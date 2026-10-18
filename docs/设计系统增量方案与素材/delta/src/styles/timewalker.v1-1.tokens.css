@@ -1,0 +1,97 @@
+/* TIMEWALKER Design System 1.1 · additive override for V1.0.
+   Must be imported after timewalker.tokens.css and before components 1.1 CSS.
+   Brand identity ≠ per-story art direction. NO default functional blue. */
+:root {
+  /* Refined primitives: V1 core values remain compatible. */
+  --tw-ink-950: #181F27;
+  --tw-ink-700: #364048;
+  --tw-ink-500: #626B70;
+  --tw-paper-0: #FFFEFB;
+  --tw-paper-50: #F8F6F0;
+  --tw-paper-100: #F0ECE3;
+  --tw-stone-300: #D7D1C6;
+  --tw-gold-400: #B58B59;
+  --tw-gold-700: #79552F;
+  --tw-pine-600: #50635D;
+  --tw-danger-700: #9E453F;
+  --tw-success-700: #38624C;
+  --tw-warning-700: #8B5F28;
+
+  /* Keep the V1 semantic API; new code must consume these roles, not hex colors. */
+  --tw-color-canvas: var(--tw-paper-50);
+  --tw-color-surface: var(--tw-paper-0);
+  --tw-color-surface-muted: var(--tw-paper-100);
+  --tw-color-ink: var(--tw-ink-950);
+  --tw-color-ink-secondary: var(--tw-ink-500);
+  --tw-color-border: var(--tw-stone-300);
+  --tw-color-divider: #E6E0D6;
+  --tw-color-action: var(--tw-ink-950);
+  --tw-color-action-hover: #2A3540;
+  --tw-color-on-action: #FFFEFB;
+  --tw-color-link: #354B46;
+  --tw-color-link-hover: #253B36;
+  --tw-color-decorative: var(--tw-gold-400);
+  --tw-color-accent-text: var(--tw-gold-700);
+  --tw-color-focus: var(--tw-gold-700);
+  --tw-color-selected: #F2ECDF;
+  --tw-color-selected-border: #9D7343;
+  --tw-color-overlay: rgba(255,254,251,.955);
+  --tw-color-error: var(--tw-danger-700);
+  --tw-color-success: var(--tw-success-700);
+  --tw-color-warning: var(--tw-warning-700);
+
+  /* New geometry scale: sharp by default, selectively cut, never globally pill-shaped. */
+  --tw-radius-control: 4px;  /* V1 10px */
+  --tw-radius-overlay: 6px;  /* V1 14px */
+  --tw-radius-card: 6px;     /* V1 16px */
+  --tw-radius-dialog: 8px;
+  --tw-radius-stamp: 50%;
+  --tw-radius-pill: 999px;   /* for genuine pills only */
+  --tw-corner-cut-sm: 8px;
+  --tw-corner-cut-md: 14px;
+  --tw-line-hair: 1px;
+
+  --tw-shadow-card: 0 4px 16px rgba(24,31,39,.035);
+  --tw-shadow-overlay: 0 16px 48px rgba(24,31,39,.11);
+  --tw-shadow-dialog: 0 24px 72px rgba(24,31,39,.22);
+  --tw-blur-overlay: 10px;
+  --tw-motion-fast: 150ms;
+  --tw-motion-panel: 260ms;
+  --tw-motion-reveal: 700ms;
+}
+
+/* V1 already maps basic Tailwind aliases. Add aliases; remove neither V1 aliases nor the app font. */
+@theme inline {
+  --color-tw-action: var(--tw-color-action);
+  --color-tw-selected: var(--tw-color-selected);
+  --color-tw-decorative: var(--tw-color-decorative);
+  --color-tw-link: var(--tw-color-link);
+  --color-tw-danger: var(--tw-color-error);
+  --color-tw-success: var(--tw-color-success);
+  --radius-tw-control: var(--tw-radius-control);
+  --radius-tw-card: var(--tw-radius-card);
+  --radius-tw-overlay: var(--tw-radius-overlay);
+}
+
+/* Brand-neutral overlays: keep scene themes scoped to immersive canvases. */
+[data-experience-skin='noir'] {
+  --tw-scene-bg: #101820;
+  --tw-scene-ink: #F5F0E6;
+  --tw-scene-accent: #C6A276;
+}
+[data-experience-skin='heritage'] {
+  --tw-scene-bg: #1D2924;
+  --tw-scene-ink: #F6EFE0;
+  --tw-scene-accent: #D2B07B;
+}
+[data-experience-skin='cosmos'] {
+  --tw-scene-bg: #081827;
+  --tw-scene-ink: #F0F3F0;
+  --tw-scene-accent: #D5BC91; /* cold blue belongs to scene imagery, not buttons */
+}
+
+/* Utility focus. Form controls and links retain their native semantics. */
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--tw-color-focus);
+  outline-offset: 3px;
+}

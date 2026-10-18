@@ -1,0 +1,88 @@
+{
+  "name": "Timewalker Design System V1.1 editable brand motifs",
+  "purpose": "Original vector ornaments, NOT a vectorization of the logo",
+  "palette": {
+    "ink": "#181F27",
+    "gold": "#B58B59",
+    "goldText": "#79552F",
+    "paper": "#F8F6F0",
+    "stone": "#D7D1C6"
+  },
+  "assets": [
+    {
+      "filename": "orbit-arc.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "orbit-divider.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "star-compass.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "waypoint.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "chapter-node.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "four-star.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "route-thread.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "mountain-horizon.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "cut-corner.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "seal-exploration.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "brass-arrow.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "orbital-grid.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "scene-corner.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "minute-ticks.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    },
+    {
+      "filename": "bookmark-ribbon.svg",
+      "type": "image/svg+xml",
+      "notes": "Editable SVG; use sparingly with available whitespace"
+    }
+  ]
+}

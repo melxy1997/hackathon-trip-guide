@@ -1,59 +1,32 @@
 @import "tailwindcss";
+@import "./styles/timewalker.tokens.css";
+@import "./styles/timewalker.components.css";
 
-@theme {
-  --font-sans: "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
-}
+* { box-sizing: border-box; }
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  height: 100%;
-}
+html { min-width: 320px; scroll-behavior: smooth; }
+html, body, #root { min-height: 100%; }
 
 body {
   margin: 0;
-  font-family: var(--font-sans);
-  color: #111827;
-  background: #f7f8fa;
+  background: var(--tw-color-canvas);
+  color: var(--tw-color-ink);
+  font-family: var(--tw-font-sans);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-.slide-enter {
-  animation: slide-in 0.4s ease-out forwards;
-}
+::selection { background: color-mix(in srgb, var(--tw-gold-300) 45%, transparent); color: var(--tw-color-ink); }
+img { max-width: 100%; }
+button, input, textarea, select { font: inherit; }
 
-@keyframes slide-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.aspect-presentation {
-  aspect-ratio: 16 / 9;
-}
-
-.amap-stage {
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
-}
-
-.amap-stage .amap-logo,
-.amap-stage .amap-copyright {
-  opacity: 0.55 !important;
-}
+.slide-enter { animation: slide-in var(--tw-motion-panel) var(--tw-ease-standard) forwards; }
+@keyframes slide-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.aspect-presentation { aspect-ratio: 16 / 9; }
+.amap-stage { width: 100%; height: 100%; min-height: 100%; }
+.amap-stage .amap-logo, .amap-stage .amap-copyright { opacity: .55 !important; }
 
 @media (prefers-reduced-motion: reduce) {
-  .slide-enter {
-    animation: none !important;
-  }
+  html { scroll-behavior: auto; }
+  .slide-enter { animation: none !important; }
 }

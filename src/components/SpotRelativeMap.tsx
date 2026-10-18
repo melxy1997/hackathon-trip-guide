@@ -33,8 +33,8 @@ function dot(picked: boolean, isMain: boolean) {
     return { r: 7, fill: '#ef4444', stroke: '#fff', strokeWidth: 2 }
   }
   return picked
-    ? { r: 5, fill: '#3b82f6', stroke: '#fff', strokeWidth: 1.5 }
-    : { r: 5, fill: '#fff', stroke: '#6b7280', strokeWidth: 1.5 }
+    ? { r: 5, fill: '#50635d', stroke: '#fff', strokeWidth: 1.5 }
+    : { r: 5, fill: '#fffefb', stroke: '#626b70', strokeWidth: 1.5 }
 }
 
 /**

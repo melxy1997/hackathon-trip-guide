@@ -1,0 +1,15 @@
+{
+  "id": "attr-mvczjtbn",
+  "name": "未命名景点",
+  "description": "",
+  "status": "draft",
+  "start": {
+    "lng": 121.49195,
+    "lat": 31.2272
+  },
+  "zoom": 18.5,
+  "spots": [],
+  "coverImage": "/spots/map-intro.jpg",
+  "createdAt": 1792277167669,
+  "updatedAt": 1792277167669
+}

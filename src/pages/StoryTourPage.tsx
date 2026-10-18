@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronDown, ChevronUp, Compass, Footprints, RotateCcw, Square, Volume2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import brassArrow from '../assets/brand/brass-arrow.svg'
+import routeThread from '../assets/brand/route-thread.svg'
+import sceneCorner from '../assets/brand/scene-corner.svg'
+import sealExploration from '../assets/brand/seal-exploration.svg'
 import { AmapLiveMap, type MapApi, type WalkingSearch } from '../components/AmapLiveMap'
 import { AskAiPanel } from '../components/AskAiPanel'
 import {
@@ -227,14 +231,14 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
 
   if (!current) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#f7f8fa] text-sm text-[#6b7280]">
+      <div className="flex h-screen items-center justify-center bg-[var(--tw-scene-bg)] text-sm text-[var(--tw-scene-muted)]">
         这个故事还没有可走的节点
       </div>
     )
   }
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-[#eef0f3] text-[#111827]">
+    <div data-experience-skin="noir" className="relative h-[100dvh] min-h-[100dvh] w-screen overflow-hidden bg-[#050811] text-[var(--tw-scene-ink)] [--story-gold:#d4af67]">
       <div className="absolute inset-0">
         <AmapLiveMap
           key={pkg.id}
@@ -258,13 +262,19 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
         />
       </div>
 
+      {/* Deep-space editorial atmosphere. These layers are visual only and never capture map gestures. */}
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_45%_40%,transparent_0,rgba(3,6,14,.08)_40%,rgba(3,6,14,.72)_100%)]" />
+      <div className="pointer-events-none absolute -left-36 top-[16%] z-[1] h-[34rem] w-[34rem] rounded-full border border-[#d4af67]/20 opacity-60" />
+      <div className="pointer-events-none absolute -left-24 top-[22%] z-[1] h-[25rem] w-[25rem] rounded-full border border-[#d4af67]/10 opacity-60" />
+      <div className="pointer-events-none absolute left-[19%] top-[13%] z-[1] hidden h-2 w-2 rounded-full border border-[#d4af67]/60 shadow-[0_0_18px_rgba(212,175,103,.45)] md:block" />
+
       {!mapReady && !mapError && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 text-sm text-[#6b7280]">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--tw-scene-overlay)] text-sm text-[var(--tw-scene-muted)]">
           正在载入地图…
         </div>
       )}
       {mapError && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 px-6 text-center text-sm text-red-600">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--tw-scene-overlay)] px-6 text-center text-sm text-red-300">
           {mapError}
         </div>
       )}
@@ -272,26 +282,32 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
       {/* 开始遮罩：点「开始」（或任意处）才进入入口节点，返回与问线索仍可用 */}
       {!started && (
         <div
-          className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-[2px]"
+          className="absolute inset-0 z-40 flex items-center justify-center bg-[rgba(3,6,14,.82)] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur-xl"
           role="dialog"
           aria-label="开始故事漫游"
           onClick={() => setStarted(true)}
         >
           <div
-            className="mx-4 w-full max-w-sm rounded-2xl border border-black/5 bg-white px-7 py-8 text-center shadow-xl"
+            className="relative mx-auto w-full max-w-md overflow-hidden rounded-lg border border-[#d4af67]/25 bg-[linear-gradient(145deg,rgba(15,20,34,.98),rgba(5,8,17,.98))] px-7 py-9 text-center text-[var(--tw-scene-ink)] shadow-[0_30px_100px_rgba(0,0,0,.65)] before:pointer-events-none before:absolute before:inset-3 before:rounded-md before:border before:border-white/[.04] sm:px-10 sm:py-11"
             onClick={(e) => e.stopPropagation()}
           >
+            <img
+              src={sceneCorner}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute left-0 top-0 h-24 w-24 opacity-70"
+            />
             {/* 开场封面里主标题是故事名，入口节点名退成副标题；没起名就退回节点名当标题 */}
-            <p className="text-[22px] font-semibold leading-tight text-[#111827]">
+            <p className="relative font-[var(--tw-font-editorial)] text-[22px] font-semibold leading-tight text-[var(--tw-scene-ink)]">
               {storyTitle || current.name}
             </p>
-            <p className="mt-2 text-xs text-[#9ca3af]">
+            <p className="mt-2 text-xs text-[var(--tw-scene-muted)]">
               {storyTitle ? `入口 · ${current.name}` : '入口'}
             </p>
             {pkg.description ? (
               <>
-                <div className="my-5 h-px bg-black/5" />
-                <p className="text-left text-sm leading-relaxed text-[#4b5563]">
+                <div className="my-5 h-px bg-white/10" />
+                <p className="text-left text-sm leading-relaxed text-[var(--tw-scene-muted)]">
                   {pkg.description}
                 </p>
               </>
@@ -299,7 +315,7 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
             <button
               type="button"
               onClick={() => setStarted(true)}
-              className="mt-6 w-full cursor-pointer rounded-xl bg-[#3b82f6] py-3 text-sm text-white hover:bg-[#2563eb]"
+              className="mt-6 min-h-11 w-full cursor-pointer rounded bg-[#f8f6f0] py-3 text-sm font-medium text-[#181f27] transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af67]"
             >
               开始
             </button>
@@ -310,22 +326,40 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
       {/* 结算画面：走到结局、口播讲完才压上来；点空白关掉，回到结局卡上的重新开始 / 自由漫游 */}
       {started && settled && (
         <div
-          className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-[2px]"
+          className="absolute inset-0 z-40 flex items-center justify-center bg-[rgba(3,6,14,.82)] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur-xl"
           role="dialog"
           aria-label="结局结算"
           onClick={() => setSettled(false)}
         >
           <div
-            className="mx-4 w-full max-w-sm rounded-2xl border border-black/5 bg-white px-7 py-8 text-center shadow-xl"
+            className="relative mx-auto w-full max-w-md overflow-hidden rounded-lg border border-[#d4af67]/25 bg-[linear-gradient(145deg,rgba(15,20,34,.98),rgba(5,8,17,.98))] px-7 py-9 text-center text-[var(--tw-scene-ink)] shadow-[0_30px_100px_rgba(0,0,0,.65)] before:pointer-events-none before:absolute before:inset-3 before:rounded-md before:border before:border-white/[.04] sm:px-10 sm:py-11"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="text-xs text-[#9ca3af]">结局</p>
-            <p className="mt-2 text-[22px] font-semibold leading-tight text-[#111827]">
+            <img
+              src={sceneCorner}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute right-0 top-0 h-24 w-24 -scale-x-100 opacity-70"
+            />
+            <img
+              src={sealExploration}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none mx-auto mb-3 h-16 w-16 opacity-90"
+            />
+            <p className="text-xs text-[var(--tw-scene-muted)]">结局</p>
+            <p className="mt-2 font-[var(--tw-font-editorial)] text-[22px] font-semibold leading-tight text-[var(--tw-scene-ink)]">
               {storyEndingLabel(pkg, current.id)}
             </p>
             {walkedTrace.length > 0 && (
               <>
-                <div className="my-5 h-px bg-black/5" />
+                <div className="my-5 h-px bg-white/10" />
+                <img
+                  src={routeThread}
+                  alt=""
+                  aria-hidden="true"
+                  className="pointer-events-none mb-2 h-auto w-full opacity-65"
+                />
                 <p className="flex items-start justify-center gap-1.5 text-[11px] leading-relaxed text-[#6b7280]">
                   <Footprints size={12} className="mt-0.5 shrink-0" />
                   <span className="min-w-0 text-left">已走：{walkedTrace.join(' → ')}</span>
@@ -336,7 +370,7 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
               <button
                 type="button"
                 onClick={restart}
-                className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-transparent bg-[#3b82f6] py-3 text-sm text-white hover:bg-[#2563eb]"
+                className="inline-flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded border border-transparent bg-[#f8f6f0] py-3 text-sm font-medium text-[#181f27] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af67]"
               >
                 <RotateCcw size={14} />
                 重新开始
@@ -347,7 +381,7 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
                   setSettled(false)
                   setFreeRoam(true)
                 }}
-                className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-black/10 bg-white py-3 text-sm hover:bg-[#f3f4f6]"
+                className="inline-flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded border border-white/20 bg-white/5 py-3 text-sm text-[var(--tw-scene-ink)] hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af67]"
               >
                 <Compass size={14} />
                 自由漫游
@@ -357,23 +391,23 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
         </div>
       )}
 
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-50 flex h-14 items-center justify-between gap-3 px-3">
-        <div className="pointer-events-auto flex min-w-0 items-center gap-2 rounded-full border border-black/5 bg-white/95 py-1.5 pl-2.5 pr-3.5 shadow-sm backdrop-blur-md">
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-50 flex min-h-16 items-center justify-between gap-3 px-3 pt-[env(safe-area-inset-top)] sm:px-5">
+        <div className="pointer-events-auto flex min-w-0 items-center gap-3 border-b border-[#d4af67]/25 bg-[rgba(5,8,17,.78)] px-1 pb-2 pt-2 backdrop-blur-xl">
           <Link
             to="/"
-            className="text-sm text-[#6b7280] hover:text-[#111827]"
+            className="inline-flex min-h-11 items-center text-sm text-[var(--tw-scene-muted)] hover:text-[var(--tw-scene-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af67]"
             title="返回景点列表"
           >
             返回
           </Link>
-          <span className="text-[#d1d5db]">/</span>
+          <span className="text-white/25">/</span>
           <span className="min-w-0 leading-tight">
             <span className="block truncate text-sm font-medium">{pkg.name}</span>
             {storyTitle ? (
               <span className="block truncate text-[11px] text-[#9ca3af]">{storyTitle}</span>
             ) : null}
           </span>
-          <span className="shrink-0 rounded-md bg-[#111827] px-1.5 py-0.5 text-[10px] text-white">
+          <span className="shrink-0 rounded-md bg-[var(--tw-scene-accent)] px-1.5 py-0.5 text-[10px] text-[#101820]">
             故事
           </span>
         </div>
@@ -397,15 +431,15 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
         </div>
       </header>
 
-      {/* 右上角 · 当前情节（可收起，收起后只留底栏） */}
-      <section className="absolute right-3 top-16 z-20 flex max-h-[calc(100vh-11rem)] w-[min(94vw,420px)] flex-col overflow-hidden rounded-2xl border border-black/5 bg-white/95 shadow-lg backdrop-blur-md">
+      {/* Desktop: right editorial column. Mobile: anchored bottom sheet above the choices. */}
+      <section className="absolute inset-x-3 bottom-[calc(28dvh+env(safe-area-inset-bottom))] z-20 flex max-h-[32dvh] flex-col overflow-hidden rounded-md border border-[#d4af67]/20 bg-[rgba(7,11,22,.9)] shadow-[0_18px_56px_rgba(0,0,0,.45)] backdrop-blur-xl sm:inset-x-auto sm:bottom-auto sm:right-5 sm:top-[calc(4.75rem+env(safe-area-inset-top))] sm:max-h-[calc(100dvh-6rem-env(safe-area-inset-top))] sm:w-[min(42vw,460px)]">
         {cardOpen && (
-          <div className="min-h-0 flex-1 overflow-y-auto p-3.5">
-            <div className="relative grid overflow-hidden rounded-xl bg-[#f3f4f6]">
+          <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
+            <div className="relative grid overflow-hidden rounded-sm border border-white/[.06] bg-white/5">
               <img
                 src={resolveMediaUrl(pkg, current.image)}
                 alt={current.name}
-                className="absolute inset-0 h-full w-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover saturate-[.75]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
               {/* 撑高用：占位格给 16:9 的下限，文案更多时由下面那格把卡片顶高，不再被 overflow 剪掉 */}
@@ -419,7 +453,7 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
                   <ul className="mt-3 space-y-1.5 text-sm text-white/90">
                     {slide.bullets.map((b, i) => (
                       <li key={i} className="flex gap-2">
-                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#93c5fd]" />
+                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--tw-scene-accent)]" />
                         <span className="leading-relaxed">{b}</span>
                       </li>
                     ))}
@@ -429,9 +463,9 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
             </div>
 
             {slide?.narration ? (
-              <p className="mt-3 text-[13px] leading-relaxed text-[#4b5563]">{slide.narration}</p>
+              <p className="mt-3 text-[13px] leading-relaxed text-[var(--tw-scene-muted)]">{slide.narration}</p>
             ) : (
-              <p className="mt-3 text-[13px] text-[#9ca3af]">这个节点还没有口播文案。</p>
+              <p className="mt-3 text-[13px] text-[var(--tw-scene-muted)]">这个节点还没有口播文案。</p>
             )}
           </div>
         )}
@@ -446,7 +480,7 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
             onClick={() => setCardOpen((o) => !o)}
             title={cardOpen ? '收起当前情节' : '展开当前情节'}
             aria-expanded={cardOpen}
-            className="inline-flex cursor-pointer items-center gap-1 rounded-lg px-1.5 py-1 text-[11px] text-[#9ca3af] hover:bg-[#f3f4f6] hover:text-[#111827]"
+            className="inline-flex min-h-11 cursor-pointer items-center gap-1 rounded px-2 text-xs text-[var(--tw-scene-muted)] hover:bg-white/5 hover:text-[var(--tw-scene-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af67]"
           >
             {cardOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             <span>{moving ? '正在走过去…' : freeRoam ? '自由漫游中' : '当前情节'}</span>
@@ -455,7 +489,7 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
             <button
               type="button"
               onClick={() => setSpeakToken((t) => t + 1)}
-              className="inline-flex cursor-pointer items-center gap-1 rounded-lg bg-[#f3f4f6] px-2.5 py-1.5 text-xs font-medium text-[#111827] hover:bg-[#e5e7eb]"
+              className="inline-flex min-h-11 cursor-pointer items-center gap-1 rounded bg-white/5 px-2.5 text-xs font-medium text-[var(--tw-scene-ink)] hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af67]"
             >
               <Volume2 size={12} />
               重播
@@ -463,7 +497,7 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
             <button
               type="button"
               onClick={() => narrateCancelRef.current?.()}
-              className="inline-flex cursor-pointer items-center gap-1 rounded-lg bg-[#f3f4f6] px-2.5 py-1.5 text-xs font-medium text-[#6b7280] hover:bg-[#e5e7eb]"
+              className="inline-flex min-h-11 cursor-pointer items-center gap-1 rounded bg-white/5 px-2.5 text-xs font-medium text-[var(--tw-scene-muted)] hover:bg-white/10 hover:text-[var(--tw-scene-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af67]"
             >
               <Square size={12} />
               停止
@@ -473,16 +507,16 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
       </section>
 
       {/* 左下角 · 去向选项：故事页唯一的前进入口 */}
-      <section className="absolute bottom-4 left-3 z-30 w-[min(calc(100vw-9rem),320px)] space-y-2">
+      <section className="absolute inset-x-3 bottom-[max(.75rem,env(safe-area-inset-bottom))] z-30 space-y-2 sm:inset-x-auto sm:left-5 sm:w-[min(38vw,360px)]">
         {isEnding ? (
-          <div className="rounded-2xl border border-black/5 bg-white/95 p-3.5 shadow-lg backdrop-blur-md">
+          <div className="rounded-md border border-white/10 bg-[var(--tw-scene-overlay)] p-3.5 shadow-lg backdrop-blur-md">
             <p className="text-[11px] text-[#9ca3af]">结局</p>
             <p className="mt-0.5 text-base font-medium">{storyEndingLabel(pkg, current.id)}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={restart}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-[#3b82f6] px-3 py-1.5 text-sm text-white hover:bg-[#2563eb]"
+                className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded bg-[#f8f6f0] px-3 text-sm font-medium text-[#181f27] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af67]"
               >
                 <RotateCcw size={14} />
                 重新开始
@@ -491,7 +525,7 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
                 <button
                   type="button"
                   onClick={() => setFreeRoam(true)}
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-black/10 bg-white px-3 py-1.5 text-sm hover:bg-[#f3f4f6]"
+                  className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded border border-white/20 bg-white/5 px-3 text-sm text-[var(--tw-scene-ink)] hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d4af67]"
                 >
                   <Compass size={14} />
                   自由漫游
@@ -500,23 +534,31 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-black/5 bg-white/95 p-3.5 shadow-lg backdrop-blur-md">
-            <p className="mb-2 px-0.5 text-sm font-medium">选项</p>
-            <div className="space-y-1.5">
+          <div className="border border-[#d4af67]/20 bg-[rgba(7,11,22,.92)] p-4 shadow-[0_20px_55px_rgba(0,0,0,.45)] backdrop-blur-xl [clip-path:polygon(0_0,calc(100%-12px)_0,100%_12px,100%_100%,0_100%)]">
+            <p className="mb-2 px-0.5 text-[10px] font-medium uppercase tracking-[.28em] text-[#d4af67]">Choose a direction</p>
+            <div className="divide-y divide-[#d4af67]/15">
               {available.map((choice) => (
                 <button
                   key={choice.to}
                   type="button"
                   onClick={() => goTo(choice.to)}
                   disabled={moving}
-                  className="w-full cursor-pointer rounded-xl border border-black/8 bg-white px-3 py-2 text-left transition-colors hover:border-[#3b82f6]/40 hover:bg-[#eff6ff] disabled:opacity-50"
+                  className="group flex min-h-11 w-full cursor-pointer items-center justify-between gap-4 rounded px-1 py-3 text-left transition-colors hover:bg-white/5 hover:text-[#d4af67] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#d4af67] disabled:opacity-50"
                 >
-                  <span className="block truncate text-sm">{storyChoiceLabel(pkg, choice)}</span>
-                  {choice.note ? (
-                    <span className="mt-0.5 block truncate text-[11px] text-[#9ca3af]">
-                      {choice.note}
-                    </span>
-                  ) : null}
+                  <span className="min-w-0">
+                    <span className="block truncate font-[var(--tw-font-editorial)] text-sm tracking-wide">{storyChoiceLabel(pkg, choice)}</span>
+                    {choice.note ? (
+                      <span className="mt-0.5 block truncate text-[11px] text-[var(--tw-scene-muted)]">
+                        {choice.note}
+                      </span>
+                    ) : null}
+                  </span>
+                  <img
+                    src={brassArrow}
+                    alt=""
+                    aria-hidden="true"
+                    className="pointer-events-none h-6 w-10 shrink-0 transition-transform motion-safe:group-hover:translate-x-1"
+                  />
                 </button>
               ))}
             </div>
@@ -524,14 +566,14 @@ export function StoryTourPage({ pkg }: { pkg: PublishedAttraction }) {
         )}
 
         {walkedTrace.length > 0 && (
-          <p className="flex items-start gap-1.5 rounded-xl bg-white/90 px-3 py-1.5 text-[11px] leading-relaxed text-[#6b7280] shadow-sm backdrop-blur-md">
+          <p className="flex items-start gap-1.5 rounded-md bg-[var(--tw-scene-overlay)] px-3 py-1.5 text-[11px] leading-relaxed text-[var(--tw-scene-muted)] shadow-sm backdrop-blur-md">
             <Footprints size={12} className="mt-0.5 shrink-0" />
             <span className="min-w-0">已走：{walkedTrace.join(' → ')}</span>
           </p>
         )}
 
         {freeRoam && (
-          <p className="rounded-xl bg-white/90 px-3 py-1.5 text-[11px] text-[#6b7280] shadow-sm backdrop-blur-md">
+          <p className="rounded-md bg-[var(--tw-scene-overlay)] px-3 py-1.5 text-[11px] text-[var(--tw-scene-muted)] shadow-sm backdrop-blur-md">
             点击地图移动 · 自由漫游不受路线限制
           </p>
         )}

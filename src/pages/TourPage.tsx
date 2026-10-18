@@ -10,6 +10,8 @@ import {
   X,
 } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
+import routeThread from '../assets/brand/route-thread.svg'
+import waypoint from '../assets/brand/waypoint.svg'
 import { AmapLiveMap, type MapApi, type WalkingSearch } from '../components/AmapLiveMap'
 import { TourAutoGate } from '../components/TourAutoGate'
 import { TourProgressBar } from '../components/TourProgressBar'
@@ -578,25 +580,25 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
               : '自动漫游'
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#f7f8fa] text-[#111827]">
-      <header className="relative z-30 flex items-center justify-between gap-3 px-4 sm:px-5 h-14 shrink-0 bg-white border-b border-black/5">
+    <div className="flex h-[100dvh] min-h-[100dvh] w-screen flex-col overflow-hidden bg-[#eee7d7] text-[#1f2c27] [--tour-gold:#ad7c2c] [--tour-ink:#24332d] [--tour-paper:#f6f0e3] [--tour-pine:#315846]">
+      <header className="relative z-30 flex min-h-16 shrink-0 items-center justify-between gap-3 border-b border-[#315846]/20 bg-[#f6f0e3]/95 px-4 pb-2 pt-[calc(.5rem+env(safe-area-inset-top))] shadow-[0_1px_0_rgba(255,255,255,.7)] sm:px-6">
         <div className="flex items-center gap-3 min-w-0">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-sm text-[#6b7280] hover:text-[#111827] shrink-0"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm text-[var(--tw-color-ink-secondary)] hover:text-[var(--tw-color-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#79552f]"
             title="返回景点列表"
           >
             返回
           </Link>
-          <span className="text-[#d1d5db]">/</span>
+          <span className="text-[var(--tw-color-border)]">/</span>
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-1.5">
               <h1 className="text-[15px] font-medium truncate">{attraction?.name || '漫游'}</h1>
-              <span className="shrink-0 rounded-md bg-[#111827] px-1.5 py-0.5 text-[10px] text-white">
+              <span className="shrink-0 rounded-md bg-[var(--tw-color-action)] px-1.5 py-0.5 text-[10px] text-[var(--tw-color-on-action)]">
                 打卡
               </span>
             </div>
-            <p className="text-xs text-[#9ca3af] truncate">
+            <p className="text-xs text-[var(--tw-color-ink-secondary)] truncate">
               {activeNode && (tourPhase === 'presenting' || !isAuto)
                 ? `${activeNode.name}${activeNode.poetic ? ` · ${activeNode.poetic}` : ''}`
                 : phaseHint}
@@ -605,12 +607,12 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <div className="flex rounded-lg overflow-hidden border border-black/10 text-xs bg-[#f9fafb]">
+          <div className="flex overflow-hidden rounded border border-[#50635d]/30 bg-[#eee8dc] p-0.5 text-xs">
             <button
               type="button"
               onClick={() => setMode('manual')}
-              className={`cursor-pointer px-2.5 py-1.5 transition-colors ${
-                !isAuto ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6b7280] hover:text-[#111827]'
+              className={`min-h-11 cursor-pointer px-2.5 py-1.5 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#79552f] ${
+                !isAuto ? 'rounded-sm bg-[#181f27] text-[#fffefb] shadow-sm' : 'text-[#50635d] hover:text-[#181f27]'
               }`}
               title="手动漫游（M）"
             >
@@ -622,8 +624,8 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
                 setTourPhase('idle')
                 setMode('auto')
               }}
-              className={`cursor-pointer px-2.5 py-1.5 transition-colors ${
-                isAuto ? 'bg-white text-[#111827] shadow-sm' : 'text-[#6b7280] hover:text-[#111827]'
+              className={`min-h-11 cursor-pointer px-2.5 py-1.5 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#79552f] ${
+                isAuto ? 'rounded-sm bg-[#181f27] text-[#fffefb] shadow-sm' : 'text-[#50635d] hover:text-[#181f27]'
               }`}
               title="自动漫游（M）"
             >
@@ -632,7 +634,7 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
           </div>
           <button
             onClick={() => setPanelOpen((v) => !v)}
-            className="cursor-pointer hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-black/10 bg-white text-sm hover:bg-[#f3f4f6]"
+            className="hidden min-h-11 cursor-pointer items-center gap-1.5 rounded border border-[var(--tw-color-border)] bg-[var(--tw-color-surface)] px-3 py-1.5 text-sm hover:bg-[var(--tw-color-surface-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#79552f] sm:inline-flex"
           >
             {panelOpen ? <X size={15} /> : <MapPin size={15} />}
             {panelOpen ? '收起' : '讲解'}
@@ -640,7 +642,7 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
         </div>
       </header>
 
-      <main className="relative flex-1 min-h-0 overflow-hidden bg-[#eef0f3]">
+      <main className="relative min-h-0 flex-1 overflow-hidden bg-[#ded6c5]">
         <div className="absolute inset-0">
           {nodes.length > 0 && tourStart.lng !== 0 && (
             <AmapLiveMap
@@ -670,13 +672,17 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
           )}
         </div>
 
+        {/* Cartographic wash and graticule: decorative only, so the map retains every gesture. */}
+        <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(rgba(246,240,227,.07),rgba(236,225,202,.15))]" />
+        <div className="pointer-events-none absolute inset-0 z-[1] opacity-20 [background-image:linear-gradient(rgba(49,88,70,.22)_1px,transparent_1px),linear-gradient(90deg,rgba(49,88,70,.22)_1px,transparent_1px)] [background-size:72px_72px] [mask-image:linear-gradient(to_bottom,black,transparent_75%)]" />
+
         {(!mapReady || !nodes.length) && !spotsError && !mapError && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 text-sm text-[#6b7280]">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--tw-color-overlay)] text-sm text-[var(--tw-color-ink-secondary)]">
             正在载入地图…
           </div>
         )}
         {(spotsError || mapError) && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 text-sm text-red-600 px-6 text-center">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--tw-color-overlay)] text-sm text-[var(--tw-danger-700)] px-6 text-center">
             {spotsError || mapError}
           </div>
         )}
@@ -687,14 +693,20 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
         />
 
         {tourPhase === 'done' && isAuto && (
-          <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 pointer-events-auto">
-            <div className="rounded-2xl border border-black/5 bg-white px-7 py-6 text-center max-w-sm mx-4 shadow-xl">
+          <div className="absolute inset-0 z-40 flex items-center justify-center bg-[var(--tw-scene-overlay)] pointer-events-auto">
+            <div className="relative mx-4 max-w-sm overflow-hidden rounded-lg border border-white/10 bg-[var(--tw-scene-bg)] px-7 py-6 text-center text-[var(--tw-scene-ink)] shadow-[var(--tw-shadow-dialog)]">
+              <img
+                src={routeThread}
+                alt=""
+                aria-hidden="true"
+                className="pointer-events-none mx-auto mb-3 h-auto w-full opacity-70"
+              />
               <p className="text-lg font-medium">漫游结束</p>
-              <p className="mt-2 text-sm text-[#6b7280]">路线已走完，可切回手动继续游园。</p>
+              <p className="mt-2 text-sm text-[var(--tw-color-ink-secondary)]">路线已走完，可切回手动继续游园。</p>
               <button
                 type="button"
                 onClick={exitAutoToManual}
-                className="cursor-pointer mt-4 px-4 py-2 rounded-xl bg-[#3b82f6] text-white text-sm hover:bg-[#2563eb]"
+                className="mt-4 min-h-11 cursor-pointer rounded bg-[#181f27] px-4 py-2 text-sm text-[#fffefb] hover:bg-[#2d3944] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#79552f]"
               >
                 回到手动漫游
               </button>
@@ -703,14 +715,14 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
         )}
 
         <div
-          className={`absolute bottom-5 left-4 z-30 pointer-events-auto w-[min(92vw,260px)] hidden sm:block ${
+          className={`absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 z-30 hidden w-[min(92vw,280px)] pointer-events-auto sm:block ${
             isAuto && autoStarted ? 'mb-14' : ''
           }`}
         >
-          <div className="rounded-2xl border border-black/5 bg-white/95 backdrop-blur-md p-3 shadow-lg">
-            <div className="flex items-center justify-between mb-2 px-1">
-              <p className="text-sm font-medium">路线</p>
-              <span className="text-[11px] text-[#9ca3af]">{nodes.length} 站</span>
+          <div className="rounded-md border border-[#50635d]/25 bg-[#f8f6f0]/95 p-3 shadow-[0_12px_38px_rgba(24,31,39,.16)] backdrop-blur-md">
+            <div className="mb-2 flex items-center justify-between border-b border-[#315846]/15 px-1 pb-2">
+              <p className="font-[var(--tw-font-editorial)] text-sm font-semibold tracking-wide text-[#24332d]">游览路线</p>
+              <span className="text-[10px] uppercase tracking-[.18em] text-[#ad7c2c]">{nodes.length} stops</span>
             </div>
             <div className="space-y-0.5 max-h-[42vh] overflow-y-auto">
               {nodes.map((node, i) => {
@@ -719,21 +731,35 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
                   <button
                     key={node.id}
                     onClick={() => goToNodeManual(node)}
-                    className={`cursor-pointer w-full flex items-center gap-2.5 px-2 py-2 rounded-xl text-left transition-colors ${
-                      active ? 'bg-[#eff6ff] text-[#1d4ed8]' : 'hover:bg-[#f3f4f6] text-[#111827]'
+                    aria-current={active ? 'step' : undefined}
+                    className={`flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded px-2 py-2 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#79552f] ${
+                      active
+                        ? 'border border-[#9d7343] bg-[#f2ecdf] text-[#181f27]'
+                        : 'border border-transparent text-[#354b46] hover:bg-[#eee8dc]'
                     }`}
                   >
                     <span
-                      className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center shrink-0 ${
-                        active ? 'bg-[#3b82f6] text-white' : 'bg-[#111827] text-white'
+                      className={`relative flex h-7 w-6 shrink-0 items-center justify-center text-[10px] ${
+                        active ? 'text-[#181f27]' : 'text-[#50635d]'
                       }`}
                     >
-                      {i + 1}
+                      {active ? (
+                        <img
+                          src={waypoint}
+                          alt=""
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-0 h-full w-full"
+                        />
+                      ) : (
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#50635d]/40">
+                          {i + 1}
+                        </span>
+                      )}
                     </span>
                     <span className="min-w-0">
                       <span className="block text-sm truncate">{node.name}</span>
                       {node.poetic ? (
-                        <span className={`block text-[11px] truncate ${active ? 'text-[#60a5fa]' : 'text-[#9ca3af]'}`}>
+                        <span className={`block text-[11px] truncate ${active ? 'text-[var(--tw-color-accent-text)]' : 'text-[var(--tw-color-ink-secondary)]'}`}>
                           {node.poetic}
                         </span>
                       ) : null}
@@ -746,7 +772,7 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
         </div>
 
         {!activeNodeId && !moving && mapReady && !isAuto && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 px-3.5 py-1.5 rounded-full bg-white/95 border border-black/5 shadow-sm text-xs text-[#6b7280] sm:left-[calc(50%+40px)]">
+          <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 rounded-md border border-black/10 bg-white/95 px-3.5 py-1.5 text-xs text-[#50635d] shadow-sm sm:left-[calc(50%+40px)]">
             点击地图移动 · 靠近节点展开讲解
           </div>
         )}
@@ -759,10 +785,10 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
         />
 
         {panelOpen && (
-          <div className="absolute top-3 right-3 w-[min(94vw,440px)] sm:w-[min(48vw,560px)] lg:w-[min(46vw,620px)] flex flex-col gap-2 z-20 pointer-events-none">
-            <div className="rounded-2xl border border-black/5 bg-white/95 backdrop-blur-md overflow-hidden shadow-lg pointer-events-auto">
-              <div className="p-3.5">
-                <div className="relative grid rounded-xl overflow-hidden bg-[#f3f4f6]">
+          <div className="pointer-events-none absolute inset-x-3 bottom-[max(.75rem,env(safe-area-inset-bottom))] z-20 flex max-h-[46dvh] flex-col gap-2 sm:inset-x-auto sm:bottom-auto sm:right-4 sm:top-4 sm:max-h-[calc(100%-2rem)] sm:w-[min(48vw,560px)] lg:w-[min(42vw,610px)]">
+            <div className="pointer-events-auto overflow-y-auto rounded-md border border-[#50635d]/25 bg-[#f8f6f0]/95 shadow-[0_14px_44px_rgba(24,31,39,.18)] backdrop-blur-md">
+              <div className="p-3 sm:p-4">
+                <div className="relative grid overflow-hidden rounded-sm border border-[#50635d]/15 bg-[#eee8dc]">
                   {/* 撑高用：占位格给 16:9 的下限，文案更多时由同格那张卡把盒子顶高，不再被 overflow 剪掉 */}
                   <div className="aspect-presentation col-start-1 row-start-1" aria-hidden />
                   {activeSlide && activeNode ? (
@@ -786,7 +812,7 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
                         <ul className="mt-3 space-y-1.5 text-sm sm:text-[15px] text-white/90">
                           {activeSlide.bullets.map((b, i) => (
                             <li key={i} className="flex gap-2">
-                              <span className="mt-2 w-1.5 h-1.5 rounded-full bg-[#93c5fd] shrink-0" />
+                              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--tw-scene-accent)]" />
                               <span className="leading-relaxed">{b}</span>
                             </li>
                           ))}
@@ -797,8 +823,14 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
                       </div>
                     </div>
                   ) : (
-                    <div className="col-start-1 row-start-1 flex flex-col justify-end p-6 bg-gradient-to-t from-[#111827] via-[#374151] to-[#9ca3af]">
-                      <p className="text-xs text-white/60 mb-1">漫游</p>
+                    <div className="relative col-start-1 row-start-1 flex flex-col justify-end overflow-hidden bg-gradient-to-t from-[#111827] via-[#374151] to-[#9ca3af] p-6">
+                      <img
+                        src={waypoint}
+                        alt=""
+                        aria-hidden="true"
+                        className="pointer-events-none absolute right-6 top-6 h-20 w-16 opacity-35"
+                      />
+                      <p className="relative text-xs text-white/60 mb-1">漫游</p>
                       <p className="text-2xl font-medium text-white">尚未入景</p>
                       <p className="mt-2 text-sm text-white/80 max-w-[320px] leading-relaxed">
                         {isAuto
@@ -814,8 +846,10 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={toggleMode}
-                    className={`cursor-pointer px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                      isAuto ? 'bg-[#eff6ff] text-[#1d4ed8]' : 'bg-[#f3f4f6] text-[#6b7280]'
+                    className={`min-h-11 cursor-pointer rounded px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#79552f] ${
+                      isAuto
+                        ? 'border border-[#9d7343] bg-[#f2ecdf] text-[#79552f]'
+                        : 'border border-[#50635d]/20 bg-white/40 text-[#354b46]'
                     }`}
                     title="快捷键 M"
                   >
@@ -824,7 +858,7 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
                   <button
                     onClick={() => activeSlide && speak(activeSlide.narration)}
                     disabled={!activeSlide || (isAuto && tourPhase === 'presenting')}
-                    className="cursor-pointer flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#f3f4f6] text-[#111827] disabled:opacity-40"
+                    className="flex min-h-11 cursor-pointer items-center gap-1 rounded border border-[#50635d]/20 bg-white px-2.5 py-1.5 text-xs font-medium text-[#181f27] disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#79552f]"
                   >
                     <Volume2 size={12} />
                     重播
@@ -837,7 +871,7 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
                   <button
                     onClick={() => goSlide(slideIndex - 1)}
                     disabled={isAuto || !activeNode || slideIndex === 0}
-                    className="cursor-pointer p-1.5 rounded-lg hover:bg-[#f3f4f6] disabled:opacity-35"
+                    className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded hover:bg-[#eee8dc] disabled:opacity-35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#79552f]"
                   >
                     <ChevronLeft size={18} />
                   </button>
@@ -846,7 +880,7 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
                     disabled={
                       isAuto || !activeNode || slideIndex === (activeNode?.slides.length || 1) - 1
                     }
-                    className="cursor-pointer p-1.5 rounded-lg hover:bg-[#f3f4f6] disabled:opacity-35"
+                    className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded hover:bg-[#eee8dc] disabled:opacity-35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#79552f]"
                   >
                     <ChevronRight size={18} />
                   </button>
@@ -856,14 +890,14 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
 
             <button
               onClick={() => setQaOpen((v) => !v)}
-              className="cursor-pointer self-end flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-black/5 shadow-sm hover:bg-[#f9fafb] text-sm pointer-events-auto"
+              className="pointer-events-auto flex min-h-11 cursor-pointer items-center gap-2 self-end rounded border border-[#50635d]/25 bg-white px-3.5 py-2 text-sm text-[#181f27] shadow-sm hover:bg-[#f8f6f0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#79552f]"
             >
-              <MessageCircle size={15} className="text-[#3b82f6]" />
+              <MessageCircle size={15} className="text-[var(--tw-color-accent-text)]" />
               {qaOpen ? '收起问答' : '问 AI'}
             </button>
 
             {qaOpen && (
-              <div className="rounded-2xl border border-black/5 bg-white/95 backdrop-blur-md p-4 shadow-lg pointer-events-auto">
+              <div className="pointer-events-auto max-h-[min(42dvh,360px)] overflow-y-auto rounded-lg border border-black/10 bg-white/95 p-4 shadow-lg backdrop-blur-md">
                 <div className="flex items-center gap-2 mb-3 text-[#111827]">
                   <HelpCircle size={15} className="text-[#6b7280]" />
                   <span className="text-sm font-medium">向导游提问</span>
@@ -874,12 +908,12 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
                     onChange={(e) => setQuestion(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && askQuestion()}
                     placeholder="例如：这里有什么看点？"
-                    className="flex-1 px-3 py-2 rounded-xl bg-[#f9fafb] border border-black/8 text-sm outline-none focus:border-[#3b82f6]/50 focus:bg-white"
+                    className="min-h-11 min-w-0 flex-1 rounded border border-black/10 bg-[#f8f6f0] px-3 py-2 text-sm outline-none focus:border-[#79552f] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#79552f]/25"
                   />
                   <button
                     onClick={askQuestion}
                     disabled={asking || !question.trim()}
-                    className="cursor-pointer px-3 py-2 rounded-xl bg-[#3b82f6] text-white hover:bg-[#2563eb] disabled:opacity-45"
+                    className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded bg-[#181f27] px-3 py-2 text-[#fffefb] hover:bg-[#2d3944] disabled:opacity-45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#79552f]"
                   >
                     {asking ? (
                       <span className="w-4 h-4 block border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -889,7 +923,7 @@ export function TourPage({ initialPackage }: TourPageProps = {}) {
                   </button>
                 </div>
                 {answer && (
-                  <div className="mt-3 text-sm text-[#374151] bg-[#f9fafb] rounded-xl p-3 border border-black/5 leading-relaxed">
+                  <div className="mt-3 rounded-md border border-black/10 bg-[#f8f6f0] p-3 text-sm leading-relaxed text-[#354b46]">
                     {answer}
                   </div>
                 )}

@@ -12,8 +12,7 @@ type Props = {
   disabled?: boolean
 }
 
-const selectClass =
-  'w-full rounded-lg border border-black/8 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#3b82f6]/50 disabled:opacity-50'
+const selectClass = 'tw-ui-input disabled:opacity-50'
 
 /** 省市级联下拉：数据来自高德 AMap.DistrictSearch */
 export function CityRegionSelect({ value, onChange, disabled }: Props) {
@@ -84,7 +83,7 @@ export function CityRegionSelect({ value, onChange, disabled }: Props) {
   if (error) {
     return (
       <div className="space-y-2">
-        <p className="text-xs text-amber-700">{error}，可改为手动输入</p>
+        <p role="alert" data-kind="warning" className="tw-feedback border-l-2 pl-2 text-xs text-[var(--tw-color-accent-text)]">{error}，可改为手动输入</p>
         <input
           value={value}
           disabled={disabled}

@@ -1,0 +1,110 @@
+/* Timewalker brand design tokens · proposal for fix/draft (not wired into the app yet).
+   Keep the brand shell neutral; use data-experience-skin for immersive story overrides. */
+:root {
+  /* Primitive color roles */
+  --tw-ink-950: #202527;
+  --tw-ink-700: #414b4a;
+  --tw-ink-500: #5e6766;
+  --tw-paper-0: #ffffff;
+  --tw-paper-50: #f7f5ef;
+  --tw-paper-100: #f0ede5;
+  --tw-stone-300: #dfd9ca;
+  --tw-gold-400: #b58b59; /* decorative; too light for small text on paper */
+  --tw-gold-700: #81603b; /* readable text on paper */
+  --tw-pine-600: #50635d;
+  --tw-danger-700: #aa3c39;
+  --tw-success-700: #38684c;
+  /* Semantic surface and type */
+  --tw-color-canvas: var(--tw-paper-50);
+  --tw-color-surface: var(--tw-paper-0);
+  --tw-color-surface-muted: var(--tw-paper-100);
+  --tw-color-ink: var(--tw-ink-950);
+  --tw-color-ink-secondary: var(--tw-ink-500);
+  --tw-color-border: #d9d6cd;
+  --tw-color-divider: #e7e2d8;
+  --tw-color-action: var(--tw-ink-950);
+  --tw-color-action-hover: #354040;
+  --tw-color-on-action: var(--tw-paper-0);
+  --tw-color-link: #3c524f;
+  --tw-color-decorative: var(--tw-gold-400);
+  --tw-color-accent-text: var(--tw-gold-700);
+  --tw-color-focus: var(--tw-gold-700);
+  --tw-color-selected: #f1ede3;
+  --tw-color-overlay: rgba(255,255,255,.93);
+  /* Typography */
+  --tw-font-sans: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --tw-font-editorial: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+  --tw-font-display: var(--tw-font-editorial);
+  /* Geometry */
+  --tw-radius-control: 10px;
+  --tw-radius-overlay: 14px;
+  --tw-radius-card: 16px;
+  --tw-radius-pill: 999px;
+  --tw-space-1: 4px;
+  --tw-space-2: 8px;
+  --tw-space-3: 12px;
+  --tw-space-4: 16px;
+  --tw-space-6: 24px;
+  --tw-space-8: 32px;
+  --tw-space-12: 48px;
+  /* Shadows: reserved for overlays, not every card */
+  --tw-shadow-card: 0 6px 26px rgba(32,37,39,.045);
+  --tw-shadow-overlay: 0 16px 48px rgba(27,37,38,.13);
+  --tw-shadow-dialog: 0 24px 68px rgba(27,37,38,.24);
+  --tw-blur-overlay: 14px;
+  /* Timing */
+  --tw-motion-fast: 160ms;
+  --tw-motion-panel: 280ms;
+  --tw-motion-reveal: 720ms;
+  --tw-ease-standard: cubic-bezier(.2,.8,.2,1);
+}
+
+/* Tailwind CSS 4, import this AFTER @import 'tailwindcss' in src/index.css. */
+@theme inline {
+  --color-tw-canvas: var(--tw-color-canvas);
+  --color-tw-surface: var(--tw-color-surface);
+  --color-tw-ink: var(--tw-color-ink);
+  --color-tw-muted: var(--tw-color-ink-secondary);
+  --color-tw-accent: var(--tw-color-decorative);
+  --color-tw-accent-text: var(--tw-color-accent-text);
+  --color-tw-border: var(--tw-color-border);
+  --font-tw-editorial: var(--tw-font-editorial);
+  --font-tw-sans: var(--tw-font-sans);
+}
+
+/* Only the story stage inherits a scene theme. SiteHeader / editor stay in Brand Shell. */
+[data-experience-skin='noir'] {
+  --tw-scene-bg: #101820;
+  --tw-scene-ink: #f0efeb;
+  --tw-scene-muted: #b7bfca;
+  --tw-scene-accent: #d5b487;
+  --tw-scene-overlay: rgba(12,18,25,.83);
+}
+[data-experience-skin='heritage'] {
+  --tw-scene-bg: #1d2924;
+  --tw-scene-ink: #f6efe0;
+  --tw-scene-muted: #cbbca7;
+  --tw-scene-accent: #d8b87a;
+  --tw-scene-overlay: rgba(25,35,29,.84);
+}
+[data-experience-skin='cosmos'] {
+  --tw-scene-bg: #09172b;
+  --tw-scene-ink: #eaf6ff;
+  --tw-scene-muted: #a9c7dc;
+  --tw-scene-accent: #90d8f7;
+  --tw-scene-overlay: rgba(6,16,32,.84);
+}
+
+/* Global utility: keep visible focus for keyboard access. */
+:where(a, button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--tw-color-focus);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --tw-motion-fast: 0ms;
+    --tw-motion-panel: 0ms;
+    --tw-motion-reveal: 0ms;
+  }
+}
